@@ -75,7 +75,7 @@
     /* 與中心欄的列高一致，固定比例避免畫布拉伸與觸控座標偏移。 */
     width: min(
       100%,
-      calc((100dvh - 152px - env(safe-area-inset-top) - env(safe-area-inset-bottom)) * 1.6)
+      calc((100dvh - 170px - env(safe-area-inset-top) - env(safe-area-inset-bottom)) * 1.6)
     );
     max-width: none;
     margin: auto;
