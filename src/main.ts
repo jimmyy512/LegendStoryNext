@@ -1,6 +1,7 @@
 import './style.css';
 import './ui/combat.css';
 import './ui/loading.css';
+import './ui/mobile.css';
 import { LoadingScreen } from './ui/LoadingScreen';
 
 const loading = new LoadingScreen();

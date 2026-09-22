@@ -23,7 +23,7 @@ export class GameView {
     this.side.innerHTML = `<div class="side-title">初入全真<span>壹</span></div><p class="intro-copy">你循著一封舊信來到山腳。<br/><br/>松林深處，鐘聲正響。<br/>有人等你拜師，<br/>有人等你問起往事。</p><div class="note-card">回合之間，見招拆招。<br/>一念之差，江湖不同。</div>`;
     this.overlay.innerHTML = `<div class="title-screen"><div class="title-emblem">江湖</div><p class="eyebrow">A JOURNEY OF YOUR OWN</p><h2>口袋江湖</h2><p class="title-sub">初入全真 · 第一回</p><div class="title-actions">${button('踏入江湖 <span>→</span>', 'new', 'primary')}${button('繼續旅程', 'continue')}${button('讀取存檔', 'load-menu')}</div><small>場景與人物為原型示意美術</small></div>`;
     this.footer.innerHTML =
-      '<div class="explore-footer"><span>探索 · 選擇 · 成長</span><span>電腦瀏覽器優先</span></div>';
+      '<div class="explore-footer"><span>探索 · 選擇 · 成長</span><span>手機橫向 · 電腦皆可遊玩</span></div>';
   }
 
   renderExploration(state: GameState, notice: string): void {

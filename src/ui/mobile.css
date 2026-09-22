@@ -1,0 +1,263 @@
+/* 橫向手機的可用高度比寬度更重要，側欄獨立捲動保留地圖與操作列。 */
+@media (orientation: landscape) and (max-height: 600px) and (max-width: 1100px) {
+  #app {
+    height: 100dvh;
+    padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom)
+      env(safe-area-inset-left);
+    display: flex;
+    flex-direction: column;
+  }
+  .topbar {
+    height: 40px;
+    min-height: 40px;
+    width: 100%;
+    padding: 0 12px;
+  }
+  .brand {
+    font-size: 16px;
+    gap: 8px;
+  }
+  .seal {
+    width: 25px;
+    height: 28px;
+    font-size: 20px;
+  }
+  .brand small,
+  .chapter-header,
+  .version,
+  .page-footer {
+    display: none;
+  }
+  .game-layout {
+    display: grid;
+    grid-template-columns: 104px minmax(0, 1fr) 158px;
+    gap: 10px;
+    padding: 6px 10px;
+    min-height: 0;
+    flex: 1;
+    width: 100%;
+    overflow: hidden;
+  }
+  .left-panel,
+  .right-panel {
+    display: block;
+    min-height: 0;
+    max-height: none;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    scrollbar-width: thin;
+  }
+  .center-panel {
+    min-width: 0;
+    min-height: 0;
+    display: grid;
+    grid-template-rows: 28px minmax(0, 1fr) 80px;
+    gap: 4px;
+  }
+  .map-heading {
+    min-height: 0;
+    margin: 0;
+  }
+  .map-heading .eyebrow,
+  .map-weather {
+    display: none;
+  }
+  .map-heading h1 {
+    font-size: 17px;
+    letter-spacing: 2px;
+    margin: 0;
+  }
+  .round-badge {
+    padding: 3px 6px;
+    font-size: 11px;
+  }
+  .stage-frame {
+    /* 與中心欄的列高一致，固定比例避免畫布拉伸與觸控座標偏移。 */
+    width: min(
+      100%,
+      calc((100dvh - 152px - env(safe-area-inset-top) - env(safe-area-inset-bottom)) * 1.6)
+    );
+    max-width: none;
+    margin: auto;
+    padding: 0;
+  }
+  #stage-overlay {
+    inset: 0;
+  }
+  #footer {
+    min-height: 0;
+    overflow-y: auto;
+  }
+  .explore-footer,
+  .battle-hint {
+    padding: 3px 0;
+    font-size: 10px;
+    line-height: 1.4;
+  }
+  .explore-footer > span:first-child {
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+  .key-hint,
+  .quickbar button span {
+    display: none;
+  }
+  .quickbar {
+    gap: 3px;
+  }
+  .quickbar button {
+    min-height: 44px;
+    padding: 5px 2px;
+    font-size: 11px;
+    white-space: normal;
+  }
+  .side-title {
+    font-size: 12px;
+    padding: 4px 0 8px;
+    letter-spacing: 1px;
+  }
+  .left-panel .hero-portrait,
+  .hero-school,
+  .left-panel .inner-art {
+    display: none;
+  }
+  .hero-name {
+    margin: 8px 0;
+    flex-wrap: wrap;
+  }
+  .hero-name h2 {
+    font-size: 16px;
+  }
+  .stat-grid,
+  .silver {
+    margin: 8px 0;
+    padding: 8px 0;
+  }
+  .quest-summary {
+    padding: 8px 0;
+  }
+  .quest-summary h2 {
+    font-size: 16px;
+    margin: 6px 0;
+  }
+  .entity-list {
+    display: block;
+    max-height: none;
+    overflow: visible;
+  }
+  .entity-row {
+    min-height: 44px;
+    padding: 8px 2px;
+    gap: 6px;
+  }
+  .text-button,
+  .body-part {
+    min-height: 44px;
+  }
+  .title-emblem,
+  .title-screen > .eyebrow,
+  .title-screen > small {
+    display: none;
+  }
+  .title-screen h2 {
+    font-size: 26px;
+    letter-spacing: 6px;
+    margin: 4px 0;
+  }
+  .title-sub {
+    font-size: 10px;
+  }
+  .title-actions {
+    flex-direction: row;
+    width: auto;
+    gap: 5px;
+    margin: 10px 5px 0;
+  }
+  .title-actions button {
+    min-height: 44px;
+    padding: 6px;
+    font-size: 11px;
+    letter-spacing: 0;
+  }
+  .title-actions .primary span {
+    padding-left: 2px;
+  }
+  .battle-commands {
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    gap: 3px;
+  }
+  .battle-commands button {
+    min-height: 44px;
+    padding: 4px 2px;
+    justify-content: center;
+  }
+  .battle-commands strong,
+  .battle-commands small {
+    display: none;
+  }
+  .battle-commands span {
+    font-size: 11px;
+  }
+  .battle-banner > span {
+    font-size: 18px;
+    letter-spacing: 3px;
+  }
+  .battle-banner > small {
+    font-size: 9px;
+    letter-spacing: 0;
+  }
+  .enemy-cards {
+    display: flex;
+    margin-top: 8px;
+  }
+  .enemy-card {
+    padding: 8px;
+  }
+  .battle-result {
+    flex-direction: row;
+    align-items: center;
+    padding: 6px 0;
+  }
+  .battle-result h3 {
+    font-size: 12px;
+    margin: 4px 0;
+  }
+  .modal-backdrop {
+    padding: max(8px, env(safe-area-inset-top)) max(12px, env(safe-area-inset-right))
+      max(8px, env(safe-area-inset-bottom)) max(12px, env(safe-area-inset-left));
+  }
+  .modal {
+    max-height: 100%;
+    padding: 16px;
+  }
+  .modal-heading {
+    margin-bottom: 12px;
+  }
+  .close-button {
+    min-width: 44px;
+    min-height: 44px;
+  }
+  .dialogue-layout {
+    grid-template-columns: 1fr;
+    min-height: 0;
+  }
+  .dialogue-portrait {
+    display: none;
+  }
+  .dialogue-content {
+    padding: 0;
+  }
+  .dialogue-content h2 {
+    margin: 6px 0 10px;
+    font-size: 21px;
+  }
+  .dialogue-line {
+    min-height: 0;
+    font-size: 16px;
+    line-height: 1.7;
+  }
+  .dialogue-progress {
+    margin: 8px 0;
+  }
+}
