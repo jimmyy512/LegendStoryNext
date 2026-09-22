@@ -1,15 +1,21 @@
 import { ENCOUNTERS, ITEMS, QUESTS } from '../data/content';
 import { MAPS } from '../data/maps';
 import { type Battle, type BattleAction } from '../game/battle';
-import { BODY_PARTS, type BodyPart } from '../game/body';
+import { BODY_PARTS, PART_NAMES, PART_CAPACITY, type BodyPart } from '../game/body';
 import { GameSession } from '../game/GameSession';
 import { decodeSave, encodeSave, type SaveSlot } from '../game/save';
 import { createGame } from '../game/state';
-import { getDialogue, type Dialogue } from '../game/story';
+import { getDialogue, isEntityVisible, type Dialogue } from '../game/story';
 import type { GameState, ItemId, MapEntity, Route } from '../game/types';
 import { World } from '../render/world';
-import { dialoguePortrait } from '../ui/dialoguePortrait';
-import { button, escapeHtml as esc, meter } from '../ui/html';
+import {
+  action as makeAction,
+  heading,
+  paragraph,
+  type GamePanel,
+  type PanelRow,
+} from '../ui/canvas/model';
+import { creationPanel, dialoguePanel, endingPanel, medicinePanel } from '../ui/canvas/storyPanels';
 
 import { TransitionController } from '../core/TransitionController';
 import { AssetService } from '../services/AssetService';
@@ -18,7 +24,7 @@ import { SaveRepository } from '../services/SaveRepository';
 import type { SettingsRepository } from '../services/SettingsRepository';
 import { GameView } from '../ui/GameView';
 import type { LoadingScreen } from '../ui/LoadingScreen';
-import { PanelView, type Panel } from '../ui/PanelView';
+import { injuryRows, PanelView, type Panel } from '../ui/PanelView';
 
 export class GameApplication {
   private audio = new AudioService();
@@ -35,55 +41,30 @@ export class GameApplication {
     return this.session.battle;
   }
   private selectedTarget = 0;
-  private modal: HTMLElement;
   private view: GameView;
   private panels = new PanelView();
-  private overlay: HTMLElement;
   private dialogue: Dialogue | null = null;
   private dialogueIndex = 0;
   private panel: Panel | null = null;
-  private lastFocus: HTMLElement | null = null;
-  private toastTimer = 0;
-  private notice = '點擊地面移動，或點選右側地點前往互動。';
+  private draft: { name: string; route: Route } = { name: '無名', route: 'sword' };
+  private pendingImport: GameState | null = null;
+  private notice = '點擊地面移動，或點選附近地點前往互動。';
   private reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
   constructor(
     private readonly saves: SaveRepository,
     private readonly assets: AssetService,
-    loading: LoadingScreen,
+    private readonly loading: LoadingScreen,
     private readonly settings: SettingsRepository,
   ) {
     this.audio.setVolume(settings.readVolume());
     this.audio.setActive(document.visibilityState === 'visible');
     this.transitions = new TransitionController(loading);
-    document.querySelector('#app')!.innerHTML = `
-      <header class="topbar"><a class="brand" href="#" data-action="menu"><span class="seal">俠</span><span>口袋江湖<small>LEGEND STORY</small></span></a><div class="chapter-header"><span class="chapter-line"></span><span>第一章 · 初入全真</span><span class="chapter-line"></span></div><span class="version">可玩原型 <i>〇一</i></span></header>
-      <main class="game-layout"><aside class="left-panel" id="hud"></aside><section class="center-panel"><div class="map-heading" id="map-heading"></div><div class="stage-frame"><div id="canvas-host"></div><div id="stage-overlay"></div><div class="frame-corner tl"></div><div class="frame-corner tr"></div><div class="frame-corner bl"></div><div class="frame-corner br"></div></div><div id="footer"></div></section><aside class="right-panel" id="side"></aside></main>
-      <footer class="page-footer"><span>山河遠闊，且行且看。</span><span>單人冒險 · 本機存檔 <span class="dot"></span> PIXI.JS</span></footer>
-      <div class="modal-backdrop" id="modal" hidden></div><div id="toast" role="status" aria-live="polite"></div><input type="file" accept=".json,application/json" id="import-file" hidden />`;
-    this.modal = document.querySelector('#modal')!;
-    this.view = new GameView(
-      document.querySelector('#hud')!,
-      document.querySelector('#side')!,
-      document.querySelector('#footer')!,
-      document.querySelector('#stage-overlay')!,
-    );
-    this.overlay = document.querySelector('#stage-overlay')!;
-    document.addEventListener(
-      'click',
-      (event) => {
-        const target = (event.target as HTMLElement).closest<HTMLElement>('[data-action]');
-        if (!target || (target as HTMLButtonElement).disabled) {
-          return;
-        }
-        event.preventDefault();
-        void this.audio.unlock().then(() => this.audio.play('ui'));
-        void this.handle(target.dataset.action!).catch((error: unknown) =>
-          this.toast(error instanceof Error ? error.message : '操作失敗。'),
-        );
-      },
-      { signal: this.lifetime.signal },
-    );
+    document.body.classList.add('game-active');
+    document.querySelector('#app')!.innerHTML =
+      '<div id="canvas-host"></div><input type="file" accept=".json,application/json" id="import-file" hidden />';
+    this.view = new GameView(this.world.ui, (action) => this.dispatch(action));
+    this.world.onResize = (width, height) => this.view.resize(width, height);
     document.addEventListener(
       'keydown',
       (event) => {
@@ -103,7 +84,7 @@ export class GameApplication {
       this.session.move(point);
     };
     this.world.onInteract = (entity) => this.interact(entity);
-    this.world.onBlocked = () => this.toast('那裡無法通行，請點選道路或右側地點。');
+    this.world.onBlocked = () => this.toast('那裡無法通行，請點選道路或附近地點。');
     this.world.onTarget = (index) => this.selectTarget(index);
     this.world.onUpdate = (seconds) => this.updateBattle(seconds);
     this.playTimer = window.setInterval(() => {
@@ -125,6 +106,7 @@ export class GameApplication {
 
   async init(): Promise<void> {
     await this.world.init(document.querySelector('#canvas-host')!);
+    this.loading.attach(this.view.loading);
     await this.start(createGame('無名', 'sword'), true);
   }
 
@@ -132,7 +114,7 @@ export class GameApplication {
     this.lifetime.abort();
     this.audio.dispose();
     window.clearInterval(this.playTimer);
-    window.clearTimeout(this.toastTimer);
+    this.view.dispose();
     this.world.dispose();
   }
 
@@ -154,7 +136,6 @@ export class GameApplication {
           this.session.start(state);
         }
         this.closeModal(false);
-        this.overlay.innerHTML = '';
         if (home) {
           this.renderHome();
         } else {
@@ -172,7 +153,7 @@ export class GameApplication {
         }
       },
     });
-    this.world.setEnabled(!!this.state && this.modal.hidden && !this.battle);
+    this.world.setEnabled(!!this.state && !this.view.modalVisible && !this.battle);
     return completed;
   }
 
@@ -193,7 +174,7 @@ export class GameApplication {
   }
 
   private interact(entity: MapEntity): void {
-    if (!this.state || this.transitions.busy || this.battle || !this.modal.hidden) {
+    if (!this.state || this.transitions.busy || this.battle || this.view.modalVisible) {
       return;
     }
     if (entity.kind === 'portal') {
@@ -214,14 +195,7 @@ export class GameApplication {
   }
 
   private renderDialogue(): void {
-    const dialogue = this.dialogue!;
-    const last = this.dialogueIndex === dialogue.lines.length - 1;
-    const art = dialoguePortrait(this.dialogueEntity!);
-    this.openModal(
-      `<div class="dialogue-layout"><div class="dialogue-portrait">${art}<span class="portrait-caption">${esc(dialogue.speaker)}</span></div><div class="dialogue-content"><span class="eyebrow">${esc(dialogue.role)}</span><h2>${esc(dialogue.speaker)}</h2><div class="dialogue-line">${esc(dialogue.lines[this.dialogueIndex])}</div><div class="dialogue-progress">${this.dialogueIndex + 1} / ${dialogue.lines.length}</div><div class="dialogue-choices">${last ? dialogue.choices.map((choice) => button(`${esc(choice.label)}${choice.note ? `<small>${esc(choice.note)}</small>` : ''}`, `story:${choice.action}`, 'choice-button')).join('') : button('繼續 <span>→</span>', 'dialogue-next', 'primary')}</div></div></div>`,
-      'dialogue-modal',
-      false,
-    );
+    this.openModal(dialoguePanel(this.dialogue!, this.dialogueIndex));
   }
 
   private chooseStory(action: string): void {
@@ -307,10 +281,13 @@ export class GameApplication {
     const battle = this.battle;
     this.world.setBattleRunning(
       Boolean(
-        battle && !battle.paused && this.modal.hidden && document.visibilityState === 'visible',
+        battle &&
+        !battle.paused &&
+        !this.view.modalVisible &&
+        document.visibilityState === 'visible',
       ),
     );
-    if (!battle || !this.modal.hidden || document.visibilityState !== 'visible') {
+    if (!battle || this.view.modalVisible || document.visibilityState !== 'visible') {
       return;
     }
     const previousResult = battle.result;
@@ -344,7 +321,6 @@ export class GameApplication {
       return;
     }
     this.notice = this.session.finishBattle() ?? this.notice;
-    this.overlay.innerHTML = '';
     this.world.showMap(this.state);
     this.world.setEnabled(true);
     this.renderExploration();
@@ -357,61 +333,91 @@ export class GameApplication {
       return;
     }
     this.panel = panel;
-    const html = this.panels.render(this.state, panel, {
-      saveSlots: panel === 'save' ? this.saveSlots() : '',
+    const panelContent = this.panels.render(this.state, panel, {
+      saveSlots: panel === 'save' ? this.saveSlots() : [],
       reducedMotion: this.reducedMotion,
       audioVolume: this.audio.volume,
     });
-    this.openModal(html, 'panel-modal');
+    this.openModal(panelContent);
   }
 
-  private saveSlots(): string {
-    return `<div class="save-slots">${(['manual', 'auto'] as const)
-      .map((slot) => {
-        try {
-          const record = this.saves.readSave(slot);
-          return `<div class="save-slot"><span class="tiny-label">${slot === 'manual' ? '手動存檔' : '自動存檔'}</span>${record ? `<h3>${esc(record.state.name)} · 第 ${record.state.level} 重</h3><p>${MAPS[record.state.map].name} / ${QUESTS[record.state.quest].title}</p><small>${new Date(record.savedAt).toLocaleString('zh-TW')}</small>${button('讀取這份進度', `load:${slot}`, 'small-button')}` : '<h3>尚無存檔</h3><p>旅程將從這裡留下足跡。</p>'}</div>`;
-        } catch {
-          return `<div class="save-slot"><h3>${slot === 'manual' ? '手動' : '自動'}存檔無法讀取</h3><p>可匯入有效備份，或讀取另一份存檔。</p></div>`;
-        }
-      })
-      .join('')}</div>`;
+  private saveSlots(): PanelRow[] {
+    return (['manual', 'auto'] as const).flatMap((slot) => this.saveSlot(slot));
+  }
+
+  private saveSlot(slot: SaveSlot): PanelRow[] {
+    const title = slot === 'manual' ? '手動存檔' : '自動存檔';
+    try {
+      const record = this.saves.readSave(slot);
+      if (!record) {
+        return [heading(title), paragraph('尚無存檔')];
+      }
+      return [
+        heading(title),
+        paragraph(`${record.state.name} · 第 ${record.state.level} 重
+${MAPS[record.state.map].name} · ${QUESTS[record.state.quest].title}
+${new Date(record.savedAt).toLocaleString('zh-TW')}`),
+        makeAction('讀取這份進度', `load:${slot}`),
+      ];
+    } catch (error) {
+      console.error('Cannot read save slot', slot, error);
+      return [heading(title), paragraph('無法讀取，可匯入備份或讀取另一份存檔。')];
+    }
   }
 
   private showEnding(): void {
-    if (!this.state) {
-      return;
+    if (this.state) {
+      this.openModal(endingPanel(this.state));
     }
-    this.openModal(
-      `<div class="ending"><span class="eyebrow">第一章 · 完</span><div class="ending-seal">俠</div><h2>江湖未遠</h2><p>長恨終於走出了那座山洞。<br/>有些往事還要慢慢說，有些錯也還要慢慢償。</p><p>${this.state.flags.includes('mercy') ? '那個受過你幫助的山賊，在山門外留下一束青蘭。' : '山道重新通行，遠處又傳來了商旅的鈴聲。'}</p><div class="ending-stats"><span>第 ${this.state.level} 重</span><span>${this.state.flags.filter((flag) => flag.endsWith('-done')).length} / 2 支線完成</span><span>${Math.max(1, Math.round(this.state.playSeconds / 60))} 分鐘旅途</span></div><p class="panel-footnote">洛陽篇尚未開放。你仍可探索四個區域、完成支線與整理行囊。</p>${button('留在江湖，繼續探索', 'close', 'primary')}${button('匯出旅程備份', 'export')}</div>`,
-      'ending-modal',
-    );
   }
 
-  private openModal(html: string, className: string, closable = true): void {
-    if (this.modal.hidden) {
-      this.lastFocus = document.activeElement as HTMLElement;
-    }
+  private openModal(panel: GamePanel): void {
     this.world.setEnabled(false);
-    this.modal.innerHTML = `<section class="modal ${className}" role="dialog" aria-modal="true" aria-label="${className === 'dialogue-modal' ? '人物對話' : '遊戲面板'}" data-closable="${closable}">${html}</section>`;
-    this.modal.hidden = false;
-    this.modal.querySelector<HTMLElement>('input, button:not([disabled])')?.focus();
+    this.view.openPanel(panel);
   }
 
   private closeModal(resume = true): void {
-    this.modal.hidden = true;
-    this.modal.innerHTML = '';
+    this.view.closePanel();
     this.dialogue = null;
     this.dialogueEntity = null;
     this.panel = null;
     if (resume && this.state && !this.battle) {
       this.world.setEnabled(true);
     }
-    this.lastFocus?.focus();
+  }
+
+  private dispatch(action: string): void {
+    // 全螢幕和檔案選擇必須保留在使用者手勢呼叫鏈內。
+    if (action === 'fullscreen') {
+      void this.toggleFullscreen();
+      return;
+    }
+    void this.audio.unlock().then(() => this.audio.play('ui'));
+    void this.handle(action).catch((error: unknown) =>
+      this.toast(error instanceof Error ? error.message : '操作失敗。'),
+    );
+  }
+
+  private async toggleFullscreen(): Promise<void> {
+    try {
+      if (document.fullscreenElement) {
+        await document.exitFullscreen();
+      } else if (document.documentElement.requestFullscreen) {
+        await document.documentElement.requestFullscreen();
+      } else {
+        this.toast('目前已填滿遊戲可用區域，這個瀏覽器未提供全螢幕切換。');
+      }
+    } catch (error) {
+      console.error('Fullscreen request failed', error);
+      this.toast('瀏覽器未允許全螢幕，目前維持滿版遊戲。');
+    }
   }
 
   private async handle(action: string): Promise<void> {
     if (this.transitions.busy) {
+      return;
+    }
+    if (await this.handleCanvasAction(action)) {
       return;
     }
     if (action.startsWith('hair:')) {
@@ -442,17 +448,12 @@ export class GameApplication {
       return;
     }
     if (action === 'new') {
-      this.openModal(
-        `<div class="modal-heading"><div><span class="eyebrow">一段新的江湖路</span><h2>留下你的名號</h2></div>${button('×', 'close', 'close-button')}</div><label class="name-label" for="hero-name">俠客姓名</label><input id="hero-name" maxlength="12" value="無名" autocomplete="off"/><h3 class="section-title">選擇初修武學</h3><div class="route-choices"><label class="route-card"><input type="radio" name="route" value="sword" checked/><span class="route-symbol">劍</span><strong>劍法</strong><p>破甲尋隙，先發制人。<br/>清風破甲 · 落雁一劍</p></label><label class="route-card"><input type="radio" name="route" value="fist"/><span class="route-symbol">掌</span><strong>拳掌</strong><p>護體反擊，穩中求勝。<br/>抱元守一 · 伏龍掌</p></label></div><p class="panel-footnote">開始新旅程會更新自動存檔，手動存檔仍會保留。</p>${button('踏入松風林 →', 'create', 'primary wide')}`,
-        'panel-modal',
-      );
+      this.draft = { name: '無名', route: 'sword' };
+      this.openModal(creationPanel(this.draft));
       return;
     }
     if (action === 'create') {
-      const name = document.querySelector<HTMLInputElement>('#hero-name')!.value;
-      const route = document.querySelector<HTMLInputElement>('input[name="route"]:checked')!
-        .value as Route;
-      await this.start(createGame(name, route));
+      await this.start(createGame(this.draft.name, this.draft.route));
       return;
     }
     if (action === 'continue') {
@@ -469,19 +470,23 @@ export class GameApplication {
       return;
     }
     if (action === 'load-menu') {
-      this.openModal(
-        `<div class="modal-heading"><h2>讀取旅程</h2>${button('×', 'close', 'close-button')}</div>${this.saveSlots()}<div class="save-actions">${button('匯入備份', 'import')}</div>`,
-        'panel-modal',
-      );
+      this.openModal({
+        title: '讀取旅程',
+        rows: [...this.saveSlots(), makeAction('匯入備份', 'import')],
+      });
       return;
     }
     if (action.startsWith('load:')) {
       const slot = action.slice(5) as SaveSlot;
       if (this.state) {
-        this.openModal(
-          `<div class="modal-heading"><h2>讀取這份進度？</h2></div><p>目前未儲存的進度會被取代。</p><div class="save-actions">${button('確定讀取', `confirm-load:${slot}`, 'primary')}${button('取消', 'panel:save')}</div>`,
-          'panel-modal',
-        );
+        this.openModal({
+          title: '讀取這份進度？',
+          rows: [
+            paragraph('目前未儲存的進度會被取代。'),
+            makeAction('確定讀取', `confirm-load:${slot}`),
+            makeAction('取消', 'panel:save'),
+          ],
+        });
       } else {
         await this.load(slot);
       }
@@ -520,7 +525,7 @@ export class GameApplication {
     if (!this.state) {
       return;
     }
-    if (action.startsWith('entity:') && this.modal.hidden && !this.battle) {
+    if (action.startsWith('entity:') && !this.view.modalVisible && !this.battle) {
       const entity = MAPS[this.state.map].entities.find((entry) => entry.id === action.slice(7));
       if (entity) {
         this.world.navigate(entity);
@@ -605,11 +610,7 @@ export class GameApplication {
       return;
     }
     if (action === 'battle:items' && this.battle) {
-      const stats = this.battle.stats;
-      this.openModal(
-        `<div class="modal-heading"><h2>戰鬥藥品</h2>${button('×', 'close', 'close-button')}</div>${meter('生命', this.battle.player.hp, stats.maxHp)}${meter('內力', this.battle.player.mp, stats.maxMp, 'mp')}<p>使用藥品會消耗本次行動。</p><div class="dialogue-choices">${(['herb', 'tonic', 'elixir'] as const).map((id) => button(`${ITEMS[id].name} ×${this.battle!.player.inventory[id]}<small>${ITEMS[id].description}</small>`, `battle:item:${id}`, 'choice-button', !this.battle!.player.inventory[id])).join('')}</div>`,
-        'panel-modal',
-      );
+      this.openModal(medicinePanel(this.battle));
       return;
     }
     if (action.startsWith('battle:item:')) {
@@ -629,6 +630,95 @@ export class GameApplication {
       this.showPanel(panel);
       this.autoSave();
     }
+  }
+
+  private async handleCanvasAction(action: string): Promise<boolean> {
+    if (action.startsWith('route:')) {
+      this.draft.route = action === 'route:fist' ? 'fist' : 'sword';
+      this.openModal(creationPanel(this.draft));
+    } else if (action === 'game-menu') {
+      this.openModal({
+        title: '江湖選單',
+        rows: [
+          makeAction('存檔與讀檔', 'panel:save'),
+          makeAction('旅途設定', 'panel:settings'),
+          makeAction('儲存並返回主選單', 'menu-confirm'),
+        ],
+      });
+    } else if (action === 'nearby' && this.state) {
+      this.showNearby();
+    } else if (action.startsWith('travel:') && this.state) {
+      this.closeModal();
+      await this.handle(`entity:${action.slice(7)}`);
+    } else if (action === 'confirm-import' && this.pendingImport) {
+      const state = this.pendingImport;
+      this.pendingImport = null;
+      if (await this.start(state)) {
+        this.toast('備份已匯入。');
+      }
+    } else {
+      return this.handleBattlePanel(action);
+    }
+    return true;
+  }
+
+  private showNearby(): void {
+    const state = this.state!;
+    this.openModal({
+      title: `${MAPS[state.map].name} · 附近`,
+      rows: MAPS[state.map].entities
+        .filter((entity) => isEntityVisible(state, entity))
+        .map((entity) =>
+          makeAction(
+            `${entity.name} · ${{ npc: '交談', enemy: '戰鬥', portal: '前往', chest: '查看', herb: '採集', clue: '調查' }[entity.kind]}`,
+            `travel:${entity.id}`,
+          ),
+        ),
+    });
+  }
+
+  private handleBattlePanel(action: string): boolean {
+    const battle = this.battle;
+    if (!battle) {
+      return false;
+    }
+    if (action === 'battle-targets') {
+      this.openModal({
+        title: '選擇敵人',
+        rows: battle.enemies.map((enemy, index) => ({
+          ...makeAction(
+            `${enemy.name} · 生命 ${enemy.hp}/${enemy.stats.maxHp}\n${battle.intent(index)}`,
+            `pick-target:${index}`,
+          ),
+          disabled: enemy.hp <= 0,
+        })),
+      });
+    } else if (action === 'battle-parts') {
+      const body = battle.enemies[this.selectedTarget].body;
+      this.openModal({
+        title: '選擇攻擊部位',
+        rows: BODY_PARTS.map((part) => ({
+          ...makeAction(
+            `${PART_NAMES[part]} ${body[part]}/${PART_CAPACITY[part]}`,
+            `pick-body:${part}`,
+          ),
+          selected: battle.targetPart === part,
+        })),
+      });
+    } else if (action === 'injuries') {
+      this.openModal({ title: '我的傷勢', rows: injuryRows(battle.player) });
+    } else if (action.startsWith('pick-target:') || action.startsWith('pick-body:')) {
+      this.closeModal(false);
+      if (action.startsWith('pick-target:')) {
+        this.selectTarget(Number(action.slice(12)));
+      } else {
+        battle.targetPart = action.slice(10) as BodyPart;
+        this.renderBattle();
+      }
+    } else {
+      return false;
+    }
+    return true;
   }
 
   private async load(slot: SaveSlot): Promise<void> {
@@ -658,23 +748,16 @@ export class GameApplication {
       }
       const record = decodeSave(await file.text());
       const summary = `${record.state.name} · ${MAPS[record.state.map].name} · ${QUESTS[record.state.quest].title}`;
-      this.openModal(
-        `<div class="modal-heading"><h2>匯入旅程備份？</h2></div><p>${esc(summary)}</p><p>確認後將接續這份旅程，並更新自動存檔。手動存檔會保留。</p><div class="save-actions"><button class="primary" id="confirm-import">確定匯入</button>${button('取消', 'close')}</div>`,
-        'panel-modal',
-      );
-      document.querySelector('#confirm-import')!.addEventListener(
-        'click',
-        () => {
-          void this.start(record.state)
-            .then((completed) => {
-              if (completed) {
-                this.toast('備份已匯入。');
-              }
-            })
-            .catch((error: Error) => this.toast(error.message));
-        },
-        { once: true },
-      );
+      this.pendingImport = record.state;
+      this.openModal({
+        title: '匯入旅程備份？',
+        rows: [
+          paragraph(summary),
+          paragraph('確認後將接續這份旅程，並更新自動存檔。手動存檔會保留。'),
+          makeAction('確定匯入', 'confirm-import'),
+          makeAction('取消', 'close'),
+        ],
+      });
     } catch (error) {
       this.toast(error instanceof Error ? `匯入失敗：${error.message}` : '無法匯入此檔案。');
     }
@@ -692,15 +775,11 @@ export class GameApplication {
   }
 
   private toast(message: string): void {
-    const toast = document.querySelector<HTMLElement>('#toast')!;
-    toast.textContent = message;
-    toast.classList.add('visible');
-    window.clearTimeout(this.toastTimer);
-    this.toastTimer = window.setTimeout(() => toast.classList.remove('visible'), 4200);
+    this.view.toast(message);
   }
 
   private keydown(event: KeyboardEvent): void {
-    if (event.code === 'Space' && this.battle && this.modal.hidden) {
+    if (event.code === 'Space' && this.battle && !this.view.modalVisible) {
       event.preventDefault();
       if (event.repeat) {
         return;
@@ -709,32 +788,12 @@ export class GameApplication {
       this.renderBattle();
       return;
     }
-    if (this.transitions.busy || this.modal.hidden) {
+    if (this.transitions.busy || !this.view.modalVisible) {
       return;
     }
     if (event.key === 'Escape' && !this.dialogue) {
       this.closeModal();
       return;
-    }
-    if (event.key !== 'Tab') {
-      return;
-    }
-    const focusable = [
-      ...this.modal.querySelectorAll<HTMLElement>(
-        'button:not([disabled]), input:not([disabled]), a[href]',
-      ),
-    ];
-    if (!focusable.length) {
-      return;
-    }
-    const first = focusable[0];
-    const last = focusable[focusable.length - 1];
-    if (event.shiftKey && document.activeElement === first) {
-      event.preventDefault();
-      last.focus();
-    } else if (!event.shiftKey && document.activeElement === last) {
-      event.preventDefault();
-      first.focus();
     }
   }
 }

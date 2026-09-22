@@ -63,6 +63,10 @@ export class ExplorationScene extends PixiScene {
     addAtmosphere(this.root, state.map === 'cave');
   }
 
+  get cameraFocus(): Point {
+    return { x: this.hero.x, y: this.hero.y };
+  }
+
   navigate(entity: MapEntity): void {
     if (!this.enabled || !this.state) {
       return;

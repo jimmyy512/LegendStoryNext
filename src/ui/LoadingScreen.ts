@@ -1,5 +1,7 @@
+import type { TransitionView } from '../core/TransitionController';
 /** 引擎尚未下載時也能顯示，不能依賴 Pixi 或遊戲模組。 */
 export class LoadingScreen {
+  private canvas: TransitionView | null = null;
   private element = document.createElement('div');
   private lastFocus: HTMLElement | null = null;
 
@@ -12,7 +14,16 @@ export class LoadingScreen {
     document.body.appendChild(this.element);
   }
 
+  attach(canvas: TransitionView): void {
+    this.hide();
+    this.canvas = canvas;
+  }
+
   show(message: string, progress: number | null = null): void {
+    if (this.canvas) {
+      this.canvas.show(message, progress);
+      return;
+    }
     if (this.element.hidden) {
       this.lastFocus = document.activeElement as HTMLElement;
     }
@@ -30,6 +41,9 @@ export class LoadingScreen {
   }
 
   async askRetry(error: unknown, cancellable: boolean): Promise<boolean> {
+    if (this.canvas) {
+      return this.canvas.askRetry(error, cancellable);
+    }
     this.element.querySelector('h2')!.textContent = '畫卷暫時無法展開';
     this.element.querySelector('p')!.textContent =
       error instanceof Error ? error.message : '載入失敗，請確認網路後重試。';
@@ -46,6 +60,7 @@ export class LoadingScreen {
   }
 
   hide(): void {
+    this.canvas?.hide();
     this.element.hidden = true;
     document.querySelector<HTMLElement>('#app')?.removeAttribute('inert');
     if (this.lastFocus?.isConnected) {

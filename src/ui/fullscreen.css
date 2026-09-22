@@ -1,0 +1,34 @@
+/* 正式遊戲只有一張滿版畫布；開發預覽仍保留各自的網頁。 */
+body.game-active {
+  min-width: 0;
+  overflow: hidden;
+  overscroll-behavior: none;
+  background: #142c29;
+}
+.game-active #app {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100dvh;
+  margin: 0;
+  padding: 0;
+  display: block;
+}
+.game-active #canvas-host {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  aspect-ratio: auto;
+  padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom)
+    env(safe-area-inset-left);
+  overflow: hidden;
+}
+.game-active #canvas-host canvas {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100% !important;
+  height: 100% !important;
+  touch-action: none;
+}
