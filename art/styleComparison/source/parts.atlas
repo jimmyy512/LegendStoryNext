@@ -1,0 +1,68 @@
+heroine-parts-v1.png
+size: 1254,1254
+format: RGBA8888
+filter: Linear,Linear
+repeat: none
+head
+  rotate: false
+  xy: 0, 0
+  size: 420, 440
+  orig: 420, 440
+  offset: 0, 0
+  index: -1
+torso
+  rotate: false
+  xy: 466, 0
+  size: 360, 440
+  orig: 360, 440
+  offset: 0, 0
+  index: -1
+hair
+  rotate: false
+  xy: 843, 0
+  size: 411, 443
+  orig: 411, 443
+  offset: 0, 0
+  index: -1
+upperBack
+  rotate: false
+  xy: 126, 447
+  size: 186, 351
+  orig: 186, 351
+  offset: 0, 0
+  index: -1
+upperFront
+  rotate: false
+  xy: 550, 447
+  size: 204, 351
+  orig: 204, 351
+  offset: 0, 0
+  index: -1
+palmBack
+  rotate: false
+  xy: 937, 439
+  size: 217, 365
+  orig: 217, 365
+  offset: 0, 0
+  index: -1
+palmFront
+  rotate: false
+  xy: 94, 809
+  size: 198, 439
+  orig: 198, 439
+  offset: 0, 0
+  index: -1
+legBack
+  rotate: false
+  xy: 497, 800
+  size: 280, 454
+  orig: 280, 454
+  offset: 0, 0
+  index: -1
+legFront
+  rotate: false
+  xy: 928, 800
+  size: 326, 454
+  orig: 326, 454
+  offset: 0, 0
+  index: -1

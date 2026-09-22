@@ -1,0 +1,117 @@
+hero-parts-v001.png
+size: 1254, 1254
+format: RGBA8888
+filter: Linear, Linear
+repeat: none
+head
+  rotate: false
+  xy: 70, 30
+  size: 200, 280
+  orig: 200, 280
+  offset: 0, 0
+  index: -1
+hair-topknot
+  rotate: false
+  xy: 365, 20
+  size: 205, 300
+  orig: 205, 300
+  offset: 0, 0
+  index: -1
+hair-tied
+  rotate: false
+  xy: 680, 30
+  size: 235, 280
+  orig: 235, 280
+  offset: 0, 0
+  index: -1
+torso-ivory
+  rotate: false
+  xy: 970, 25
+  size: 260, 300
+  orig: 260, 300
+  offset: 0, 0
+  index: -1
+torso-jade
+  rotate: false
+  xy: 40, 320
+  size: 240, 305
+  orig: 240, 305
+  offset: 0, 0
+  index: -1
+upper-ivory
+  rotate: false
+  xy: 380, 330
+  size: 190, 280
+  orig: 190, 280
+  offset: 0, 0
+  index: -1
+forearm-ivory
+  rotate: false
+  xy: 725, 335
+  size: 140, 280
+  orig: 140, 280
+  offset: 0, 0
+  index: -1
+upper-jade
+  rotate: false
+  xy: 990, 330
+  size: 190, 280
+  orig: 190, 280
+  offset: 0, 0
+  index: -1
+forearm-jade
+  rotate: false
+  xy: 85, 660
+  size: 125, 245
+  orig: 125, 245
+  offset: 0, 0
+  index: -1
+hand
+  rotate: false
+  xy: 400, 650
+  size: 150, 245
+  orig: 150, 245
+  offset: 0, 0
+  index: -1
+thigh
+  rotate: false
+  xy: 695, 630
+  size: 185, 280
+  orig: 185, 280
+  offset: 0, 0
+  index: -1
+shin
+  rotate: false
+  xy: 1020, 630
+  size: 150, 285
+  orig: 150, 285
+  offset: 0, 0
+  index: -1
+shoe
+  rotate: false
+  xy: 40, 1000
+  size: 255, 180
+  orig: 255, 180
+  offset: 0, 0
+  index: -1
+sword-plain
+  rotate: false
+  xy: 428, 907
+  size: 87, 325
+  orig: 87, 325
+  offset: 0, 0
+  index: -1
+sword-jade
+  rotate: false
+  xy: 728, 908
+  size: 117, 326
+  orig: 117, 326
+  offset: 0, 0
+  index: -1
+hair-back
+  rotate: false
+  xy: 1040, 915
+  size: 170, 323
+  orig: 170, 323
+  offset: 0, 0
+  index: -1

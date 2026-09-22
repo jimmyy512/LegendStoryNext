@@ -1,0 +1,44 @@
+.loading-screen {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: grid;
+  place-items: center;
+  background: rgb(13 28 25 / 94%);
+  backdrop-filter: blur(9px);
+}
+.loading-screen[hidden] {
+  display: none;
+}
+.loading-card {
+  width: min(440px, 85vw);
+  text-align: center;
+  color: #e8ddbf;
+}
+.loading-card .seal {
+  display: inline-grid;
+  margin-bottom: 28px;
+}
+.loading-card h2 {
+  font-size: 24px;
+  font-weight: 400;
+  letter-spacing: 3px;
+}
+.loading-card p {
+  color: #a9b4a0;
+  font-size: 13px;
+  line-height: 1.8;
+  overflow-wrap: anywhere;
+}
+.loading-card progress {
+  width: 100%;
+  height: 5px;
+  margin: 25px 0 8px;
+  accent-color: #c7a874;
+}
+.loading-actions {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 25px;
+}

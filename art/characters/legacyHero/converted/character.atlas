@@ -1,0 +1,727 @@
+
+character.png
+size: 1024,1024
+format: RGBA8888
+filter: Linear,Linear
+repeat: none
+LeftHand
+  rotate: false
+  xy: 273, 657
+  size: 25, 37
+  orig: 25, 37
+  offset: 0, 0
+  index: -1
+LeftHand1
+  rotate: false
+  xy: 166, 739
+  size: 25, 29
+  orig: 25, 29
+  offset: 0, 0
+  index: -1
+LeftHand2
+  rotate: false
+  xy: 135, 717
+  size: 29, 41
+  orig: 29, 41
+  offset: 0, 0
+  index: -1
+4LeftUpArmBlody
+  rotate: false
+  xy: 683, 240
+  size: 35, 62
+  orig: 35, 62
+  offset: 0, 0
+  index: -1
+4LeftDownArmBlody
+  rotate: false
+  xy: 304, 713
+  size: 36, 41
+  orig: 36, 41
+  offset: 0, 0
+  index: -1
+4LeftFootBlody
+  rotate: false
+  xy: 244, 533
+  size: 33, 19
+  orig: 33, 19
+  offset: 0, 0
+  index: -1
+4LeftCalfBlody
+  rotate: false
+  xy: 273, 696
+  size: 24, 38
+  orig: 24, 38
+  offset: 0, 0
+  index: -1
+4LeftBigLegBlody
+  rotate: false
+  xy: 221, 634
+  size: 24, 55
+  orig: 24, 55
+  offset: 0, 0
+  index: -1
+4RightFootBlody
+  rotate: false
+  xy: 89, 806
+  size: 33, 19
+  orig: 33, 19
+  offset: 0, 0
+  index: -1
+4RightCalfBlody
+  rotate: false
+  xy: 266, 736
+  size: 22, 38
+  orig: 22, 38
+  offset: 0, 0
+  index: -1
+4RightBigLegBlody
+  rotate: false
+  xy: 332, 654
+  size: 25, 56
+  orig: 25, 56
+  offset: 0, 0
+  index: -1
+4DownBodyBlody
+  rotate: false
+  xy: 877, 429
+  size: 54, 30
+  orig: 54, 30
+  offset: 0, 0
+  index: -1
+4UpBodyBlody
+  rotate: false
+  xy: 67, 486
+  size: 67, 82
+  orig: 67, 82
+  offset: 0, 0
+  index: -1
+Head1
+  rotate: false
+  xy: 607, 383
+  size: 145, 142
+  orig: 145, 142
+  offset: 0, 0
+  index: -1
+Hair3
+  rotate: false
+  xy: 1, 240
+  size: 236, 204
+  orig: 236, 204
+  offset: 0, 0
+  index: -1
+吸血刀
+  rotate: false
+  xy: 966, 347
+  size: 34, 173
+  orig: 34, 173
+  offset: 0, 0
+  index: -1
+RightHand1
+  rotate: false
+  xy: 904, 461
+  size: 27, 28
+  orig: 27, 28
+  offset: 0, 0
+  index: -1
+RightHand
+  rotate: false
+  xy: 1, 761
+  size: 30, 40
+  orig: 30, 40
+  offset: 0, 0
+  index: -1
+4RightDownArmBlody
+  rotate: false
+  xy: 166, 692
+  size: 23, 45
+  orig: 23, 45
+  offset: 0, 0
+  index: -1
+4RightUpArmBlody
+  rotate: false
+  xy: 414, 421
+  size: 42, 48
+  orig: 42, 48
+  offset: 0, 0
+  index: -1
+taiji_3
+  rotate: false
+  xy: 460, 387
+  size: 126, 105
+  orig: 143, 146
+  offset: 1, 21
+  index: -1
+skillEffect
+  rotate: false
+  xy: 966, 178
+  size: 49, 167
+  orig: 49, 167
+  offset: 0, 0
+  index: -1
+後龍爪
+  rotate: false
+  xy: 607, 240
+  size: 74, 100
+  orig: 74, 101
+  offset: 0, 1
+  index: -1
+龍身
+  rotate: false
+  xy: 1, 1
+  size: 722, 237
+  orig: 722, 237
+  offset: 0, 0
+  index: -1
+前龍爪
+  rotate: false
+  xy: 239, 421
+  size: 62, 110
+  orig: 63, 111
+  offset: 0, 1
+  index: -1
+Effect_fire1
+  rotate: false
+  xy: 607, 342
+  size: 90, 38
+  orig: 91, 38
+  offset: 1, 0
+  index: -1
+Effect_fire2
+  rotate: false
+  xy: 303, 421
+  size: 109, 51
+  orig: 109, 51
+  offset: 0, 0
+  index: -1
+Effect_fire3
+  rotate: false
+  xy: 1, 446
+  size: 168, 38
+  orig: 168, 38
+  offset: 0, 0
+  index: -1
+傻眼眼睛
+  rotate: false
+  xy: 523, 536
+  size: 80, 41
+  orig: 80, 41
+  offset: 0, 0
+  index: -1
+普通眼睛
+  rotate: false
+  xy: 247, 555
+  size: 80, 41
+  orig: 80, 41
+  offset: 0, 0
+  index: -1
+普通嘴巴
+  rotate: false
+  xy: 904, 491
+  size: 17, 5
+  orig: 17, 5
+  offset: 0, 0
+  index: -1
+吐血說話
+  rotate: false
+  xy: 57, 724
+  size: 20, 12
+  orig: 20, 12
+  offset: 0, 0
+  index: -1
+失魂眼睛
+  rotate: false
+  xy: 441, 540
+  size: 80, 41
+  orig: 80, 41
+  offset: 0, 0
+  index: -1
+1LeftUpArmChiuanJen
+  rotate: false
+  xy: 163, 634
+  size: 26, 56
+  orig: 26, 56
+  offset: 0, 0
+  index: -1
+0LeftFootFarmer
+  rotate: false
+  xy: 124, 784
+  size: 31, 21
+  orig: 31, 21
+  offset: 0, 0
+  index: -1
+1LeftFootChiuanJen
+  rotate: false
+  xy: 56, 809
+  size: 31, 21
+  orig: 31, 21
+  offset: 0, 0
+  index: -1
+0RightFootFarmer
+  rotate: false
+  xy: 125, 760
+  size: 31, 22
+  orig: 31, 22
+  offset: 0, 0
+  index: -1
+0RightCalfFarmer
+  rotate: false
+  xy: 1, 803
+  size: 23, 43
+  orig: 23, 43
+  offset: 0, 0
+  index: -1
+2RightCalfNaked
+  rotate: false
+  xy: 220, 738
+  size: 23, 38
+  orig: 23, 38
+  offset: 0, 0
+  index: -1
+2RightFootNaked
+  rotate: false
+  xy: 965, 522
+  size: 31, 20
+  orig: 31, 20
+  offset: 0, 0
+  index: -1
+3RightFootBlueKnight
+  rotate: false
+  xy: 91, 782
+  size: 31, 22
+  orig: 31, 22
+  offset: 0, 0
+  index: -1
+1RightCalfChiuanJen
+  rotate: false
+  xy: 387, 597
+  size: 21, 46
+  orig: 21, 46
+  offset: 0, 0
+  index: -1
+0LeftBigLegFarmer
+  rotate: false
+  xy: 247, 598
+  size: 27, 56
+  orig: 27, 56
+  offset: 0, 0
+  index: -1
+3LeftFootBlueKnight
+  rotate: false
+  xy: 158, 770
+  size: 31, 21
+  orig: 31, 21
+  offset: 0, 0
+  index: -1
+2LeftFootNaked
+  rotate: false
+  xy: 943, 544
+  size: 30, 19
+  orig: 30, 19
+  offset: 0, 0
+  index: -1
+0RightBigLegFarmer
+  rotate: false
+  xy: 933, 383
+  size: 28, 57
+  orig: 28, 57
+  offset: 0, 0
+  index: -1
+0LeftDownArmFarmer
+  rotate: false
+  xy: 904, 499
+  size: 37, 42
+  orig: 37, 42
+  offset: 0, 0
+  index: -1
+3RightCalfBlueKnight
+  rotate: false
+  xy: 304, 598
+  size: 23, 47
+  orig: 23, 47
+  offset: 0, 0
+  index: -1
+2LeftCalfNaked
+  rotate: false
+  xy: 943, 499
+  size: 20, 38
+  orig: 20, 38
+  offset: 0, 0
+  index: -1
+2LeftBigLegNaked
+  rotate: false
+  xy: 135, 657
+  size: 25, 58
+  orig: 25, 58
+  offset: 0, 0
+  index: -1
+3LeftUpArmBlueKnight
+  rotate: false
+  xy: 304, 654
+  size: 26, 57
+  orig: 26, 57
+  offset: 0, 0
+  index: -1
+1RightBigLegChiuanJen
+  rotate: false
+  xy: 276, 598
+  size: 26, 57
+  orig: 26, 57
+  offset: 0, 0
+  index: -1
+3LeftDownArmBlueKnight
+  rotate: false
+  xy: 57, 739
+  size: 32, 44
+  orig: 32, 44
+  offset: 0, 0
+  index: -1
+2RightBigLegNaked
+  rotate: false
+  xy: 359, 597
+  size: 26, 59
+  orig: 26, 59
+  offset: 0, 0
+  index: -1
+3LeftBigLegBlueKnight
+  rotate: false
+  xy: 329, 597
+  size: 28, 55
+  orig: 28, 55
+  offset: 0, 0
+  index: -1
+2LeftDownArmNaked
+  rotate: false
+  xy: 91, 744
+  size: 32, 36
+  orig: 32, 36
+  offset: 0, 0
+  index: -1
+1LeftBigLegChiuanJen
+  rotate: false
+  xy: 933, 442
+  size: 29, 55
+  orig: 29, 55
+  offset: 0, 0
+  index: -1
+2UpbodyNaked
+  rotate: false
+  xy: 373, 474
+  size: 66, 72
+  orig: 66, 72
+  offset: 0, 0
+  index: -1
+2LeftUpArmNaked
+  rotate: false
+  xy: 107, 687
+  size: 26, 55
+  orig: 26, 55
+  offset: 0, 0
+  index: -1
+0DownBodyFarmer
+  rotate: false
+  xy: 1, 680
+  size: 64, 42
+  orig: 64, 42
+  offset: 0, 0
+  index: -1
+1RightFootChiuanJen
+  rotate: false
+  xy: 56, 785
+  size: 30, 22
+  orig: 30, 22
+  offset: 0, 0
+  index: -1
+1DownBodyChiuanJen
+  rotate: false
+  xy: 1, 636
+  size: 64, 42
+  orig: 64, 42
+  offset: 0, 0
+  index: -1
+3UpBodyBlueKnight
+  rotate: false
+  xy: 303, 474
+  size: 68, 79
+  orig: 68, 79
+  offset: 0, 0
+  index: -1
+1UpBodyChiuanJen
+  rotate: false
+  xy: 1, 486
+  size: 64, 90
+  orig: 64, 90
+  offset: 0, 0
+  index: -1
+3RightBigLegBlueKnight
+  rotate: false
+  xy: 411, 548
+  size: 28, 57
+  orig: 28, 57
+  offset: 0, 0
+  index: -1
+1LeftCalfChiuanJen
+  rotate: false
+  xy: 245, 703
+  size: 19, 47
+  orig: 19, 47
+  offset: 0, 0
+  index: -1
+0LeftUpArmFarmer
+  rotate: false
+  xy: 699, 304
+  size: 24, 56
+  orig: 24, 56
+  offset: 0, 0
+  index: -1
+3DownBodyBlueKnight
+  rotate: false
+  xy: 1, 578
+  size: 77, 56
+  orig: 77, 56
+  offset: 0, 0
+  index: -1
+Sword
+  rotate: false
+  xy: 80, 570
+  size: 25, 167
+  orig: 25, 167
+  offset: 0, 0
+  index: -1
+0UpBodyFarmer
+  rotate: false
+  xy: 171, 446
+  size: 66, 91
+  orig: 66, 91
+  offset: 0, 0
+  index: -1
+1LeftDownArmChiuanJen
+  rotate: false
+  xy: 835, 432
+  size: 35, 45
+  orig: 35, 45
+  offset: 0, 0
+  index: -1
+0LeftCalfFarmer
+  rotate: false
+  xy: 220, 691
+  size: 23, 45
+  orig: 23, 45
+  offset: 0, 0
+  index: -1
+2RightDownArmNaked
+  rotate: false
+  xy: 247, 656
+  size: 24, 45
+  orig: 24, 45
+  offset: 0, 0
+  index: -1
+Hair2
+  rotate: false
+  xy: 239, 240
+  size: 219, 179
+  orig: 219, 179
+  offset: 0, 0
+  index: -1
+Hair1
+  rotate: false
+  xy: 725, 178
+  size: 239, 203
+  orig: 239, 203
+  offset: 0, 0
+  index: -1
+3LeftCalfBlueKnight
+  rotate: false
+  xy: 33, 761
+  size: 21, 48
+  orig: 21, 48
+  offset: 0, 0
+  index: -1
+2RightUpArmNaked
+  rotate: false
+  xy: 795, 423
+  size: 38, 47
+  orig: 38, 47
+  offset: 0, 0
+  index: -1
+0RightUpArmFarmer
+  rotate: false
+  xy: 754, 423
+  size: 39, 47
+  orig: 39, 47
+  offset: 0, 0
+  index: -1
+Knife
+  rotate: false
+  xy: 107, 570
+  size: 26, 115
+  orig: 26, 115
+  offset: 0, 0
+  index: -1
+1RightDownArmChiuanJen
+  rotate: false
+  xy: 191, 634
+  size: 28, 52
+  orig: 28, 52
+  offset: 0, 0
+  index: -1
+0RightDownArmFarmer
+  rotate: false
+  xy: 191, 688
+  size: 27, 49
+  orig: 27, 49
+  offset: 0, 0
+  index: -1
+Head2
+  rotate: false
+  xy: 460, 240
+  size: 145, 145
+  orig: 145, 145
+  offset: 0, 0
+  index: -1
+3RightDownArmBlueKnight
+  rotate: false
+  xy: 872, 461
+  size: 30, 52
+  orig: 30, 52
+  offset: 0, 0
+  index: -1
+傷心眼睛
+  rotate: false
+  xy: 329, 555
+  size: 80, 40
+  orig: 80, 40
+  offset: 0, 0
+  index: -1
+高興眼睛
+  rotate: false
+  xy: 163, 588
+  size: 82, 44
+  orig: 82, 44
+  offset: 0, 0
+  index: -1
+2DownBodyNaked
+  rotate: false
+  xy: 1, 724
+  size: 54, 35
+  orig: 54, 35
+  offset: 0, 0
+  index: -1
+吐血眼睛
+  rotate: false
+  xy: 163, 539
+  size: 79, 47
+  orig: 79, 47
+  offset: 0, 0
+  index: -1
+高興嘴巴
+  rotate: false
+  xy: 304, 647
+  size: 19, 5
+  orig: 19, 5
+  offset: 0, 0
+  index: -1
+1RightUpArmChiuanJen
+  rotate: false
+  xy: 877, 383
+  size: 39, 44
+  orig: 39, 44
+  offset: 0, 0
+  index: -1
+高興說話
+  rotate: false
+  xy: 441, 471
+  size: 17, 10
+  orig: 17, 10
+  offset: 0, 0
+  index: -1
+困惑眼睛
+  rotate: false
+  xy: 523, 494
+  size: 82, 40
+  orig: 82, 40
+  offset: 0, 0
+  index: -1
+吐血嘴巴
+  rotate: false
+  xy: 279, 544
+  size: 19, 7
+  orig: 19, 7
+  offset: 0, 0
+  index: -1
+生氣眼睛
+  rotate: false
+  xy: 441, 494
+  size: 80, 44
+  orig: 80, 44
+  offset: 0, 0
+  index: -1
+傷心說話
+  rotate: false
+  xy: 279, 533
+  size: 22, 9
+  orig: 22, 9
+  offset: 0, 0
+  index: -1
+傻眼說話
+  rotate: false
+  xy: 699, 374
+  size: 21, 7
+  orig: 21, 7
+  offset: 0, 0
+  index: -1
+普通說話
+  rotate: false
+  xy: 26, 811
+  size: 26, 10
+  orig: 26, 10
+  offset: 0, 0
+  index: -1
+暗影刀
+  rotate: false
+  xy: 136, 486
+  size: 25, 168
+  orig: 25, 168
+  offset: 0, 0
+  index: -1
+傷心嘴巴
+  rotate: false
+  xy: 373, 548
+  size: 16, 4
+  orig: 16, 4
+  offset: 0, 0
+  index: -1
+3RightUpArmBlueKnight
+  rotate: false
+  xy: 835, 383
+  size: 40, 47
+  orig: 40, 47
+  offset: 0, 0
+  index: -1
+生氣嘴巴
+  rotate: false
+  xy: 441, 483
+  size: 16, 6
+  orig: 16, 6
+  offset: 0, 0
+  index: -1
+普通扎眼
+  rotate: false
+  xy: 754, 383
+  size: 79, 38
+  orig: 79, 38
+  offset: 0, 0
+  index: -1
+生氣說話
+  rotate: false
+  xy: 699, 362
+  size: 23, 10
+  orig: 23, 10
+  offset: 0, 0
+  index: -1
+Hair4
+  rotate: false
+  xy: 725, 1
+  size: 283, 175
+  orig: 283, 175
+  offset: 0, 0
+  index: -1

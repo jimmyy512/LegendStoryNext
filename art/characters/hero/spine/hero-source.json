@@ -1,0 +1,982 @@
+{
+  "skeleton": {
+    "spine": "4.3.26",
+    "images": "../images/",
+    "fps": 30
+  },
+  "bones": [
+    {
+      "name": "root"
+    },
+    {
+      "name": "pelvis",
+      "parent": "root",
+      "y": 150
+    },
+    {
+      "name": "torso",
+      "parent": "pelvis"
+    },
+    {
+      "name": "head",
+      "parent": "torso",
+      "y": 127
+    },
+    {
+      "name": "hairBack",
+      "parent": "head"
+    },
+    {
+      "name": "upperArmR",
+      "parent": "torso",
+      "x": -52,
+      "y": 106,
+      "length": 57
+    },
+    {
+      "name": "forearmR",
+      "parent": "upperArmR",
+      "y": -52,
+      "length": 52
+    },
+    {
+      "name": "handR",
+      "parent": "forearmR",
+      "y": -46
+    },
+    {
+      "name": "weaponR",
+      "parent": "handR",
+      "y": -7,
+      "rotation": 15
+    },
+    {
+      "name": "thighR",
+      "parent": "pelvis",
+      "x": -24,
+      "y": -8,
+      "length": 70
+    },
+    {
+      "name": "shinR",
+      "parent": "thighR",
+      "y": -67,
+      "length": 68
+    },
+    {
+      "name": "footR",
+      "parent": "shinR",
+      "y": -64
+    },
+    {
+      "name": "upperArmL",
+      "parent": "torso",
+      "x": 52,
+      "y": 106,
+      "length": 57
+    },
+    {
+      "name": "forearmL",
+      "parent": "upperArmL",
+      "y": -52,
+      "length": 52
+    },
+    {
+      "name": "handL",
+      "parent": "forearmL",
+      "y": -46
+    },
+    {
+      "name": "weaponL",
+      "parent": "handL",
+      "y": -7,
+      "rotation": -15
+    },
+    {
+      "name": "thighL",
+      "parent": "pelvis",
+      "x": 24,
+      "y": -8,
+      "length": 70
+    },
+    {
+      "name": "shinL",
+      "parent": "thighL",
+      "y": -67,
+      "length": 68
+    },
+    {
+      "name": "footL",
+      "parent": "shinL",
+      "y": -64
+    }
+  ],
+  "slots": [
+    {
+      "name": "hairBack",
+      "bone": "hairBack",
+      "attachment": "hairBack"
+    },
+    {
+      "name": "thighR",
+      "bone": "thighR",
+      "attachment": "thighR"
+    },
+    {
+      "name": "shinR",
+      "bone": "shinR",
+      "attachment": "shinR"
+    },
+    {
+      "name": "footR",
+      "bone": "footR",
+      "attachment": "footR"
+    },
+    {
+      "name": "thighL",
+      "bone": "thighL",
+      "attachment": "thighL"
+    },
+    {
+      "name": "shinL",
+      "bone": "shinL",
+      "attachment": "shinL"
+    },
+    {
+      "name": "footL",
+      "bone": "footL",
+      "attachment": "footL"
+    },
+    {
+      "name": "upperR",
+      "bone": "upperArmR",
+      "attachment": "upperR"
+    },
+    {
+      "name": "forearmR",
+      "bone": "forearmR",
+      "attachment": "forearmR"
+    },
+    {
+      "name": "handR",
+      "bone": "handR",
+      "attachment": "handR"
+    },
+    {
+      "name": "upperL",
+      "bone": "upperArmL",
+      "attachment": "upperL"
+    },
+    {
+      "name": "forearmL",
+      "bone": "forearmL",
+      "attachment": "forearmL"
+    },
+    {
+      "name": "handL",
+      "bone": "handL",
+      "attachment": "handL"
+    },
+    {
+      "name": "torso",
+      "bone": "torso",
+      "attachment": "torso"
+    },
+    {
+      "name": "head",
+      "bone": "head",
+      "attachment": "head"
+    },
+    {
+      "name": "hair",
+      "bone": "head",
+      "attachment": "hair"
+    },
+    {
+      "name": "weaponR",
+      "bone": "weaponR",
+      "attachment": "weapon"
+    },
+    {
+      "name": "weaponL",
+      "bone": "weaponL",
+      "attachment": "weapon"
+    }
+  ],
+  "skins": [
+    {
+      "name": "body",
+      "attachments": {
+        "hairBack": {
+          "hairBack": {
+            "path": "hair-back",
+            "width": 170,
+            "height": 323,
+            "x": 18,
+            "y": -20,
+            "name": "body/hairBack",
+            "scaleX": 0.38235294117647056,
+            "scaleY": 0.43343653250773995
+          }
+        },
+        "thighR": {
+          "thighR": {
+            "path": "thigh",
+            "width": 185,
+            "height": 280,
+            "x": 0,
+            "y": -32,
+            "name": "body/thighR",
+            "scaleX": 0.2918918918918919,
+            "scaleY": 0.3
+          }
+        },
+        "shinR": {
+          "shinR": {
+            "path": "shin",
+            "width": 150,
+            "height": 285,
+            "x": 0,
+            "y": -32,
+            "name": "body/shinR",
+            "scaleX": 0.2866666666666667,
+            "scaleY": 0.2912280701754386
+          }
+        },
+        "footR": {
+          "footR": {
+            "path": "shoe",
+            "width": 255,
+            "height": 180,
+            "x": 10,
+            "y": -1,
+            "name": "body/footR",
+            "scaleX": 0.2627450980392157,
+            "scaleY": 0.25
+          }
+        },
+        "thighL": {
+          "thighL": {
+            "path": "thigh",
+            "width": 185,
+            "height": 280,
+            "x": 0,
+            "y": -32,
+            "name": "body/thighL",
+            "scaleX": 0.2918918918918919,
+            "scaleY": 0.3
+          }
+        },
+        "shinL": {
+          "shinL": {
+            "path": "shin",
+            "width": 150,
+            "height": 285,
+            "x": 0,
+            "y": -32,
+            "name": "body/shinL",
+            "scaleX": 0.2866666666666667,
+            "scaleY": 0.2912280701754386
+          }
+        },
+        "footL": {
+          "footL": {
+            "path": "shoe",
+            "width": 255,
+            "height": 180,
+            "x": 10,
+            "y": -1,
+            "name": "body/footL",
+            "scaleX": 0.2627450980392157,
+            "scaleY": 0.25
+          }
+        },
+        "handR": {
+          "handR": {
+            "path": "hand",
+            "width": 150,
+            "height": 245,
+            "x": 0,
+            "y": -12,
+            "name": "body/handR",
+            "scaleX": 0.18666666666666668,
+            "scaleY": 0.17551020408163265
+          }
+        },
+        "handL": {
+          "handL": {
+            "path": "hand",
+            "width": 150,
+            "height": 245,
+            "x": 0,
+            "y": -12,
+            "name": "body/handL",
+            "scaleX": 0.18666666666666668,
+            "scaleY": 0.17551020408163265
+          }
+        },
+        "head": {
+          "head": {
+            "path": "head",
+            "width": 200,
+            "height": 280,
+            "x": 0,
+            "y": 30,
+            "name": "body/head",
+            "scaleX": 0.365,
+            "scaleY": 0.36428571428571427
+          }
+        }
+      }
+    },
+    {
+      "name": "outfit/ivory",
+      "attachments": {
+        "upperR": {
+          "upperR": {
+            "path": "upper-ivory",
+            "width": 190,
+            "height": 280,
+            "y": -28,
+            "name": "outfit/ivory/upperR",
+            "scaleX": 0.3,
+            "scaleY": 0.2571428571428571
+          }
+        },
+        "forearmR": {
+          "forearmR": {
+            "path": "forearm-ivory",
+            "width": 140,
+            "height": 280,
+            "y": -24,
+            "name": "outfit/ivory/forearmR",
+            "scaleX": 0.2785714285714286,
+            "scaleY": 0.22142857142857142
+          }
+        },
+        "upperL": {
+          "upperL": {
+            "path": "upper-ivory",
+            "width": 190,
+            "height": 280,
+            "y": -28,
+            "name": "outfit/ivory/upperL",
+            "scaleX": 0.3,
+            "scaleY": 0.2571428571428571
+          }
+        },
+        "forearmL": {
+          "forearmL": {
+            "path": "forearm-ivory",
+            "width": 140,
+            "height": 280,
+            "y": -24,
+            "name": "outfit/ivory/forearmL",
+            "scaleX": 0.2785714285714286,
+            "scaleY": 0.22142857142857142
+          }
+        },
+        "torso": {
+          "torso": {
+            "path": "torso-ivory",
+            "width": 260,
+            "height": 300,
+            "y": 54,
+            "name": "outfit/ivory/torso",
+            "scaleX": 0.47692307692307695,
+            "scaleY": 0.4766666666666667
+          }
+        }
+      }
+    },
+    {
+      "name": "outfit/jade",
+      "attachments": {
+        "upperR": {
+          "upperR": {
+            "path": "upper-jade",
+            "width": 190,
+            "height": 280,
+            "y": -28,
+            "name": "outfit/jade/upperR",
+            "scaleX": 0.3,
+            "scaleY": 0.2571428571428571
+          }
+        },
+        "forearmR": {
+          "forearmR": {
+            "path": "forearm-jade",
+            "width": 125,
+            "height": 245,
+            "y": -24,
+            "name": "outfit/jade/forearmR",
+            "scaleX": 0.312,
+            "scaleY": 0.2530612244897959
+          }
+        },
+        "upperL": {
+          "upperL": {
+            "path": "upper-jade",
+            "width": 190,
+            "height": 280,
+            "y": -28,
+            "name": "outfit/jade/upperL",
+            "scaleX": 0.3,
+            "scaleY": 0.2571428571428571
+          }
+        },
+        "forearmL": {
+          "forearmL": {
+            "path": "forearm-jade",
+            "width": 125,
+            "height": 245,
+            "y": -24,
+            "name": "outfit/jade/forearmL",
+            "scaleX": 0.312,
+            "scaleY": 0.2530612244897959
+          }
+        },
+        "torso": {
+          "torso": {
+            "path": "torso-jade",
+            "width": 240,
+            "height": 305,
+            "y": 54,
+            "name": "outfit/jade/torso",
+            "scaleX": 0.5166666666666667,
+            "scaleY": 0.46885245901639344
+          }
+        }
+      }
+    },
+    {
+      "name": "hair/topknot",
+      "attachments": {
+        "hair": {
+          "hair": {
+            "path": "hair-topknot",
+            "width": 205,
+            "height": 300,
+            "y": 42,
+            "name": "hair/topknot/hair",
+            "scaleX": 0.4097560975609756,
+            "scaleY": 0.38333333333333336
+          }
+        }
+      }
+    },
+    {
+      "name": "hair/tied",
+      "attachments": {
+        "hair": {
+          "hair": {
+            "path": "hair-tied",
+            "width": 235,
+            "height": 280,
+            "y": 42,
+            "name": "hair/tied/hair",
+            "scaleX": 0.37446808510638296,
+            "scaleY": 0.37857142857142856
+          }
+        }
+      }
+    },
+    {
+      "name": "weapon/plain/R",
+      "attachments": {
+        "weaponR": {
+          "weapon": {
+            "path": "sword-plain",
+            "width": 87,
+            "height": 325,
+            "y": 50,
+            "name": "weapon/plain/R/weapon",
+            "scaleX": 0.40229885057471265,
+            "scaleY": 0.4676923076923077
+          }
+        }
+      }
+    },
+    {
+      "name": "weapon/plain/L",
+      "attachments": {
+        "weaponL": {
+          "weapon": {
+            "path": "sword-plain",
+            "width": 87,
+            "height": 325,
+            "y": 50,
+            "name": "weapon/plain/L/weapon",
+            "scaleX": 0.40229885057471265,
+            "scaleY": 0.4676923076923077
+          }
+        }
+      }
+    },
+    {
+      "name": "weapon/jade/R",
+      "attachments": {
+        "weaponR": {
+          "weapon": {
+            "path": "sword-jade",
+            "width": 117,
+            "height": 326,
+            "y": 50,
+            "name": "weapon/jade/R/weapon",
+            "scaleX": 0.4017094017094017,
+            "scaleY": 0.4662576687116564
+          }
+        }
+      }
+    },
+    {
+      "name": "weapon/jade/L",
+      "attachments": {
+        "weaponL": {
+          "weapon": {
+            "path": "sword-jade",
+            "width": 117,
+            "height": 326,
+            "y": 50,
+            "name": "weapon/jade/L/weapon",
+            "scaleX": 0.4017094017094017,
+            "scaleY": 0.4662576687116564
+          }
+        }
+      }
+    }
+  ],
+  "animations": {
+    "idle": {
+      "bones": {
+        "torso": {
+          "translate": [
+            {
+              "y": 0
+            },
+            {
+              "time": 1,
+              "y": 2
+            },
+            {
+              "time": 2,
+              "y": 0
+            }
+          ]
+        },
+        "hairBack": {
+          "rotate": [
+            {
+              "time": 0,
+              "value": -2
+            },
+            {
+              "time": 1,
+              "value": 2
+            },
+            {
+              "time": 2,
+              "value": -2
+            }
+          ]
+        }
+      }
+    },
+    "walk": {
+      "bones": {
+        "pelvis": {
+          "translate": [
+            {
+              "y": 0
+            },
+            {
+              "time": 0.2,
+              "y": 4
+            },
+            {
+              "time": 0.4,
+              "y": 0
+            },
+            {
+              "time": 0.6,
+              "y": 4
+            },
+            {
+              "time": 0.8,
+              "y": 0
+            }
+          ]
+        },
+        "thighR": {
+          "rotate": [
+            {
+              "time": 0,
+              "value": 15
+            },
+            {
+              "time": 0.4,
+              "value": -15
+            },
+            {
+              "time": 0.8,
+              "value": 15
+            }
+          ]
+        },
+        "shinR": {
+          "rotate": [
+            {
+              "time": 0,
+              "value": 0
+            },
+            {
+              "time": 0.2,
+              "value": 12
+            },
+            {
+              "time": 0.4,
+              "value": 0
+            },
+            {
+              "time": 0.6,
+              "value": -12
+            },
+            {
+              "time": 0.8,
+              "value": 0
+            }
+          ]
+        },
+        "upperArmR": {
+          "rotate": [
+            {
+              "time": 0,
+              "value": -9
+            },
+            {
+              "time": 0.4,
+              "value": 9
+            },
+            {
+              "time": 0.8,
+              "value": -9
+            }
+          ]
+        },
+        "thighL": {
+          "rotate": [
+            {
+              "time": 0,
+              "value": -15
+            },
+            {
+              "time": 0.4,
+              "value": 15
+            },
+            {
+              "time": 0.8,
+              "value": -15
+            }
+          ]
+        },
+        "shinL": {
+          "rotate": [
+            {
+              "time": 0,
+              "value": 0
+            },
+            {
+              "time": 0.2,
+              "value": -12
+            },
+            {
+              "time": 0.4,
+              "value": 0
+            },
+            {
+              "time": 0.6,
+              "value": 12
+            },
+            {
+              "time": 0.8,
+              "value": 0
+            }
+          ]
+        },
+        "upperArmL": {
+          "rotate": [
+            {
+              "time": 0,
+              "value": 9
+            },
+            {
+              "time": 0.4,
+              "value": -9
+            },
+            {
+              "time": 0.8,
+              "value": 9
+            }
+          ]
+        }
+      }
+    },
+    "attackR": {
+      "bones": {
+        "torso": {
+          "rotate": [
+            {
+              "time": 0,
+              "value": 0
+            },
+            {
+              "time": 0.18,
+              "value": -6
+            },
+            {
+              "time": 0.3,
+              "value": 7
+            },
+            {
+              "time": 0.7,
+              "value": 0
+            }
+          ]
+        },
+        "upperArmR": {
+          "rotate": [
+            {
+              "time": 0,
+              "value": 0
+            },
+            {
+              "time": 0.18,
+              "value": -65
+            },
+            {
+              "time": 0.3,
+              "value": 55
+            },
+            {
+              "time": 0.7,
+              "value": 0
+            }
+          ]
+        },
+        "forearmR": {
+          "rotate": [
+            {
+              "time": 0,
+              "value": 0
+            },
+            {
+              "time": 0.18,
+              "value": -40
+            },
+            {
+              "time": 0.3,
+              "value": 20
+            },
+            {
+              "time": 0.7,
+              "value": 0
+            }
+          ]
+        }
+      }
+    },
+    "attackL": {
+      "bones": {
+        "torso": {
+          "rotate": [
+            {
+              "time": 0,
+              "value": 0
+            },
+            {
+              "time": 0.18,
+              "value": 6
+            },
+            {
+              "time": 0.3,
+              "value": -7
+            },
+            {
+              "time": 0.7,
+              "value": 0
+            }
+          ]
+        },
+        "upperArmL": {
+          "rotate": [
+            {
+              "time": 0,
+              "value": 0
+            },
+            {
+              "time": 0.18,
+              "value": 65
+            },
+            {
+              "time": 0.3,
+              "value": -55
+            },
+            {
+              "time": 0.7,
+              "value": 0
+            }
+          ]
+        },
+        "forearmL": {
+          "rotate": [
+            {
+              "time": 0,
+              "value": 0
+            },
+            {
+              "time": 0.18,
+              "value": 40
+            },
+            {
+              "time": 0.3,
+              "value": -20
+            },
+            {
+              "time": 0.7,
+              "value": 0
+            }
+          ]
+        }
+      }
+    },
+    "hurt": {
+      "bones": {
+        "torso": {
+          "rotate": [
+            {
+              "time": 0,
+              "value": 0
+            },
+            {
+              "time": 0.08,
+              "value": -8
+            },
+            {
+              "time": 0.35,
+              "value": 0
+            }
+          ]
+        }
+      }
+    },
+    "injuredR": {
+      "bones": {
+        "upperArmR": {
+          "rotate": [
+            {
+              "time": 0,
+              "value": 4
+            },
+            {
+              "time": 1,
+              "value": 4
+            }
+          ]
+        },
+        "forearmR": {
+          "rotate": [
+            {
+              "time": 0,
+              "value": -3
+            },
+            {
+              "time": 1,
+              "value": -3
+            }
+          ]
+        }
+      }
+    },
+    "seated": {
+      "bones": {
+        "pelvis": {
+          "translate": [
+            {
+              "y": -100
+            },
+            {
+              "time": 1,
+              "y": -100
+            }
+          ]
+        },
+        "thighR": {
+          "rotate": [
+            {
+              "value": -100
+            },
+            {
+              "time": 1,
+              "value": -100
+            }
+          ]
+        },
+        "thighL": {
+          "rotate": [
+            {
+              "value": 100
+            },
+            {
+              "time": 1,
+              "value": 100
+            }
+          ]
+        },
+        "shinR": {
+          "rotate": [
+            {
+              "value": 160
+            },
+            {
+              "time": 1,
+              "value": 160
+            }
+          ]
+        },
+        "shinL": {
+          "rotate": [
+            {
+              "value": -160
+            },
+            {
+              "time": 1,
+              "value": -160
+            }
+          ]
+        },
+        "footR": {
+          "rotate": [
+            {
+              "value": -60
+            },
+            {
+              "time": 1,
+              "value": -60
+            }
+          ]
+        },
+        "footL": {
+          "rotate": [
+            {
+              "value": 60
+            },
+            {
+              "time": 1,
+              "value": 60
+            }
+          ]
+        }
+      }
+    }
+  }
+}

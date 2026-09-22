@@ -1,0 +1,33 @@
+{
+  "name": "legend-story-next",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "lint": "eslint src tests tools",
+    "lint:fix": "eslint src tests tools --fix",
+    "dev": "vite --host 127.0.0.1",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview --host 127.0.0.1",
+    "test": "vitest run",
+    "format": "prettier --write src tests tools index.html package.json tsconfig.json vite.config.ts",
+    "format:check": "prettier --check src tests tools index.html package.json tsconfig.json vite.config.ts",
+    "art:legacy:prepare": "node tools/buildLegacySpine.ts"
+  },
+  "dependencies": {
+    "@esotericsoftware/spine-pixi-v8": "4.3.13",
+    "@pixi/ui": "2.3.2",
+    "pixi.js": "8.21.0",
+    "zod": "4.6.5"
+  },
+  "devDependencies": {
+    "@types/node": "24.13.6",
+    "dragonbones-tools": "0.1.2",
+    "eslint": "10.11.0",
+    "prettier": "3.9.8",
+    "typescript": "6.0.3",
+    "typescript-eslint": "8.70.1",
+    "vite": "8.3.0",
+    "vitest": "5.0.1"
+  }
+}
