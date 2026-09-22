@@ -1,0 +1,15 @@
+name: legend-story-next
+services:
+  legend:
+    build:
+      context: .
+    image: legend-story-next:latest
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:3213:80" # 只給本機除錯用；正式流量走 MainNginx 反代
+    networks:
+      - main-network
+
+networks:
+  main-network:
+    external: true
