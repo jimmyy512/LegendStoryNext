@@ -22,6 +22,7 @@ import { AssetService } from '../services/AssetService';
 import { AudioService } from '../services/AudioService';
 import { SaveRepository } from '../services/SaveRepository';
 import type { SettingsRepository } from '../services/SettingsRepository';
+import { guardGameGestures } from '../ui/BrowserGestures';
 import { GameView } from '../ui/GameView';
 import type { LoadingScreen } from '../ui/LoadingScreen';
 import { injuryRows, PanelView, type Panel } from '../ui/PanelView';
@@ -60,9 +61,11 @@ export class GameApplication {
     this.audio.setVolume(settings.readVolume());
     this.audio.setActive(document.visibilityState === 'visible');
     this.transitions = new TransitionController(loading);
+    document.documentElement.classList.add('game-active');
     document.body.classList.add('game-active');
     document.querySelector('#app')!.innerHTML =
       '<div id="canvas-host"></div><input type="file" accept=".json,application/json" id="import-file" hidden />';
+    guardGameGestures(document.querySelector<HTMLElement>('#app')!, this.lifetime.signal);
     this.view = new GameView(this.world.ui, (action) => this.dispatch(action));
     this.world.onResize = (width, height) => this.view.resize(width, height);
     document.addEventListener(
@@ -112,6 +115,8 @@ export class GameApplication {
 
   dispose(): void {
     this.lifetime.abort();
+    document.documentElement.classList.remove('game-active');
+    document.body.classList.remove('game-active');
     this.audio.dispose();
     window.clearInterval(this.playTimer);
     this.view.dispose();
