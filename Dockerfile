@@ -9,7 +9,7 @@ COPY . .
 RUN npm run build
 
 # 執行階段：只有一個 nginx 在送靜態檔，沒有 node
-FROM nginx:alpine
+FROM nginx:1.31-alpine
 COPY --from=build /app/dist /usr/share/nginx/html
 COPY nginx.conf /etc/nginx/nginx.conf
 
