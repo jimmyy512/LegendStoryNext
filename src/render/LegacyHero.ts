@@ -61,8 +61,6 @@ export class LegacyHero extends Container {
 
   playMotion(motion: LegacyMotion, loop = true): void {
     this.moving = motion === 'Run';
-    this.actor.state.clearTracks();
-    this.actor.skeleton.setupPose();
     this.injuries.setBody(this.body);
     this.actor.state.setAnimation(0, motion, loop);
     if (!loop) {

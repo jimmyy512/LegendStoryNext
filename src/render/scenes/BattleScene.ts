@@ -1,40 +1,64 @@
-import { ButtonContainer, ProgressBar } from '@pixi/ui';
-import { Container, Graphics } from 'pixi.js';
+import { Graphics, Text } from 'pixi.js';
 import { MAPS } from '../../data/maps';
 import type { Battle, BattleEvent } from '../../game/battle';
-import { addAtmosphere, HEIGHT, noise, text, tree, WIDTH } from '../art';
-import { CombatantSprite } from '../CombatantSprite';
+import { noise, text, tree, WIDTH } from '../art';
+import { BattleEffects } from '../BattleEffects';
 import { GameHero } from '../GameHero';
 import { PixiScene } from './PixiScene';
 
+type Fighter = {
+  node: GameHero;
+  name: Text;
+  ring: Graphics;
+  progress: Graphics;
+  position: number;
+  movingUntil: number;
+  body: string;
+  hit: number;
+  windup: number;
+};
+
 export class BattleScene extends PixiScene {
   onTarget: (index: number) => void = () => {};
-  private effects = new Container();
-  private transient: { node: Container; life: number }[] = [];
-  private fighters = new Map<number | 'player', Container>();
-  private strikes: { node: Container; x: number; direction: number; life: number }[] = [];
-  private hero: GameHero | null = null;
+  private battle: Battle | null = null;
+  private fighters = new Map<number | 'player', Fighter>();
+  private effects = new BattleEffects((id) => this.fighters.get(id)?.node);
   private running = false;
+  private elapsed = 0;
+  private selected = 0;
 
+  get cameraBounds(): { x: number; width: number; y: number } {
+    const xs = [...this.fighters.values()]
+      .filter((_, i) => this.battle!.result || i === 0 || this.battle!.enemies[i - 1].hp > 0)
+      .map((f) => f.node.x);
+    const left = Math.min(...xs),
+      right = Math.max(...xs);
+    return {
+      x: (left + right) / 2,
+      width: Math.max(560, right - left + 440),
+      y: 385 + (this.battle!.enemies.length - 1) * 25,
+    };
+  }
   setRunning(running: boolean): void {
     this.running = running;
   }
-
   showBattle(battle: Battle, selected: number): void {
-    // 指令、目標和傷害都會刷新面板，保留角色才能避免動畫每次從第一幀重播。
-    this.hero?.removeFromParent();
+    this.selected = selected;
+    if (this.battle === battle) {
+      this.sync();
+      return;
+    }
+    this.battle = battle;
     this.clear();
-    this.transient = [];
-    this.strikes = [];
     this.fighters.clear();
-
+    this.elapsed = 0;
     const map = MAPS[battle.player.map];
-    const g = new Graphics().rect(0, 0, WIDTH, HEIGHT).fill(map.palette.dark);
+    const g = new Graphics().rect(-3000, -2000, 7000, 5000).fill(map.palette.dark);
     const random = noise(62);
     for (let i = 0; i < 8; i++) {
       const base = 110 + i * 35;
       g.poly([
-        0,
+        -3000,
         base + 40,
         120,
         base - random() * 120,
@@ -46,12 +70,12 @@ export class BattleScene extends PixiScene {
         base - 50,
         890,
         base - random() * 140,
-        WIDTH,
+        4000,
         base,
-        WIDTH,
-        HEIGHT,
-        0,
-        HEIGHT,
+        4000,
+        2500,
+        -3000,
+        2500,
       ]).fill({ color: map.palette.ground, alpha: 0.25 + i * 0.07 });
     }
     g.ellipse(WIDTH / 2, 490, 470, 130).fill({ color: map.palette.path, alpha: 0.25 });
@@ -64,125 +88,164 @@ export class BattleScene extends PixiScene {
     }
     this.root.addChild(g);
     this.root.addChild(tree(80, 410, 140, random), tree(1070, 430, 140, random));
-    const hero = this.hero ?? new GameHero(battle.player);
-    this.hero = hero;
-    hero.setState(battle.player);
-    hero.scale.set(3.2);
-    hero.position.set(310, 475);
-    this.root.addChild(hero);
-    this.fighters.set('player', hero);
-    const heroName = text(battle.player.name, 24);
-    heroName.anchor.set(0.5);
-    heroName.position.set(310, 535);
-    this.root.addChild(heroName);
-    const positions =
-      battle.enemies.length === 1
-        ? [{ x: 820, y: 455 }]
-        : [
-            { x: 770, y: 405 },
-            { x: 915, y: 510 },
-            { x: 950, y: 345 },
-          ];
-    battle.enemies.forEach((enemy, index) => {
-      const position = positions[index];
-      const node = new ButtonContainer(new CombatantSprite(enemy.color, enemy.body));
-      node.scale.set(enemy.id === 'boss' ? 3.7 : 3);
-      node.position.set(position.x, position.y);
-      node.alpha = enemy.hp > 0 ? 1 : 0.2;
-      node.enabled = enemy.hp > 0;
-      node.cursor = enemy.hp > 0 ? 'pointer' : 'default';
-      node.onPress.connect(() => {
-        if (enemy.hp > 0) {
-          this.onTarget(index);
-        }
-      });
-      this.root.addChild(node);
-      this.fighters.set(index, node);
-      if (selected === index && enemy.hp > 0) {
-        this.root.addChild(
-          new Graphics()
-            .ellipse(position.x, position.y + 12, 55, 18)
-            .stroke({ color: 0xe5c68a, width: 2 }),
-        );
-      }
-      const label = text(enemy.hp > 0 ? enemy.name : '已敗退', 20);
-      label.anchor.set(0.5);
-      label.position.set(position.x, position.y + 47);
-      this.root.addChild(label);
-      const bar = new ProgressBar({
-        bg: new Graphics().roundRect(0, 0, 96, 5, 2).fill(0x26352f),
-        fill: new Graphics().roundRect(0, 0, 96, 5, 2).fill(0xcb967b),
-        progress: (100 * enemy.hp) / enemy.stats.maxHp,
-      });
-      bar.position.set(position.x - 48, position.y + 68);
-      this.root.addChild(bar);
-    });
-    this.effects = new Container();
-    this.root.addChild(this.effects);
-    addAtmosphere(this.root, battle.player.map === 'cave');
-  }
-
-  showEvents(events: BattleEvent[]): void {
-    for (const event of events) {
-      if (event.kind !== 'damage' || event.source === undefined) {
-        continue;
-      }
-      const actor = this.fighters.get(event.source);
-      if (event.source === 'player') {
-        this.hero?.playAttack();
-      }
-      if (actor && !this.strikes.some((strike) => strike.node === actor)) {
-        this.strikes.push({
-          node: actor,
-          x: actor.x,
-          direction: event.source === 'player' ? 1 : -1,
-          life: 0.35,
+    const ids: (number | 'player')[] = ['player', ...battle.enemies.map((_, i) => i)];
+    for (const id of ids) {
+      const enemy = id === 'player' ? null : battle.enemies[id];
+      const state = enemy
+        ? {
+            ...battle.player,
+            body: enemy.body,
+            hair: id === 0 ? ('Hair2' as const) : ('Hair3' as const),
+            armor: enemy.id === 'boss' ? ('armor' as const) : ('robe' as const),
+            weapon: 'sword' as const,
+          }
+        : battle.player;
+      const node = new GameHero(state);
+      node.scale.set(enemy?.id === 'boss' ? 3.3 : battle.enemies.length > 1 ? 2.6 : 3);
+      node.faceDirection(enemy ? -1 : 1);
+      const position = enemy?.position ?? battle.playerPosition;
+      node.position.set(310 + (position - 10) * 90, 455 + (typeof id === 'number' ? id * 72 : 0));
+      const ring = new Graphics(),
+        progress = new Graphics(),
+        name = text(enemy?.name ?? battle.player.name, 18);
+      name.anchor.set(0.5);
+      node.eventMode = enemy ? 'static' : 'none';
+      node.cursor = enemy ? 'pointer' : 'default';
+      if (typeof id === 'number') {
+        node.on('pointertap', (e) => {
+          e.stopPropagation();
+          if (battle.enemies[id].hp > 0) {
+            this.onTarget(id);
+          }
         });
       }
-      const target = event.target === undefined ? undefined : this.fighters.get(event.target);
-      if (target) {
-        const flash = new Graphics()
-          .moveTo(-24, 22)
-          .quadraticCurveTo(0, -28, 24, -40)
-          .stroke({ color: 0xf2dc9d, width: 4, alpha: 0.8 });
-        flash.position.set(target.x, target.y - 75);
-        this.effects.addChild(flash);
-        this.transient.push({ node: flash, life: 0.3 });
-      }
-    }
-    events
-      .filter((event) => event.amount)
-      .forEach((event, index) => {
-        const label = text(`−${event.amount}`, 34, event.target === 'player' ? 0xe4a58d : 0xf3d49a);
-        label.anchor.set(0.5);
-        label.position.set(
-          event.target === 'player' ? 310 + index * 18 : 780 + (Number(event.target) || 0) * 100,
-          285 - index * 24,
-        );
-        this.effects.addChild(label);
-        this.transient.push({ node: label, life: 1.8 });
+      this.root.addChild(ring, node, name, progress);
+      this.fighters.set(id, {
+        node,
+        name,
+        ring,
+        progress,
+        position,
+        movingUntil: 0,
+        body: '',
+        hit: 0,
+        windup: 0,
       });
+    }
+    this.effects = new BattleEffects((id) => this.fighters.get(id)?.node);
+    this.root.addChild(this.effects);
+    this.sync();
+    this.place(0, true);
   }
-
+  private sync(): void {
+    const b = this.battle!;
+    for (const [id, f] of this.fighters) {
+      const body = id === 'player' ? b.player.body : b.enemies[id].body;
+      const key = JSON.stringify(body);
+      if (key !== f.body) {
+        const enemy = id === 'player' ? null : b.enemies[id];
+        f.node.setState(
+          enemy
+            ? {
+                ...b.player,
+                body,
+                hair: id === 0 ? 'Hair2' : 'Hair3',
+                armor: enemy.id === 'boss' ? 'armor' : 'robe',
+                weapon: 'sword',
+              }
+            : b.player,
+        );
+        f.body = key;
+      }
+      f.node.visible = id === 'player' || b.enemies[id].hp > 0;
+      f.ring.visible = f.node.visible;
+      f.progress.visible = f.node.visible;
+      f.name.alpha = id !== 'player' && b.enemies[id].hp <= 0 ? 0.35 : 1;
+    }
+  }
+  private place(dt: number, snap = false): void {
+    const b = this.battle!;
+    for (const [id, f] of this.fighters) {
+      const enemy = id === 'player' ? null : b.enemies[id];
+      const position = enemy?.position ?? b.playerPosition;
+      if (Math.abs(position - f.position) > 0.0001) {
+        f.movingUntil = this.elapsed + 0.12;
+      }
+      f.position = position;
+      const striking = enemy ? !!enemy.strikeRange : !!b.strike;
+      f.node.setMoving(!striking && this.elapsed < f.movingUntil);
+      const target = 310 + (position - 10) * 90;
+      const k = snap ? 1 : 1 - Math.exp(-18 * dt);
+      f.node.x += (target - f.node.x) * k;
+      f.node.y = 455 + (typeof id === 'number' ? id * 72 : 0);
+      if (f.hit > 0) {
+        f.hit = Math.max(0, f.hit - dt);
+        f.node.rotation = Math.sin(f.hit * 55) * 0.035;
+        f.node.tint = 0xffbda8;
+      } else {
+        f.node.rotation = 0;
+        f.node.tint = 0xffffff;
+      }
+      f.ring
+        .clear()
+        .ellipse(f.node.x, f.node.y + 5, 44, 12)
+        .fill({ color: 0x071b17, alpha: 0.4 });
+      if (id === this.selected && enemy?.hp) {
+        f.ring.ellipse(f.node.x, f.node.y + 5, 49, 15).stroke({ color: 0xe7c780, width: 2 });
+      }
+      if (striking) {
+        f.ring
+          .ellipse(f.node.x, f.node.y + 5, 56, 18)
+          .stroke({ color: enemy ? 0xf08a76 : 0x95e2cb, width: 3 });
+      }
+      if (id === 'player' && b.defending) {
+        f.ring
+          .ellipse(f.node.x, f.node.y - 85, 57, 96)
+          .stroke({ color: 0x83d5ed, width: 2, alpha: 0.55 });
+      }
+      f.name.position.set(f.node.x, f.node.y + 25);
+      const progress = enemy ? enemy.hp / enemy.stats.maxHp : b.player.hp / b.stats.maxHp;
+      f.progress
+        .clear()
+        .roundRect(f.node.x - 42, f.node.y + 49, 84, 4, 2)
+        .fill(0x1b322b)
+        .roundRect(
+          f.node.x - 42,
+          f.node.y + 49,
+          Math.max(0.1, 84 * Math.max(0, Math.min(1, progress))),
+          4,
+          2,
+        )
+        .fill(enemy ? 0xca8470 : 0x83c5ad);
+    }
+  }
+  showEvents(events: BattleEvent[]): void {
+    this.sync();
+    for (const e of events) {
+      if (e.kind === 'guard' && e.source !== undefined) {
+        this.fighters.get(e.source)?.node.playGuard();
+      }
+      if (e.kind === 'windup' && e.source !== undefined) {
+        this.fighters.get(e.source)?.node.playAttack();
+      }
+      if (e.kind === 'damage' && e.target !== undefined) {
+        const target = this.fighters.get(e.target);
+        if (target) {
+          target.hit = 0.2;
+        }
+      }
+      this.effects.show(e);
+    }
+  }
   update(dt: number): void {
-    if (!this.running) {
+    if (!this.battle || !this.running) {
       return;
     }
-    this.hero?.update(dt);
-    for (const strike of this.strikes) {
-      strike.life = Math.max(0, strike.life - dt);
-      strike.node.x =
-        strike.x + Math.sin((1 - strike.life / 0.35) * Math.PI) * 22 * strike.direction;
+    this.elapsed += dt;
+    this.place(dt);
+    for (const f of this.fighters.values()) {
+      f.node.update(dt);
     }
-    this.strikes = this.strikes.filter((strike) => strike.life > 0);
-    for (const effect of this.transient) {
-      effect.life -= dt;
-      effect.node.y -= dt * 25;
-      effect.node.alpha = Math.min(1, effect.life);
-      if (effect.life <= 0) {
-        effect.node.destroy();
-      }
-    }
-    this.transient = this.transient.filter((effect) => effect.life > 0);
+    this.effects.update(dt);
   }
 }

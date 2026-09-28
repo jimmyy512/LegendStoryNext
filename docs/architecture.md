@@ -40,13 +40,14 @@ GameSession 對外提供旅程副本，View 和場景持有的資料不會和存
 6. 銷毀舊場景的顯示物件和事件，再釋放舊地圖貼圖。共用貼圖常駐。
 7. 清理完成後解除操作鎖。
 
-目前戰鬥使用程序繪製角色與背景，沒有獨立戰鬥資源包。未來加入正式角色圖集、特效與音效時，依同樣流程增加 battle bundle。當前場景 SVG 為輪廓紋理與移動標記，正式美術仍待重製。
+探索與戰鬥主角透過 GameHero 使用原版轉換的 LegacyHero Spine 骨架，敵人與背景仍以程序繪製為主，目前沒有獨立戰鬥資源包。未來加入正式敵人圖集、特效與音效時，依同樣流程增加 battle bundle。當前場景 SVG 為輪廓紋理與移動標記，正式美術仍待重製。
 
 ## Pixi UI 選型
 
 - 採用 [@pixi/ui](https://github.com/pixijs/ui)，MIT 授權，使用 v2 對應 Pixi v8。
 - 目前實際使用 ProgressBar 與 ButtonContainer 製作戰鬥血條及 Canvas 目標按鈕。
-- 任務、背包、對話、表單維持 DOM/CSS，可直接使用鍵盤、文字排版與無障礙語意。
+- 正式遊戲的主選單、任務、背包、對話與設定均由 Pixi 繪製。PanelView 與 storyPanels 產生面板資料，PanelOverlay 使用 ScrollBox 排版與捲動。
+- 姓名欄位由 NameInput 接上原生文字輸入，匯入使用原生檔案選擇器。HTML 保留引擎啟動／失敗救援介面，開發預覽頁維持各自介面。Canvas 文字與按鈕不能直接視為具備 DOM 的鍵盤及無障礙語意。
 - 已評估 [Pixi Layout](https://layout.pixijs.io/)，目前不引入 Yoga 排版。等到有大量 Canvas 內面板時，再以具體需求評估。
 - 載入採用 [Pixi Assets](https://pixijs.com/8.x/guides/components/assets) bundle，不再自製貼圖快取。
 
@@ -72,7 +73,7 @@ story.ts 目前是全真篇專用規則，不是通用任務編輯器。第二�
 
 ### 存檔演進
 
-目前 schema version = 2，加入部位耐久。v1 先通過舊結構驗證再補完好部位升級。localStorage key 保留原名稱以讀取既有資料。新增不相容資料時，新增 migration 並保留舊版 fixture 測試，不直接放寬驗證。
+目前 schema version = 3，包含部位耐久與髮型。v1 先通過舊結構驗證，再補完好部位與預設髮型升級；v2 驗證後保留傷勢並補預設髮型。localStorage key 保留原名稱以讀取既有資料。新增不相容資料時，新增 migration 並保留舊版 fixture 測試，不直接放寬驗證。
 
 未來雲端存檔可以替換 SaveRepository 的介面實作，但網路衝突解決、登入與跨裝置同步尚未實作。
 

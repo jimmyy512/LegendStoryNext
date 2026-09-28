@@ -71,13 +71,13 @@ describe('半即時戰鬥', () => {
     const state = createGame('測試', 'fist');
     const battle = new Battle(state, 'boss');
     battle.paused = false;
-    battle.update(2.3);
+    battle.update(3.2);
     expect(battle.player.hp).toBeLessThan(state.hp);
     expect(battle.playerProgress).toBeLessThan(1);
     const trial = new Battle(createGame('劍客', 'sword'), 'trial');
     trial.enemies[0].hp = 1;
     trial.act({ type: 'attack', target: 0 });
-    trial.update(2.3);
+    trial.update(3.2);
     expect(trial.result).toBe('victory');
     expect(trial.player.hp).toBe(100);
   });
@@ -85,20 +85,24 @@ describe('半即時戰鬥', () => {
     const state = createGame('劍客', 'sword');
     const guarded = new Battle(state, 'trial');
     const ordinary = new Battle(state, 'trial');
+    for (const battle of [guarded, ordinary]) {
+      battle.holdingPosition = true;
+      battle.enemies[0].position = 12.5;
+    }
     guarded.act({ type: 'defend' });
-    guarded.update(2.5);
+    guarded.update(3.2);
     ordinary.act({ type: 'attack', target: 0 });
-    ordinary.update(2.5);
+    ordinary.update(3.2);
     expect(guarded.player.hp).toBeGreaterThan(ordinary.player.hp);
     const before = guarded.player.hp;
     guarded.act({ type: 'attack', target: 0 });
-    guarded.update(2.5);
+    guarded.update(3.2);
     expect(before - guarded.player.hp).toBe(100 - ordinary.player.hp);
   });
   it('反擊會傷害攻擊者，技能扣除內力', () => {
     const battle = new Battle(createGame('拳客', 'fist'), 'trial');
     battle.act({ type: 'skill', skill: 'guard', target: 0 });
-    battle.update(2.5);
+    battle.update(3.2);
     expect(battle.enemies[0].hp).toBeLessThan(42);
     expect(battle.player.mp).toBe(30);
     expect(battle.events.some((event) => event.text.includes('護體反擊'))).toBe(true);
@@ -106,13 +110,13 @@ describe('半即時戰鬥', () => {
   it('破甲提高後續傷害，並依目標行動次數消退', () => {
     const battle = new Battle(createGame('劍客', 'sword'), 'boss');
     battle.act({ type: 'skill', skill: 'pierce', target: 0 });
-    battle.update(2.5);
-    expect(battle.enemies[0].broken).toBe(1);
+    battle.update(3.2);
+    expect(battle.enemies[0].broken).toBe(2);
     const hp = battle.enemies[0].hp;
     battle.act({ type: 'attack', target: 0 });
-    battle.update(2.5);
+    battle.update(3.2);
     expect(hp - battle.enemies[0].hp).toBeGreaterThan(Math.round(19 - 7 * 0.65));
-    expect(battle.enemies[0].broken).toBe(0);
+    expect(battle.enemies[0].broken).toBe(1);
   });
   it('無效指令不消耗回合、內力與物品', () => {
     const state = createGame('劍客', 'sword');
@@ -130,14 +134,14 @@ describe('半即時戰鬥', () => {
     const state = createGame('旅人', 'sword');
     const success = new Battle(state, 'patrol', () => 0);
     success.act({ type: 'escape' });
-    success.update(2.5);
+    success.update(3.2);
     expect(success.result).toBe('escaped');
     settleBattle(state, success);
     expect(state.gold).toBe(35);
     expect(state.defeated).toEqual([]);
     const failure = new Battle(state, 'patrol', () => 0.99);
     failure.act({ type: 'escape' });
-    failure.update(2.5);
+    failure.update(3.2);
     expect(failure.result).toBeNull();
     expect(failure.player.hp).toBeLessThan(state.hp);
   });

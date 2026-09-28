@@ -2,7 +2,12 @@ import { describe, expect, it } from 'vitest';
 import { Battle } from '../src/game/battle';
 import { createGame } from '../src/game/state';
 import { PanelView } from '../src/ui/PanelView';
-import { creationPanel, dialoguePanel, medicinePanel } from '../src/ui/canvas/storyPanels';
+import {
+  combatGuidePanel,
+  creationPanel,
+  dialoguePanel,
+  medicinePanel,
+} from '../src/ui/canvas/storyPanels';
 
 const options = { saveSlots: [], reducedMotion: false, audioVolume: 0.25 };
 describe('Pixi 遊戲面板保留操作規則', () => {
@@ -59,5 +64,16 @@ describe('Pixi 遊戲面板保留操作規則', () => {
         (row) => row.kind === 'action' && row.action === 'battle:item:elixir',
       ),
     ).toMatchObject({ disabled: true });
+  });
+
+  it('交鋒說明依武器與對手寫出實際射程，文案不使用分號', () => {
+    const sword = combatGuidePanel(new Battle(createGame('旅人', 'sword'), 'patrol'));
+    const fist = combatGuidePanel(new Battle(createGame('旅人', 'fist'), 'patrol'));
+    const text = (panel: typeof sword) =>
+      panel.rows.map((row) => ('text' in row ? row.text : '')).join(' ');
+    expect(text(sword)).toContain('你的射程（2～5）');
+    expect(text(fist)).toContain('你的射程（1～3）');
+    expect(text(sword)).not.toMatch(/[;；]/);
+    expect(sword.rows.at(-1)).toMatchObject({ kind: 'action', action: 'battle-help-close' });
   });
 });

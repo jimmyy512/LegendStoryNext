@@ -1,11 +1,11 @@
-import { Container, Graphics, Text } from 'pixi.js';
-import { QUESTS, SKILLS } from '../data/content';
+import { Container, Graphics } from 'pixi.js';
+import { QUESTS } from '../data/content';
 import { MAPS } from '../data/maps';
 import type { Battle } from '../game/battle';
-import { PART_NAMES, workingLegs } from '../game/body';
 import { getStats } from '../game/state';
 import type { GameState } from '../game/types';
 import type { GamePanel } from './canvas/model';
+import { BattleHud } from './canvas/BattleHud';
 import { CanvasLoading } from './canvas/CanvasLoading';
 import { PanelOverlay } from './canvas/PanelOverlay';
 import { clear, control, healthBar, label, surface } from './canvas/widgets';
@@ -25,7 +25,7 @@ export class GameView {
   private hero: GameState | null = null;
   private width = 0;
   private height = 0;
-  private clock: Text | null = null;
+  private battleHud: BattleHud | null = null;
   private toastTimer = 0;
   constructor(
     private readonly root: Container,
@@ -69,13 +69,18 @@ export class GameView {
     this.draw();
   }
   renderBattle(battle: Battle, target: number): void {
+    const same = this.screen.kind === 'battle' && this.screen.battle === battle && this.battleHud;
     this.screen = { kind: 'battle', battle, target };
-    this.draw();
+    if (same) {
+      this.battleHud!.update(battle);
+    } else {
+      this.draw();
+    }
   }
 
   private draw(): void {
     clear(this.hud);
-    this.clock = null;
+    this.battleHud = null;
     if (!this.width) {
       return;
     }
@@ -83,12 +88,15 @@ export class GameView {
       this.home();
       return;
     }
+    if (this.screen.kind === 'battle') {
+      this.battleHud = new BattleHud(this.screen.battle, this.width, this.height, this.press);
+      this.hud.addChild(this.battleHud);
+      return;
+    }
     this.playerStatus();
     this.placeName();
     if (this.screen.kind === 'explore') {
       this.exploration();
-    } else {
-      this.battleControls(this.screen.battle);
     }
   }
 
@@ -212,102 +220,6 @@ export class GameView {
     return top;
   }
 
-  private battleControls(battle: Battle): void {
-    this.clock = label('', { size: 12 });
-    this.clock.position.set(16, 92);
-    this.hud.addChild(this.clock);
-    this.updateBattleClock(battle);
-    if (battle.result) {
-      this.battleResult(battle);
-      return;
-    }
-    this.battleSelection(battle);
-    const entries = [
-      [battle.paused ? '開始交鋒' : '暫停', 'battle:pause'],
-      ...SKILLS[battle.player.route].map((skill) => [
-        `${skill.name}\n氣 ${skill.cost}`,
-        `battle:skill:${skill.id}`,
-      ]),
-      ['防禦', 'battle:defend'],
-      ['藥品', 'battle:items'],
-      ['撤退', 'battle:escape'],
-    ];
-    const top = this.commandRow(entries);
-    this.disableUnavailable(battle);
-    const queued = battle.queuedAction;
-    const queuedName =
-      queued?.type === 'skill'
-        ? SKILLS[battle.player.route].find((skill) => skill.id === queued.skill)?.name
-        : queued
-          ? { defend: '防禦', item: '使用藥品', escape: '撤退', attack: '普攻' }[queued.type]
-          : '自動普攻';
-    this.caption(
-      `下次出手 ${queuedName} · ${battle.events.at(-1)?.text ?? '選好招式後開始交鋒'}`,
-      top - 28,
-    );
-    if (queued) {
-      this.button({
-        label: '取消預約',
-        action: 'battle:cancel',
-        width: 76,
-        x: 10,
-        y: top - 78,
-      });
-    }
-  }
-
-  private battleSelection(battle: Battle): void {
-    const enemy = battle.enemies[battle.target];
-    this.button({
-      label: `${enemy.name} ${enemy.hp}`,
-      action: 'battle-targets',
-      width: 150,
-      x: this.width - 162,
-      y: 64,
-    });
-    this.button({
-      label: `攻擊 ${PART_NAMES[battle.targetPart]}`,
-      action: 'battle-parts',
-      width: 110,
-      x: this.width - 122,
-      y: 114,
-    });
-    this.button({ label: '我的傷勢', action: 'injuries', width: 90, x: 10, y: 116 });
-  }
-
-  private disableUnavailable(battle: Battle): void {
-    for (const skill of SKILLS[battle.player.route]) {
-      this.disable(
-        `battle:skill:${skill.id}`,
-        battle.player.mp < skill.cost || battle.skillPower(skill.id) === 0,
-      );
-    }
-    this.disable(
-      'battle:escape',
-      !battle.encounter.escapable || workingLegs(battle.player.body) === 0,
-    );
-  }
-
-  private disable(action: string, disabled: boolean): void {
-    const button = this.hud.children.find((child) => child.label === action);
-    if (button && disabled) {
-      button.eventMode = 'none';
-      button.accessible = false;
-      button.alpha = 0.4;
-    }
-  }
-
-  private battleResult(battle: Battle): void {
-    const result =
-      battle.result === 'victory'
-        ? `獲勝 · 銀兩 +${battle.reward.gold} · 修為 +${battle.reward.xp}`
-        : battle.result === 'defeat'
-          ? '暫退一步 · 返回安全處療傷'
-          : '已撤退 · 傷勢與消耗保留';
-    this.caption(result, this.height - 100);
-    this.commandRow([['返回探索', 'battle-end']]);
-  }
-
   private caption(message: string, y: number): void {
     const text = label(message, { size: 12, width: this.width - 48 });
     const backdrop = surface(Math.min(this.width - 24, text.width + 20), text.height + 8);
@@ -319,9 +231,7 @@ export class GameView {
   }
 
   updateBattleClock(battle: Battle): void {
-    if (this.clock) {
-      this.clock.text = `${battle.paused ? '戰術暫停' : '交鋒中'} ${battle.clock.elapsed.toFixed(1)} 秒`;
-    }
+    this.battleHud?.update(battle);
   }
 
   toast(message: string): void {

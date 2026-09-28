@@ -4,6 +4,7 @@ import {
   createBody,
   damagePart,
   limbPower,
+  movementRate,
   PART_NAMES,
   workingHands,
   workingLegs,
@@ -21,8 +22,18 @@ export type BattleAction =
   | { type: 'defend' }
   | { type: 'escape' };
 
+export type AttackRange = { min: number; max: number };
+export interface PlayerStrike {
+  action: BattleAction;
+  remaining: number;
+  range: AttackRange;
+  part: BodyPart;
+  empowered: boolean;
+}
+
 export interface BattleEnemy {
   id: string;
+  level?: number;
   name: string;
   hp: number;
   stats: Stats;
@@ -30,6 +41,13 @@ export interface BattleEnemy {
   progress: number;
   actions: number;
   broken: number;
+  opening: boolean;
+  position: number;
+  stamina: number;
+  exhausted: boolean;
+  windup: number;
+  recovery: number;
+  strikeRange: AttackRange | null;
   color: number;
 }
 export interface BattleEvent {
@@ -38,7 +56,10 @@ export interface BattleEvent {
   target?: number | 'player';
   part?: BodyPart;
   amount?: number;
-  kind?: 'damage' | 'heal' | 'guard' | 'injury';
+  skill?: string;
+  heavy?: boolean;
+  style?: 'sword' | 'fist';
+  kind?: 'damage' | 'heal' | 'guard' | 'injury' | 'windup' | 'miss';
 }
 export type BattleResult = 'victory' | 'defeat' | 'escaped' | null;
 
@@ -56,8 +77,19 @@ export class Battle {
   playerProgress = 0;
   defending = false;
   counter = false;
+  momentum = 0;
+  playerPosition = 10;
+  desiredDistance: number;
+  stamina = 100;
+  exhausted = false;
+  strike: PlayerStrike | null = null;
+  recovery = 0;
+  holdingPosition = false;
+  guardCooldown = 0;
+  guarding = false;
   events: BattleEvent[] = [];
   private pending: BattleAction | null = null;
+  private immediateEvents: BattleEvent[] = [];
 
   constructor(
     state: GameState,
@@ -71,7 +103,8 @@ export class Battle {
     this.encounter = encounter;
     this.player = structuredClone(state);
     this.stats = getStats(this.player);
-    this.enemies = encounter.enemies.map((id) => ({
+    this.desiredDistance = state.route === 'sword' ? 3.6 : 2.2;
+    this.enemies = encounter.enemies.map((id, index) => ({
       id,
       name: ENEMIES[id].name,
       hp: ENEMIES[id].maxHp,
@@ -81,6 +114,13 @@ export class Battle {
       color: ENEMIES[id].color,
       actions: 0,
       broken: 0,
+      opening: false,
+      position: 16 + index * 0.8,
+      stamina: 100,
+      exhausted: false,
+      windup: 0,
+      recovery: 0,
+      strikeRange: null,
     }));
     this.events.push({
       text: '戰術暫停中。選擇敵人與部位，再開始交鋒。蓄勢完成會自動普攻，招式可預約下一次出手。',
@@ -88,7 +128,9 @@ export class Battle {
   }
 
   get queuedAction(): BattleAction | null {
-    return this.pending ? { ...this.pending } : null;
+    const action =
+      this.pending ?? this.strike?.action ?? (this.guarding ? { type: 'defend' as const } : null);
+    return action ? { ...action } : null;
   }
 
   get reward(): { xp: number; gold: number } {
@@ -103,6 +145,15 @@ export class Battle {
 
   intent(index: number): string {
     const enemy = this.enemies[index];
+    if (enemy.hp <= 0) {
+      return '已敗退';
+    }
+    if (enemy.strikeRange) {
+      return `${this.isHeavy(enemy) ? '重擊' : '攻擊'}起手 ${Math.max(0, enemy.windup).toFixed(1)}秒`;
+    }
+    if (enemy.opening) {
+      return '破綻露出 · 追擊傷害 +35%';
+    }
     if (workingHands(enemy.body) === 0) {
       return '雙手失能 · 改以腿法';
     }
@@ -129,6 +180,30 @@ export class Battle {
     if (error) {
       return error;
     }
+    if (action.type === 'defend') {
+      if (this.guardCooldown > 0) {
+        return '正在收勢，稍候才能再次防禦。';
+      }
+      if (this.stamina < 20) {
+        return '腳力不足，需要 20 點才能收勢防禦。';
+      }
+      this.stamina -= 20;
+      this.guardCooldown = 1;
+      this.strike = null;
+      this.pending = null;
+      this.playerProgress = 0;
+      this.recovery = 0.2;
+      this.defending = true;
+      this.guarding = true;
+      this.counter = false;
+      this.paused = false;
+      this.immediateEvents.push({
+        text: '收勢防守，消耗 20 腳力；下次出手前減傷 60%。',
+        source: 'player',
+        kind: 'guard',
+      });
+      return null;
+    }
     this.pending = { ...action };
     if ('target' in action) {
       this.target = action.target;
@@ -145,46 +220,241 @@ export class Battle {
     if (this.paused || this.result) {
       return [];
     }
-    const emitted: BattleEvent[] = [];
+    const emitted: BattleEvent[] = this.immediateEvents.splice(0);
     this.clock.advance(seconds, (dt) => {
-      this.playerProgress = Math.min(1, this.playerProgress + dt / this.interval(this.stats.speed));
-      for (const enemy of this.enemies) {
-        if (enemy.hp > 0) {
-          enemy.progress = Math.min(1, enemy.progress + dt / this.interval(enemy.stats.speed));
+      this.moveFighters(dt);
+      this.guardCooldown = Math.max(0, this.guardCooldown - dt);
+      this.recovery = Math.max(0, this.recovery - dt);
+      if (this.strike) {
+        this.strike.remaining -= dt;
+        if (this.strike.remaining <= 1e-8) {
+          const strike = this.strike;
+          this.strike = null;
+          const action = strike.action;
+          if (
+            'target' in action &&
+            (!this.enemies[action.target]?.hp || !this.inRange(action.target, strike.range))
+          ) {
+            emitted.push({ text: '對手退出射程，這一招落空。', source: 'player', kind: 'miss' });
+          } else if (action.type === 'skill' && this.skillPower(action.skill) === 0) {
+            emitted.push({ text: '起招後肢體失能，招式中斷。', source: 'player', kind: 'miss' });
+          } else {
+            this.resolvePlayer(action, emitted, strike.empowered, strike.part);
+          }
+          this.recovery = 0.35;
+          this.checkResult(emitted);
         }
-      }
-      if (this.playerProgress >= 1 && (this.pending || this.autoAttack)) {
-        const action = this.pending ?? { type: 'attack' as const, target: this.aliveTarget() };
-        this.pending = null;
-        this.defending = false;
-        this.counter = false;
-        const error = this.validate(action);
-        if (error) {
-          emitted.push({ text: error });
-        } else {
-          this.resolvePlayer(action, emitted);
+      } else if (this.recovery === 0) {
+        this.playerProgress = Math.min(
+          1,
+          this.playerProgress + dt / this.interval(this.stats.speed),
+        );
+        if (this.playerProgress >= 1 && (this.pending || (this.autoAttack && !this.guarding))) {
+          const action = this.pending ?? { type: 'attack' as const, target: this.aliveTarget() };
+          const error = this.validate(action);
+          const offensive =
+            action.type === 'attack' || (action.type === 'skill' && action.skill !== 'guard');
+          const range = this.attackRange(action.type === 'skill' ? action.skill : undefined);
+          if (error) {
+            this.pending = null;
+            this.playerProgress = 0;
+            emitted.push({ text: error });
+          } else if (!offensive || ('target' in action && this.inRange(action.target, range))) {
+            this.pending = null;
+            this.playerProgress = 0;
+            this.defending = false;
+            this.guarding = false;
+            this.counter = false;
+            if (action.type === 'skill') {
+              this.player.mp -= SKILLS[this.player.route].find(
+                (skill) => skill.id === action.skill,
+              )!.cost;
+            }
+            if (offensive) {
+              const empowered = action.type === 'skill' && this.momentum === 3;
+              if (empowered) {
+                this.momentum = 0;
+              }
+              this.strike = {
+                action,
+                remaining: action.type === 'skill' ? 0.7 : 0.45,
+                range,
+                part: this.targetPart,
+                empowered,
+              };
+              emitted.push({
+                text: '正在起招，命中前仍需保持射程。',
+                source: 'player',
+                target: 'target' in action ? action.target : undefined,
+                skill: action.type === 'skill' ? action.skill : undefined,
+                kind: 'windup',
+              });
+            } else {
+              this.resolvePlayer(action, emitted);
+              this.checkResult(emitted);
+            }
+          }
         }
-        this.playerProgress = 0;
-        this.checkResult(emitted);
       }
       for (const [index, enemy] of this.enemies.entries()) {
         if (this.result) {
           break;
         }
-        if (enemy.hp <= 0 || enemy.progress < 1) {
+        if (enemy.hp <= 0) {
           continue;
         }
-        this.resolveEnemy(index, emitted);
-        enemy.progress = 0;
-        enemy.actions++;
-        enemy.broken = Math.max(0, enemy.broken - 1);
-        this.checkResult(emitted);
+        enemy.recovery = Math.max(0, enemy.recovery - dt);
+        if (enemy.strikeRange) {
+          enemy.windup -= dt;
+          if (enemy.windup <= 1e-8) {
+            const range = enemy.strikeRange;
+            enemy.strikeRange = null;
+            enemy.opening = this.isHeavy(enemy) && workingHands(enemy.body) > 0;
+            if (this.inRange(index, range)) {
+              this.resolveEnemy(index, emitted);
+            } else {
+              emitted.push({
+                text: `${enemy.name}攻擊落空，你已退出射程。`,
+                source: index,
+                kind: 'miss',
+              });
+            }
+            enemy.actions++;
+            enemy.broken = Math.max(0, enemy.broken - 1);
+            enemy.recovery = 0.4;
+            this.checkResult(emitted);
+          }
+        } else if (enemy.recovery === 0) {
+          enemy.progress = Math.min(1, enemy.progress + dt / this.interval(enemy.stats.speed));
+          if (enemy.progress >= 1 && this.inRange(index, this.enemyRange(index))) {
+            enemy.progress = 0;
+            enemy.opening = false;
+            enemy.strikeRange = this.enemyRange(index);
+            enemy.windup = this.isHeavy(enemy) ? 1 : 0.5;
+            emitted.push({
+              text: `${enemy.name}${this.isHeavy(enemy) ? '重擊' : '攻擊'}起手，可拉開距離閃避。`,
+              source: index,
+              target: 'player',
+              heavy: this.isHeavy(enemy),
+              kind: 'windup',
+            });
+          }
+        }
       }
       return !this.result;
     });
     this.events.push(...emitted);
     this.events = this.events.slice(-8);
     return emitted;
+  }
+
+  distance(index = this.target): number {
+    return Math.abs(this.enemies[index].position - this.playerPosition);
+  }
+
+  attackRange(skill?: string): AttackRange {
+    if (workingHands(this.player.body) === 0) {
+      return { min: 1, max: 2.5 };
+    }
+    if (skill === 'swordfall') {
+      return { min: 2, max: 5.8 };
+    }
+    if (skill === 'dragon') {
+      return { min: 1, max: 3.8 };
+    }
+    return (this.player.weapon ?? (this.player.route === 'sword' ? 'sword' : 'wraps')) === 'sword'
+      ? { min: 2, max: 5 }
+      : { min: 1, max: 3 };
+  }
+
+  enemyRange(index: number): AttackRange {
+    const enemy = this.enemies[index];
+    if (workingHands(enemy.body) === 0) {
+      return { min: 1, max: 2.5 };
+    }
+    return enemy.id === 'boss'
+      ? { min: 2, max: 5 }
+      : enemy.id === 'bandit'
+        ? { min: 1.5, max: 4 }
+        : { min: 1, max: 3 };
+  }
+
+  inRange(index: number, range: AttackRange): boolean {
+    const distance = this.distance(index);
+    return distance >= range.min - 1e-6 && distance <= range.max + 1e-6;
+  }
+
+  setDistance(value: number): void {
+    if (Number.isFinite(value) && !this.result) {
+      this.holdingPosition = false;
+      this.desiredDistance = Math.max(1, Math.min(10, value));
+    }
+  }
+
+  private moveFighters(dt: number): void {
+    this.aliveTarget();
+    this.exhausted = this.exhausted ? this.stamina < 30 : this.stamina < 1;
+    const delta = this.distance() - this.desiredDistance;
+    const direction =
+      Math.abs(delta) > 0.12 &&
+      !this.holdingPosition &&
+      !this.strike &&
+      !this.recovery &&
+      !this.exhausted
+        ? Math.sign(delta)
+        : 0;
+    const speed = (1.8 + this.stats.speed * 0.025) * movementRate(this.player.body);
+    const old = this.playerPosition;
+    const nearest = Math.min(
+      ...this.enemies.filter((enemy) => enemy.hp > 0).map((enemy) => enemy.position),
+    );
+    this.playerPosition = Math.max(
+      0,
+      Math.min(
+        nearest - 1,
+        this.playerPosition + direction * Math.min(Math.abs(delta), speed * dt),
+      ),
+    );
+    this.stamina = Math.max(
+      0,
+      Math.min(
+        100,
+        this.stamina + (old !== this.playerPosition ? -(direction < 0 ? 24 : 16) : 22) * dt,
+      ),
+    );
+    for (const [index, enemy] of this.enemies.entries()) {
+      if (enemy.hp <= 0) {
+        continue;
+      }
+      enemy.exhausted = enemy.exhausted ? enemy.stamina < 30 : enemy.stamina < 1;
+      const range = this.enemyRange(index);
+      const desired = (range.min + range.max) / 2;
+      const gap = this.distance(index) - desired;
+      // 已有有效站位就穩住；不要為了追逐中點不停後退，令短兵器每次起招都落空。
+      const needsMove =
+        this.distance(index) < range.min + 0.2 || this.distance(index) > range.max - 0.35;
+      const direction =
+        needsMove &&
+        Math.abs(gap) > 0.15 &&
+        !enemy.strikeRange &&
+        !enemy.recovery &&
+        !enemy.exhausted
+          ? -Math.sign(gap)
+          : 0;
+      const old = enemy.position;
+      const speed = (1.2 + enemy.stats.speed * 0.03) * movementRate(enemy.body);
+      enemy.position = Math.max(
+        this.playerPosition + 1,
+        Math.min(30, enemy.position + direction * Math.min(Math.abs(gap), speed * dt)),
+      );
+      enemy.stamina = Math.max(
+        0,
+        Math.min(
+          100,
+          enemy.stamina + (old !== enemy.position ? -(direction > 0 ? 24 : 16) : 22) * dt,
+        ),
+      );
+    }
   }
 
   private interval(speed: number): number {
@@ -242,7 +512,12 @@ export class Battle {
     return null;
   }
 
-  private resolvePlayer(action: BattleAction, events: BattleEvent[]): void {
+  private resolvePlayer(
+    action: BattleAction,
+    events: BattleEvent[],
+    empowered = false,
+    part = this.targetPart,
+  ): void {
     if (action.type === 'attack') {
       const noHands = workingHands(this.player.body) === 0;
       this.hitEnemy(
@@ -251,20 +526,35 @@ export class Battle {
         noHands ? '應急踢擊' : '普通攻擊',
         noHands ? { hands: 0, legs: 1 } : { hands: 1, legs: 0 },
         events,
+        part,
       );
+      this.gainMomentum(events);
     } else if (action.type === 'skill') {
       const skill = SKILLS[this.player.route].find((entry) => entry.id === action.skill)!;
-      this.player.mp -= skill.cost;
       if (skill.effect === 'counter') {
         this.defending = true;
         this.counter = true;
         events.push({
           text: `${this.player.name}使出${skill.name}，護體待敵。`,
           source: 'player',
+          skill: skill.id,
           kind: 'guard',
         });
       } else {
-        this.hitEnemy(action.target, skill.multiplier, skill.name, skill.limbs, events);
+        this.hitEnemy(
+          action.target,
+          skill.multiplier * (empowered ? 1.35 : 1),
+          `${empowered ? '氣勢爆發 · ' : ''}${skill.name}`,
+          skill.limbs,
+          events,
+          part,
+          skill.id,
+        );
+        const enemy = this.enemies[action.target];
+        if (empowered && enemy.hp > 0) {
+          enemy.progress = Math.max(0, enemy.progress - 0.5);
+          events.push({ text: `${enemy.name}出手受阻，蓄勢減少 50%。` });
+        }
         if (skill.effect === 'break') {
           this.enemies[action.target].broken = 2;
         }
@@ -300,27 +590,38 @@ export class Battle {
     label: string,
     requirement: LimbRequirement,
     events: BattleEvent[],
+    part = this.targetPart,
+    skill?: string,
   ): void {
     const enemy = this.enemies[index];
     const power = limbPower(this.player.body, requirement);
     const defense = enemy.stats.defense * (enemy.broken > 0 ? 0.4 : 1);
-    const base = Math.max(1, Math.round(this.stats.attack * multiplier - defense * 0.65));
+    const opening = enemy.opening;
+    const base = Math.max(
+      1,
+      Math.round((this.stats.attack * multiplier - defense * 0.65) * (opening ? 1.35 : 1)),
+    );
     const damage = power > 0 ? Math.max(1, Math.round(base * power)) : 0;
+    if (damage > 0) {
+      enemy.opening = false;
+    }
     enemy.hp = Math.max(0, enemy.hp - damage);
-    const disabled = damagePart(enemy.body, this.targetPart, (damage * 100) / enemy.stats.maxHp);
+    const disabled = damagePart(enemy.body, part, (damage * 100) / enemy.stats.maxHp);
     events.push({
-      text: `${this.player.name}使出${label}，命中${enemy.name}的${PART_NAMES[this.targetPart]}，造成 ${damage} 傷害${power < 1 ? `（肢體效能 ${Math.round(power * 100)}%）` : ''}。`,
+      text: `${this.player.name}使出${label}${opening ? '（追擊破綻）' : ''}，命中${enemy.name}的${PART_NAMES[part]}，造成 ${damage} 傷害${power < 1 ? `（肢體效能 ${Math.round(power * 100)}%）` : ''}。`,
       source: 'player',
       target: index,
-      part: this.targetPart,
+      part: part,
       amount: damage,
+      skill,
+      style: this.player.weapon === 'sword' ? 'sword' : this.player.route,
       kind: 'damage',
     });
     if (disabled) {
       events.push({
-        text: `${enemy.name}的${PART_NAMES[this.targetPart]}已重傷。`,
+        text: `${enemy.name}的${PART_NAMES[part]}已重傷。`,
         target: index,
-        part: this.targetPart,
+        part: part,
         kind: 'injury',
       });
     }
@@ -330,6 +631,7 @@ export class Battle {
     const enemy = this.enemies[index];
     const heavy = this.isHeavy(enemy);
     const noHands = workingHands(enemy.body) === 0;
+    enemy.opening = heavy && !noHands;
     const requirement: LimbRequirement = noHands
       ? { hands: 0, legs: 1 }
       : { hands: heavy ? 2 : 1, legs: 0 };
@@ -361,6 +663,7 @@ export class Battle {
       target: 'player',
       part,
       amount: damage,
+      heavy,
       kind: 'damage',
     });
     if (disabled) {
@@ -371,13 +674,26 @@ export class Battle {
         kind: 'injury',
       });
     }
-    if (this.counter && this.player.hp > 0) {
+    if (this.defending && damage > 0 && this.player.hp > 0) {
+      this.gainMomentum(events);
+    }
+    this.guarding = false;
+    if (this.counter && this.player.hp > 0 && this.inRange(index, this.attackRange())) {
       this.hitEnemy(index, 0.85, '護體反擊', { hands: 1, legs: 0 }, events);
     }
   }
 
   private isHeavy(enemy: BattleEnemy): boolean {
     return (enemy.actions + 1) % ENEMIES[enemy.id].heavyEvery === 0;
+  }
+
+  private gainMomentum(events: BattleEvent[]): void {
+    if (this.momentum < 3) {
+      this.momentum++;
+      if (this.momentum === 3) {
+        events.push({ text: '氣勢已滿！下一次攻擊招式威力提升 35%，並延遲敵人半條蓄勢。' });
+      }
+    }
   }
 
   private checkResult(events: BattleEvent[]): void {

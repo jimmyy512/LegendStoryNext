@@ -2,6 +2,7 @@ import { Application, Container, type Ticker } from 'pixi.js';
 import { SceneManager } from '../core/SceneManager';
 import type { Battle, BattleEvent } from '../game/battle';
 import type { GameState, MapEntity, Point } from '../game/types';
+import { battleDockHeight } from '../ui/canvas/BattleHud';
 import { HEIGHT, WIDTH } from './art';
 import { cameraFrame } from './camera';
 import { BattleScene } from './scenes/BattleScene';
@@ -117,6 +118,30 @@ export class World {
   }
 
   private updateCamera(): void {
+    if (this.battle) {
+      const bounds = this.battle.cameraBounds;
+      const top = this.app.screen.height < 520 ? 106 : this.app.screen.width < 620 ? 158 : 185;
+      const stageHeight = Math.max(
+        100,
+        this.app.screen.height -
+          top -
+          battleDockHeight(this.app.screen.width, this.app.screen.height),
+      );
+      const scale = Math.min(
+        (this.app.screen.width - 32) / bounds.width,
+        stageHeight / (310 + (bounds.width - 440) * 0.2),
+      );
+      const weight = 0.12;
+      this.sceneRoot.scale.set(this.sceneRoot.scale.x + (scale - this.sceneRoot.scale.x) * weight);
+      const actual = this.sceneRoot.scale.x;
+      const x = this.app.screen.width / 2 - bounds.x * actual;
+      const y = top + stageHeight * 0.5 - bounds.y * actual;
+      this.sceneRoot.position.set(
+        this.sceneRoot.x + (x - this.sceneRoot.x) * weight,
+        this.sceneRoot.y + (y - this.sceneRoot.y) * weight,
+      );
+      return;
+    }
     const focus = this.exploration?.cameraFocus ?? { x: WIDTH / 2, y: HEIGHT * 0.6 };
     const frame = cameraFrame({
       viewport: this.app.screen,

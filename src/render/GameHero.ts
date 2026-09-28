@@ -8,6 +8,8 @@ export class GameHero extends Container {
   private spine = new LegacyHero(HERO_ASSETS);
   private moving = false;
   private attackIndex = 0;
+  private attackRemaining = 0;
+  private desiredMoving = false;
 
   constructor(state: GameState) {
     super();
@@ -22,6 +24,10 @@ export class GameHero extends Container {
   }
 
   setMoving(moving: boolean): void {
+    this.desiredMoving = moving;
+    if (this.attackRemaining > 0) {
+      return;
+    }
     if (this.moving !== moving) {
       this.moving = moving;
       this.spine.playMotion(moving ? 'Run' : 'Idle');
@@ -35,11 +41,26 @@ export class GameHero extends Container {
   }
 
   playAttack(): void {
+    this.attackRemaining = 0.7;
+    this.moving = false;
     const motions = ['NormalAttack1', 'NormalAttack2', 'NormalAttack3'] as const;
     this.spine.playMotion(motions[this.attackIndex++ % motions.length], false);
   }
 
+  playGuard(): void {
+    this.attackRemaining = 0;
+    this.moving = false;
+    this.desiredMoving = false;
+    this.spine.playMotion('Idle');
+  }
+
   update(seconds: number): void {
+    if (this.attackRemaining > 0) {
+      this.attackRemaining = Math.max(0, this.attackRemaining - seconds);
+      if (!this.attackRemaining) {
+        this.setMoving(this.desiredMoving);
+      }
+    }
     if (this.spine.visible) {
       this.spine.update(seconds);
     }

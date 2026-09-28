@@ -3,6 +3,7 @@ import { MAPS } from '../data/maps';
 import { type Battle, type BattleAction } from '../game/battle';
 import { BODY_PARTS, PART_NAMES, PART_CAPACITY, type BodyPart } from '../game/body';
 import { GameSession } from '../game/GameSession';
+import { createCombatPreview, prepareCombatPreview } from '../game/combatPreview';
 import { decodeSave, encodeSave, type SaveSlot } from '../game/save';
 import { createGame } from '../game/state';
 import { getDialogue, isEntityVisible, type Dialogue } from '../game/story';
@@ -15,7 +16,13 @@ import {
   type GamePanel,
   type PanelRow,
 } from '../ui/canvas/model';
-import { creationPanel, dialoguePanel, endingPanel, medicinePanel } from '../ui/canvas/storyPanels';
+import {
+  combatGuidePanel,
+  creationPanel,
+  dialoguePanel,
+  endingPanel,
+  medicinePanel,
+} from '../ui/canvas/storyPanels';
 
 import { TransitionController } from '../core/TransitionController';
 import { AssetService } from '../services/AssetService';
@@ -33,6 +40,7 @@ export class GameApplication {
   private transitions: TransitionController;
   private lifetime = new AbortController();
   private playTimer = 0;
+  private combatPreview = false;
   private session = new GameSession();
   private dialogueEntity: MapEntity | null = null;
   private get state(): GameState | null {
@@ -107,10 +115,21 @@ export class GameApplication {
     );
   }
 
-  async init(): Promise<void> {
+  async init(preview?: { route: Route; encounter: string }): Promise<void> {
+    this.combatPreview = !!preview;
     await this.world.init(document.querySelector('#canvas-host')!);
     this.loading.attach(this.view.loading);
-    await this.start(createGame('無名', 'sword'), true);
+    if (preview) {
+      const state = createCombatPreview(preview.route);
+      await this.start(state);
+      this.startBattle(preview.encounter);
+      if (this.battle) {
+        prepareCombatPreview(this.battle);
+        this.renderBattle();
+      }
+    } else {
+      await this.start(createGame('無名', 'sword'), true);
+    }
   }
 
   dispose(): void {
@@ -585,6 +604,16 @@ ${new Date(record.savedAt).toLocaleString('zh-TW')}`),
       this.renderBattle();
       return;
     }
+    if (action.startsWith('distance:') && this.battle) {
+      this.battle.setDistance(Number(action.slice(9)));
+      this.renderBattle();
+      return;
+    }
+    if (action === 'distance-hold' && this.battle) {
+      this.battle.holdingPosition = true;
+      this.renderBattle();
+      return;
+    }
     if (action === 'battle:cancel' && this.battle) {
       this.battle.cancelAction();
       this.renderBattle();
@@ -712,6 +741,11 @@ ${new Date(record.savedAt).toLocaleString('zh-TW')}`),
       });
     } else if (action === 'injuries') {
       this.openModal({ title: '我的傷勢', rows: injuryRows(battle.player) });
+    } else if (action === 'battle-help') {
+      this.openModal(combatGuidePanel(battle));
+    } else if (action === 'battle-help-close') {
+      this.closeModal(false);
+      this.renderBattle();
     } else if (action.startsWith('pick-target:') || action.startsWith('pick-body:')) {
       this.closeModal(false);
       if (action.startsWith('pick-target:')) {
@@ -769,13 +803,17 @@ ${new Date(record.savedAt).toLocaleString('zh-TW')}`),
   }
 
   private autoSave(): void {
-    if (!this.state || this.battle || this.dialogue) {
+    if (this.combatPreview || !this.state || this.battle || this.dialogue) {
       return;
     }
     try {
       this.saves.writeSave(this.state, 'auto');
-    } catch {
-      this.toast('自動存檔失敗，請從存讀檔面板匯出備份。');
+    } catch (error) {
+      if (import.meta.env.DEV) {
+        console.error('自動存檔失敗', error);
+      } else {
+        this.toast('自動存檔失敗，請從存讀檔面板匯出備份。');
+      }
     }
   }
 
@@ -784,6 +822,18 @@ ${new Date(record.savedAt).toLocaleString('zh-TW')}`),
   }
 
   private keydown(event: KeyboardEvent): void {
+    if (
+      this.battle &&
+      !this.view.modalVisible &&
+      ['ArrowLeft', 'ArrowRight', 'a', 'd'].includes(event.key)
+    ) {
+      event.preventDefault();
+      this.battle.setDistance(
+        this.battle.desiredDistance + (['ArrowLeft', 'a'].includes(event.key) ? -0.5 : 0.5),
+      );
+      this.view.updateBattleClock(this.battle);
+      return;
+    }
     if (event.code === 'Space' && this.battle && !this.view.modalVisible) {
       event.preventDefault();
       if (event.repeat) {
