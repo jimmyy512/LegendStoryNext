@@ -1,0 +1,21 @@
+Use the image generation tool. Make ONE square 1024x1024 PNG: a production pixel-art cutout sheet of wearable ARMOR and BACK pieces for a Spine skeletal rig of the SAME wuxia heroine shown in the references.
+
+Reference 1 is the existing part sheet: match its exact pixel-art look (hard-edged 16-bit pixel art, chunky square pixels about 4 output pixels wide, limited palette, 1-2 pixel dark brown outline, soft pixel shading from top-right light, no antialiasing, no gradients, no blur). Reference 2 is the heroine's sleeveless TORSO part (neck to tunic hem, facing right in three-quarter side view): every body-worn piece below must be drawn at the SAME pixel scale and to FIT ON THAT TORSO, same 3/4 view facing right. Reference 3 is the full character for identity.
+
+Background: flat solid pure magenta #FF00FF everywhere, no checkerboard, no shadow, no text, no grid lines. Arrange as an invisible 3 by 3 grid, one fully isolated piece centered in each cell with generous magenta padding. Pieces never touch each other.
+
+Row 1:
+1. Wuxia LAMELLAR chest armor (zhajia) worn over the tunic: small overlapping steel scales laced with dark red cord in horizontal rows, dark leather border and shoulder straps, a round bronze protective mirror (huxinjing) on the chest. Shaped like a real vest covering chest and belly, open at the neck and armholes, slightly curved to follow the torso in 3/4 view. Same width as the torso reference, height from collarbone to waist sash. No arms, no head.
+2. IRON shoulder guard (pauldron) for one shoulder: three overlapping curved steel plates getting wider downward, riveted gold trim, a leather strap at the top, seen from the side, hanging straight down. About as wide as the torso's shoulder.
+3. LEATHER shoulder guard: same shape and size as piece 2 but layered brown hardened leather with stitched edges.
+Row 2:
+4. Long CRIMSON CAPE hanging from the back of the neck, seen from the right side as it would look behind a character facing right: fastened at the top with a small gold clasp, falling down behind the body to knee level, hem sweeping back to the LEFT, natural cloth folds, gold embroidered hem. Height about 1.8 times the torso reference.
+5. The SAME cape in deep midnight blue with silver hem.
+6. Wuxia bronze HAIR CROWN (guan) that sits on top of a hair bun, small, with a gold hairpin passing through it horizontally, red jewel.
+Row 3:
+7. Conical bamboo STRAW HAT (douli) seen from the side at slight angle, woven texture, a red chin cord hanging, width about 2.2 times the head.
+8. Brown calabash WINE GOURD with a red cord and knot at the top, small, hanging.
+9. Green JADE PENDANT disc (bi) with a red tassel hanging below, small.
+
+Keep pixel art crisp and consistent with reference 1. These are clothing and props for animation cutouts.
+Save the final image as out.png in the current directory.

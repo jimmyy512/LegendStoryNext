@@ -1,0 +1,13 @@
+Use the image generation tool. Make ONE square 1024x1024 PNG: a production pixel-art cutout sheet of LOWER-BODY garment overlays for a Spine skeletal rig of the SAME wuxia heroine as the reference part sheet.
+
+Reference 1 is the existing part sheet: match its exact pixel-art look (hard-edged 16-bit pixel art, chunky square pixels about 4 output pixels wide, limited palette, 1-2 pixel dark brown outline, pixel shading from top-right light, no antialiasing, no gradients). Reference 2 is the heroine's sleeveless TORSO part, facing right in three-quarter side view: draw everything at the SAME pixel scale and to hang from THAT torso's waist sash.
+
+Background: flat solid pure magenta #FF00FF, no checkerboard, no shadow, no text, no grid lines. Invisible 2 by 2 grid, one fully isolated piece centered in each cell, generous magenta padding, pieces never touch.
+
+1. Long ROBE SKIRT panels (long coat tail) hanging from the waist to below the knees, dark teal-black cloth with gold trim hem, split in the middle so the legs can move, front panel and back panel slightly apart, natural vertical folds, seen in 3/4 view facing right. Top edge is a straight waistband as wide as the torso reference's waist. Height about 1.3 times the torso reference.
+2. The SAME robe skirt in crimson with pale gold trim.
+3. Short ARMORED TASSETS (skirt of small steel lamellar plates with leather waistband) hanging from waist to mid thigh, same width at the top.
+4. Short fur-lined HUNTER'S WAIST APRON of brown leather with a belt pouch, waist to mid thigh.
+
+Keep pixel art crisp and consistent with reference 1.
+Save the final image as out.png in the current directory.

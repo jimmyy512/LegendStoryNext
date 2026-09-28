@@ -1,0 +1,145 @@
+parts-v1.png
+size: 1254,1254
+format: RGBA8888
+filter: Nearest,Nearest
+repeat: none
+head
+  rotate: false
+  xy: 83, 65
+  size: 213, 212
+  orig: 213, 212
+  offset: 0, 0
+  index: -1
+ivory
+  rotate: false
+  xy: 366, 51
+  size: 225, 270
+  orig: 225, 270
+  offset: 0, 0
+  index: -1
+hair
+  rotate: false
+  xy: 654, 26
+  size: 243, 286
+  orig: 243, 286
+  offset: 0, 0
+  index: -1
+jade
+  rotate: false
+  xy: 993, 51
+  size: 225, 270
+  orig: 225, 270
+  offset: 0, 0
+  index: -1
+upperL
+  rotate: false
+  xy: 97, 354
+  size: 111, 173
+  orig: 111, 173
+  offset: 0, 0
+  index: -1
+upperR
+  rotate: false
+  xy: 434, 355
+  size: 109, 170
+  orig: 109, 170
+  offset: 0, 0
+  index: -1
+cuffL
+  rotate: false
+  xy: 739, 449
+  size: 84, 100
+  orig: 84, 100
+  offset: 0, 0
+  index: -1
+cuffR
+  rotate: false
+  xy: 1059, 448
+  size: 86, 100
+  orig: 86, 100
+  offset: 0, 0
+  index: -1
+palmL
+  rotate: false
+  xy: 739, 535
+  size: 84, 83
+  orig: 84, 83
+  offset: 0, 0
+  index: -1
+palmR
+  rotate: false
+  xy: 1059, 534
+  size: 86, 84
+  orig: 86, 84
+  offset: 0, 0
+  index: -1
+thighL
+  rotate: false
+  xy: 90, 645
+  size: 134, 208
+  orig: 134, 208
+  offset: 0, 0
+  index: -1
+thighR
+  rotate: false
+  xy: 430, 645
+  size: 147, 208
+  orig: 147, 208
+  offset: 0, 0
+  index: -1
+shinL
+  rotate: false
+  xy: 718, 645
+  size: 144, 128
+  orig: 144, 128
+  offset: 0, 0
+  index: -1
+shinR
+  rotate: false
+  xy: 1045, 645
+  size: 145, 128
+  orig: 145, 128
+  offset: 0, 0
+  index: -1
+calfL
+  rotate: false
+  xy: 718, 747
+  size: 144, 138
+  orig: 144, 138
+  offset: 0, 0
+  index: -1
+calfR
+  rotate: false
+  xy: 1045, 747
+  size: 145, 138
+  orig: 145, 138
+  offset: 0, 0
+  index: -1
+sword
+  rotate: false
+  xy: 118, 908
+  size: 88, 335
+  orig: 88, 335
+  offset: 0, 0
+  index: -1
+saber
+  rotate: false
+  xy: 448, 908
+  size: 98, 335
+  orig: 98, 335
+  offset: 0, 0
+  index: -1
+gripL
+  rotate: false
+  xy: 739, 1130
+  size: 80, 58
+  orig: 80, 58
+  offset: 0, 0
+  index: -1
+gripR
+  rotate: false
+  xy: 1062, 1130
+  size: 83, 58
+  orig: 83, 58
+  offset: 0, 0
+  index: -1

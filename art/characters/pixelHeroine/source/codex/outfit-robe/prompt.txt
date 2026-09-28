@@ -1,0 +1,18 @@
+Use the image generation tool. Make ONE square 1024x1024 PNG: NEW costume parts for a Spine skeletal rig of the SAME wuxia heroine as reference 1.
+
+Reference 1 is the existing part sheet (4x4 grid): row 1 has the torso, row 2 has four arm sleeves (rear upper arm, front upper arm, rear forearm with open palm, front forearm with open palm, all pointing straight DOWN with round joint caps). Reference 2 is the torso part alone. Match the exact pixel-art look (hard-edged 16-bit pixel art, chunky square pixels about 4 output pixels wide, limited palette, 1-2 pixel dark brown outline, no antialiasing, no gradients).
+
+CRITICAL: every new torso must have EXACTLY the same silhouette, size, pose and proportions as reference 2 (same neck position, same shoulder line, same waist sash height, same hem length, facing right in three-quarter side view) so it can replace it on the skeleton. Only the clothing design and colors change. Keep the neck skin stub at the top like the reference.
+
+Background: flat solid pure magenta #FF00FF, no checkerboard, no shadow, no text, no grid lines. Invisible 4 by 3 grid (4 columns, 3 rows), one fully isolated piece centered in each cell, generous padding, pieces never touch.
+
+Row 1: four sleeveless TORSOS, no head, arms or legs:
+ 1. black and crimson swordswoman robe with high collar and gold buttons, crimson sash;
+ 2. white and gold scholar-knight robe with gold cloud embroidery, gold sash;
+ 3. purple and silver night-orchid dress robe with silver trim, black sash;
+ 4. rustic brown hunter vest over cream shirt, rope belt.
+Row 2: matching UPPER ARM sleeves for torsos 1 and 2 (rear sleeve then front sleeve for each), shoulder at top, elbow at bottom, pointing straight down, same size as reference 1 row 2 upper arms.
+Row 3: matching FOREARM sleeves with bare OPEN PALM for torsos 1 and 2 (rear then front for each), elbow at top, fingertips at bottom, pointing straight down, same size as reference 1 row 2 forearms, including the wrist cuff in the new outfit colors.
+
+Keep pixel art crisp and consistent with reference 1. Clothing only, no gore.
+Save the final image as out.png in the current directory.

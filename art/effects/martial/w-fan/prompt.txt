@@ -1,0 +1,15 @@
+Use the image generation tool. Make ONE PNG, 1536 wide by 1024 tall: a 6-frame pixel-art ANIMATION SPRITE SHEET of a wuxia WEAPON technique special effect: a wuxia 降龍十八掌. The effect: a FOLDING FAN WIND: several sharp pale jade-green crescent wind blades and swirling gusts with a few drifting leaves, fanned outward and forward.
+
+The references show the heroine character and her part sheet: match their exact pixel-art look (hard-edged 16-bit pixel art, chunky square pixels about 4 output pixels wide, limited vivid palette, crisp 1-2 pixel dark outline where appropriate, no antialiasing, no blur, no soft gradients). The effect is cast by that heroine facing RIGHT.
+
+Layout: an invisible 3 columns by 2 rows grid of equal 512x512 cells, read left to right then top to bottom = frames 1 to 6 in time order. In EVERY cell the caster's weapon hand (or spear tip) is at the SAME fixed spot: the LEFT EDGE of the cell, vertically centered (x=0, y=256 inside the cell). The effect starts there and travels to the RIGHT. Do NOT draw the character, hand or the weapon itself, only the effect.
+Frame 1: a small swirl of wind at the hand.
+Frame 2: two small jade crescent wind blades fan out.
+Frame 3: three to four crescent wind blades spreading forward in a fan shape with leaves.
+Frame 4: the wind blades at their widest spread, flying forward.
+Frame 5: the gust hits at the right side scattering leaves.
+Frame 6: drifting leaves and faint wind lines.
+Keep the effect's look, colors and size consistent between frames so it plays as a smooth animation. Nothing may cross into a neighbouring cell.
+
+Background: flat solid pure magenta #FF00FF in every cell, no checkerboard, no grid lines, no text, no labels, no frame numbers, no shadows on the background. Do not use magenta or pink-magenta inside the effect itself (use salmon or rose instead of magenta if pink is needed).
+Save the final image as out.png in the current directory.

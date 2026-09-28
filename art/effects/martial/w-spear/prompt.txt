@@ -1,0 +1,15 @@
+Use the image generation tool. Make ONE PNG, 1536 wide by 1024 tall: a 6-frame pixel-art ANIMATION SPRITE SHEET of a wuxia WEAPON technique special effect: a wuxia 降龍十八掌. The effect: a SPEAR THRUST: a long straight horizontal piercing lance of white-gold qi with a spiralling red wind drill around it, shooting straight forward from the spear tip.
+
+The references show the heroine character and her part sheet: match their exact pixel-art look (hard-edged 16-bit pixel art, chunky square pixels about 4 output pixels wide, limited vivid palette, crisp 1-2 pixel dark outline where appropriate, no antialiasing, no blur, no soft gradients). The effect is cast by that heroine facing RIGHT.
+
+Layout: an invisible 3 columns by 2 rows grid of equal 512x512 cells, read left to right then top to bottom = frames 1 to 6 in time order. In EVERY cell the caster's weapon hand (or spear tip) is at the SAME fixed spot: the LEFT EDGE of the cell, vertically centered (x=0, y=256 inside the cell). The effect starts there and travels to the RIGHT. Do NOT draw the character, hand or the weapon itself, only the effect.
+Frame 1: a sharp star glint at the spear tip.
+Frame 2: a short straight piercing ray begins with a red spiral.
+Frame 3: a long horizontal piercing lance of white-gold light with a red spiral wind around it.
+Frame 4: the lance at full length reaching near the right edge, spiral strongest.
+Frame 5: a piercing impact burst at the far right tip.
+Frame 6: fading spiral wisps along the line.
+Keep the effect's look, colors and size consistent between frames so it plays as a smooth animation. Nothing may cross into a neighbouring cell.
+
+Background: flat solid pure magenta #FF00FF in every cell, no checkerboard, no grid lines, no text, no labels, no frame numbers, no shadows on the background. Do not use magenta or pink-magenta inside the effect itself (use salmon or rose instead of magenta if pink is needed).
+Save the final image as out.png in the current directory.

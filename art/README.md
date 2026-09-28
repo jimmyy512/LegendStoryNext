@@ -2,6 +2,8 @@
 
 美術原始檔與遊戲程式保存在同一個 Git repository。`art/` 不放在 `public/`，避免把可編輯專案與製作草稿一併發給瀏覽器。
 
+一代程式與使用者提供的原始 AI、PSD、DragonBones 素材位置，見 [一代本地來源索引](legacy-sources.md)。
+
 ## 目錄
 
 | 路徑 | 用途 |

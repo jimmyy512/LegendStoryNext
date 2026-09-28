@@ -1,0 +1,10 @@
+Use the image generation tool. Make ONE PNG, 1024 wide by 512 tall.
+
+Reference 1 (left piece) is the heroine's HEAD part, facing right in 3/4 side view, with a hair bun on top. Reference 2 is the part sheet for style. Match the exact pixel-art look (hard-edged 16-bit pixel art, chunky square pixels about 4 output pixels wide, limited palette, dark outline, no antialiasing).
+
+Draw a wuxia conical bamboo STRAW HAT (douli) that is WORN on that head, seen at EYE LEVEL from the side exactly like the head's view: we see the woven cone top and the thin front edge of the wide brim, the brim is almost horizontal with a very slight downward slope, we do NOT see the underside of the hat. No chin cords, no strings hanging. The brim is about 1.5 times as wide as the head, the hat sits low so the brim edge is at the eyebrow line and hides the top of the head and the bun completely.
+
+Layout on flat solid pure magenta #FF00FF background, no grid lines, no text:
+LEFT half: the hat ALONE, isolated, centered.
+RIGHT half: the SAME head from reference 1, same size, wearing that exact same hat, to show the fit. The head must be the same size as in reference 1 and the hat the same size in both halves.
+Save the final image as out.png in the current directory.

@@ -1,0 +1,14 @@
+{
+  "weapons": {
+    "prompt": "Make a NEW 4 by 4 grid sheet of isolated wuxia weapons for the SAME character, each vertical with the grip at the bottom and tip pointing UP: 1 long spear with red tassel under the steel head, 2 closed folding fan, 3 open folding fan with painted ink landscape, 4 three steel willow-leaf throwing darts with red tassels, 5 pair of brass knuckle-duster fighting gloves drawn as a closed fist forearm with brown wrist cuff matching the reference, 6 wooden staff, 7 twin short daggers, 8 iron whip coiled. Leave the remaining cells empty magenta."
+  },
+  "hair": {
+    "prompt": "Make a NEW 4 by 4 grid sheet of isolated hairstyle parts for the SAME heroine, same brown hair color and red ribbon as the reference: row 1 four different complete HEADS facing right with face and bangs but NO ponytail: short bob hair, twin buns, loose long hair top, braided crown. Row 2 the matching back hair pieces for each head, root at top: none, two small bun tails, long straight hair flowing down, single long braid. Rows 3 and 4 empty magenta."
+  },
+  "legs": {
+    "prompt": "Make a NEW 4 by 4 grid sheet of isolated leg parts for the SAME heroine, drawn pointing straight DOWN with round joint caps like the reference: row 1 four THIGHS: white linen trousers, indigo trousers, tight black leggings, green armored skirt panel over trousers. Row 2 matching four CALVES without feet, knee at top ankle at bottom. Row 3 four different FOOTWEAR, ankle at top, toe pointing RIGHT: black cloth shoes, straw sandals with white socks, tall red leather boots, iron-plated war boots. Row 4 empty magenta."
+  },
+  "outfit-robe": {
+    "prompt": "Make a NEW 4 by 4 grid sheet for the SAME heroine wearing a VERY DIFFERENT outfit: a black and crimson swordswoman long robe with high collar, silver armored shoulder plates and a long split coat tail reaching the knees. Row 1: sleeveless TORSO with coat tail from neck to knees, no head, no arms, no legs; then the same torso in white and gold colors. Row 2: rear upper arm sleeve, front upper arm sleeve with armored shoulder plate, rear forearm sleeve with bracer and open palm, front forearm sleeve with bracer and open palm, all pointing straight DOWN. Rows 3 and 4 empty magenta."
+  }
+}

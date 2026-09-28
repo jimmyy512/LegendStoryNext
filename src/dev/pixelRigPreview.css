@@ -1,0 +1,146 @@
+.pixel-lab {
+  max-width: 1240px;
+  margin: auto;
+  padding: 24px 32px 36px;
+  color: #e9e1c8;
+}
+.pixel-lab header {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 13px;
+  color: #9daf9f;
+}
+.pixel-lab a {
+  color: #ced6b2;
+}
+.pixel-lab h1 {
+  margin: 32px 0 12px;
+  font-size: clamp(24px, 3vw, 38px);
+  letter-spacing: 0.08em;
+}
+.pixel-lead {
+  color: #aebdab;
+  line-height: 1.7;
+}
+.pixel-toolbar,
+.pixel-actions,
+.pixel-playback {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+  margin: 22px 0;
+}
+.pixel-toolbar label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.pixel-lab select,
+.pixel-lab button {
+  background: #21392e;
+  border: 1px solid #617354;
+  border-radius: 0;
+  color: #e9e1c8;
+  padding: 10px 14px;
+  font: inherit;
+  cursor: pointer;
+}
+.pixel-lab button[aria-pressed='true'] {
+  background: #b3b989;
+  color: #142b23;
+  border-color: #e2d9a0;
+}
+.pixel-lab :focus-visible {
+  outline: 2px solid #f4cf76;
+  outline-offset: 3px;
+}
+.pixel-pair {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+.pixel-pair article {
+  border: 1px solid #53674f;
+  background: #142c25;
+  min-width: 0;
+}
+.pixel-pair h2 {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  font-size: 17px;
+  margin: 16px 20px;
+}
+.pixel-pair article > p {
+  padding: 0 20px;
+  font-size: 13px;
+  color: #b8c5a9;
+  min-height: 20px;
+}
+.pixel-stage {
+  background: #122923;
+}
+.pixel-stage canvas {
+  display: block;
+  width: 100%;
+  height: auto;
+  image-rendering: pixelated;
+}
+.pixel-dot {
+  width: 12px;
+  height: 12px;
+  display: inline-block;
+  background: #9bbe91;
+  border: 1px solid #9bbe91;
+}
+.pixel-dot.hurt {
+  background: #c15445;
+  border-color: #ee8269;
+}
+.pixel-dot.disabled {
+  background: #141416;
+  border-color: #8b9097;
+}
+.pixel-playback input {
+  flex: 1;
+  min-width: 120px;
+  accent-color: #d6c084;
+}
+.pixel-playback output {
+  font-variant-numeric: tabular-nums;
+  min-width: 132px;
+  font-size: 13px;
+}
+#pixel-status {
+  color: #d6c084;
+  font-size: 14px;
+}
+.pixel-lab footer {
+  border-top: 1px solid #405744;
+  padding-top: 16px;
+  font-size: 12px;
+  color: #96aa96;
+  line-height: 1.9;
+}
+@media (max-width: 680px) {
+  .pixel-lab {
+    padding: 16px;
+  }
+  .pixel-pair {
+    grid-template-columns: 1fr;
+  }
+  .pixel-lab header {
+    font-size: 11px;
+  }
+  .pixel-toolbar {
+    gap: 10px;
+  }
+  .pixel-toolbar label {
+    font-size: 13px;
+  }
+  .pixel-lab button {
+    padding: 10px;
+  }
+}

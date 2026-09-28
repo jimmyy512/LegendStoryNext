@@ -1,0 +1,12 @@
+Use the image generation tool. Make ONE PNG, 2048 wide by 1024 tall: hair color variants of the SAME heroine head and ponytail parts.
+
+Reference 1 shows the original HEAD (left, facing right in 3/4 view, with a hair bun and red hair tie) and the separate PONYTAIL part (right). Reference 2 is the full part sheet for style. Match the exact pixel-art look (hard-edged 16-bit pixel art, chunky square pixels about 4 output pixels wide, limited palette, dark outline, no antialiasing, no gradients).
+
+CRITICAL: keep the FACE exactly the same as reference 1: same East Asian face, same warm skin tone, same dark brown eyes with white highlight, same dark eyebrows and eyelashes, same mouth, same dark brown outline around face and hair. ONLY the hair strands (bangs, side locks, bun, ponytail) change color. Keep the red hair tie red. Same size and pose as reference 1.
+
+Background: flat solid pure magenta #FF00FF, no checkerboard, no text, no grid lines. Layout: 4 columns by 2 rows, pieces fully isolated with padding, never touching. Row 1: four HEADS; row 2: the matching four PONYTAILS directly below each head. Column order:
+ 1. jet BLACK hair with subtle blue-grey highlights;
+ 2. SILVER-WHITE hair (cool light grey with white highlights and medium grey shadows; outlines stay dark), face and eyes unchanged, eyebrows stay dark grey-brown;
+ 3. deep AUBURN red-brown hair;
+ 4. dark CHESTNUT brown with a single white streak.
+Save the final image as out.png in the current directory.

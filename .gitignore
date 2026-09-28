@@ -4,3 +4,15 @@ test-results/
 playwright-report/
 .DS_Store
 *.local
+
+# 像素產生器暫存
+tools/pixelgen/cache/
+
+# Codex 產圖的執行紀錄與參考圖副本
+art/characters/pixelHeroine/source/codex/*/codex.log
+art/characters/pixelHeroine/source/codex/*/ref*.png
+art/effects/martial/*/codex.log
+art/effects/martial/*/ref*.png
+art/effects/martial/*/.own
+art/characters/pixelHeroine/source/codex/*/pieces.png
+__pycache__/

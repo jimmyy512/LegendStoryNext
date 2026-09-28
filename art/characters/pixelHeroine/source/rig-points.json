@@ -1,0 +1,1518 @@
+{
+  "head": {
+    "width": 45,
+    "height": 45,
+    "points": {
+      "neck": [
+        21.77,
+        41.83
+      ],
+      "bun": [
+        12.14,
+        9.08
+      ],
+      "crown": [
+        24.91,
+        9.08
+      ],
+      "face": [
+        33.07,
+        31.69
+      ]
+    }
+  },
+  "hair": {
+    "width": 47,
+    "height": 55,
+    "points": {
+      "root": [
+        40.86,
+        9.58
+      ]
+    }
+  },
+  "ivory": {
+    "width": 47,
+    "height": 57,
+    "points": {
+      "neck": [
+        24.23,
+        4.86
+      ],
+      "chest": [
+        24.86,
+        14.99
+      ],
+      "belt": [
+        14.0,
+        28.08
+      ],
+      "beltFront": [
+        31.75,
+        29.13
+      ],
+      "shoulderF": [
+        33.63,
+        14.14
+      ],
+      "shoulderB": [
+        13.37,
+        12.46
+      ],
+      "hipF": [
+        29.04,
+        33.14
+      ],
+      "hipB": [
+        19.64,
+        33.14
+      ],
+      "waist": [
+        24.23,
+        27.23
+      ]
+    }
+  },
+  "jade": {
+    "width": 47,
+    "height": 57,
+    "points": {
+      "neck": [
+        24.23,
+        4.86
+      ],
+      "chest": [
+        24.86,
+        14.99
+      ],
+      "belt": [
+        14.0,
+        28.08
+      ],
+      "beltFront": [
+        31.75,
+        29.13
+      ],
+      "shoulderF": [
+        33.63,
+        14.14
+      ],
+      "shoulderB": [
+        13.37,
+        12.46
+      ],
+      "hipF": [
+        29.04,
+        33.14
+      ],
+      "hipB": [
+        19.64,
+        33.14
+      ],
+      "waist": [
+        24.23,
+        27.23
+      ]
+    }
+  },
+  "upperR": {
+    "width": 15,
+    "height": 22,
+    "points": {
+      "shoulder": [
+        4.82,
+        4.12
+      ],
+      "elbow": [
+        8.26,
+        19.25
+      ]
+    }
+  },
+  "upperL": {
+    "width": 15,
+    "height": 22,
+    "points": {
+      "shoulder": [
+        4.82,
+        4.12
+      ],
+      "elbow": [
+        8.26,
+        19.25
+      ]
+    }
+  },
+  "foreR": {
+    "width": 12,
+    "height": 20,
+    "points": {
+      "elbow": [
+        6.62,
+        1.33
+      ],
+      "wrist": [
+        6.48,
+        18.93
+      ]
+    }
+  },
+  "foreL": {
+    "width": 12,
+    "height": 20,
+    "points": {
+      "elbow": [
+        6.62,
+        1.33
+      ],
+      "wrist": [
+        6.48,
+        18.93
+      ]
+    }
+  },
+  "palmR": {
+    "width": 12,
+    "height": 13,
+    "points": {
+      "wrist": [
+        6.48,
+        1.11
+      ],
+      "center": [
+        5.93,
+        6.64
+      ]
+    }
+  },
+  "palmL": {
+    "width": 12,
+    "height": 13,
+    "points": {
+      "wrist": [
+        6.48,
+        1.11
+      ],
+      "center": [
+        5.93,
+        6.64
+      ]
+    }
+  },
+  "gripR": {
+    "width": 11,
+    "height": 8,
+    "points": {
+      "wrist": [
+        5.95,
+        1.03
+      ],
+      "center": [
+        5.69,
+        4.39
+      ]
+    }
+  },
+  "gripL": {
+    "width": 11,
+    "height": 8,
+    "points": {
+      "wrist": [
+        5.95,
+        1.03
+      ],
+      "center": [
+        5.69,
+        4.39
+      ]
+    }
+  },
+  "thighR": {
+    "width": 22,
+    "height": 31,
+    "points": {
+      "hip": [
+        6.24,
+        4.47
+      ],
+      "knee": [
+        15.16,
+        28.91
+      ]
+    }
+  },
+  "thighL": {
+    "width": 22,
+    "height": 31,
+    "points": {
+      "hip": [
+        6.24,
+        4.47
+      ],
+      "knee": [
+        15.16,
+        28.91
+      ]
+    }
+  },
+  "shinR": {
+    "width": 22,
+    "height": 17,
+    "points": {
+      "knee": [
+        8.34,
+        0.44
+      ],
+      "ankle": [
+        7.89,
+        15.52
+      ]
+    }
+  },
+  "shinL": {
+    "width": 22,
+    "height": 17,
+    "points": {
+      "knee": [
+        8.34,
+        0.44
+      ],
+      "ankle": [
+        7.89,
+        15.52
+      ]
+    }
+  },
+  "bootR": {
+    "width": 20,
+    "height": 16,
+    "points": {
+      "ankle": [
+        7.17,
+        2.07
+      ],
+      "heel": [
+        4.14,
+        15.45
+      ],
+      "toe": [
+        19.31,
+        15.45
+      ]
+    }
+  },
+  "bootL": {
+    "width": 20,
+    "height": 16,
+    "points": {
+      "ankle": [
+        7.17,
+        2.07
+      ],
+      "heel": [
+        4.14,
+        15.45
+      ],
+      "toe": [
+        19.31,
+        15.45
+      ]
+    }
+  },
+  "sword": {
+    "width": 18,
+    "height": 67,
+    "points": {
+      "grip": [
+        9.1,
+        44.87
+      ]
+    }
+  },
+  "saber": {
+    "width": 20,
+    "height": 67,
+    "points": {
+      "grip": [
+        5.05,
+        44.27
+      ]
+    }
+  },
+  "thighR_moon": {
+    "width": 22,
+    "height": 31,
+    "points": {
+      "hip": [
+        6.24,
+        4.47
+      ],
+      "knee": [
+        15.16,
+        28.91
+      ]
+    }
+  },
+  "thighL_moon": {
+    "width": 22,
+    "height": 31,
+    "points": {
+      "hip": [
+        6.24,
+        4.47
+      ],
+      "knee": [
+        15.16,
+        28.91
+      ]
+    }
+  },
+  "shinR_moon": {
+    "width": 22,
+    "height": 17,
+    "points": {
+      "knee": [
+        8.34,
+        0.44
+      ],
+      "ankle": [
+        7.89,
+        15.52
+      ]
+    }
+  },
+  "shinL_moon": {
+    "width": 22,
+    "height": 17,
+    "points": {
+      "knee": [
+        8.34,
+        0.44
+      ],
+      "ankle": [
+        7.89,
+        15.52
+      ]
+    }
+  },
+  "thighR_indigo": {
+    "width": 22,
+    "height": 31,
+    "points": {
+      "hip": [
+        6.24,
+        4.47
+      ],
+      "knee": [
+        15.16,
+        28.91
+      ]
+    }
+  },
+  "thighL_indigo": {
+    "width": 22,
+    "height": 31,
+    "points": {
+      "hip": [
+        6.24,
+        4.47
+      ],
+      "knee": [
+        15.16,
+        28.91
+      ]
+    }
+  },
+  "shinR_indigo": {
+    "width": 22,
+    "height": 17,
+    "points": {
+      "knee": [
+        8.34,
+        0.44
+      ],
+      "ankle": [
+        7.89,
+        15.52
+      ]
+    }
+  },
+  "shinL_indigo": {
+    "width": 22,
+    "height": 17,
+    "points": {
+      "knee": [
+        8.34,
+        0.44
+      ],
+      "ankle": [
+        7.89,
+        15.52
+      ]
+    }
+  },
+  "thighR_umber": {
+    "width": 22,
+    "height": 31,
+    "points": {
+      "hip": [
+        6.24,
+        4.47
+      ],
+      "knee": [
+        15.16,
+        28.91
+      ]
+    }
+  },
+  "thighL_umber": {
+    "width": 22,
+    "height": 31,
+    "points": {
+      "hip": [
+        6.24,
+        4.47
+      ],
+      "knee": [
+        15.16,
+        28.91
+      ]
+    }
+  },
+  "shinR_umber": {
+    "width": 22,
+    "height": 17,
+    "points": {
+      "knee": [
+        8.34,
+        0.44
+      ],
+      "ankle": [
+        7.89,
+        15.52
+      ]
+    }
+  },
+  "shinL_umber": {
+    "width": 22,
+    "height": 17,
+    "points": {
+      "knee": [
+        8.34,
+        0.44
+      ],
+      "ankle": [
+        7.89,
+        15.52
+      ]
+    }
+  },
+  "bootR_black": {
+    "width": 20,
+    "height": 16,
+    "points": {
+      "ankle": [
+        7.17,
+        2.07
+      ],
+      "heel": [
+        4.14,
+        15.45
+      ],
+      "toe": [
+        19.31,
+        15.45
+      ]
+    }
+  },
+  "bootL_black": {
+    "width": 20,
+    "height": 16,
+    "points": {
+      "ankle": [
+        7.17,
+        2.07
+      ],
+      "heel": [
+        4.14,
+        15.45
+      ],
+      "toe": [
+        19.31,
+        15.45
+      ]
+    }
+  },
+  "bootR_white": {
+    "width": 20,
+    "height": 16,
+    "points": {
+      "ankle": [
+        7.17,
+        2.07
+      ],
+      "heel": [
+        4.14,
+        15.45
+      ],
+      "toe": [
+        19.31,
+        15.45
+      ]
+    }
+  },
+  "bootL_white": {
+    "width": 20,
+    "height": 16,
+    "points": {
+      "ankle": [
+        7.17,
+        2.07
+      ],
+      "heel": [
+        4.14,
+        15.45
+      ],
+      "toe": [
+        19.31,
+        15.45
+      ]
+    }
+  },
+  "bootR_red": {
+    "width": 20,
+    "height": 16,
+    "points": {
+      "ankle": [
+        7.17,
+        2.07
+      ],
+      "heel": [
+        4.14,
+        15.45
+      ],
+      "toe": [
+        19.31,
+        15.45
+      ]
+    }
+  },
+  "bootL_red": {
+    "width": 20,
+    "height": 16,
+    "points": {
+      "ankle": [
+        7.17,
+        2.07
+      ],
+      "heel": [
+        4.14,
+        15.45
+      ],
+      "toe": [
+        19.31,
+        15.45
+      ]
+    }
+  },
+  "upperR_jade": {
+    "width": 15,
+    "height": 22,
+    "points": {
+      "shoulder": [
+        4.82,
+        4.12
+      ],
+      "elbow": [
+        8.26,
+        19.25
+      ]
+    }
+  },
+  "upperL_jade": {
+    "width": 15,
+    "height": 22,
+    "points": {
+      "shoulder": [
+        4.82,
+        4.12
+      ],
+      "elbow": [
+        8.26,
+        19.25
+      ]
+    }
+  },
+  "foreR_jade": {
+    "width": 12,
+    "height": 20,
+    "points": {
+      "elbow": [
+        6.62,
+        1.33
+      ],
+      "wrist": [
+        6.48,
+        18.93
+      ]
+    }
+  },
+  "foreL_jade": {
+    "width": 12,
+    "height": 20,
+    "points": {
+      "elbow": [
+        6.62,
+        1.33
+      ],
+      "wrist": [
+        6.48,
+        18.93
+      ]
+    }
+  },
+  "upperR_night": {
+    "width": 15,
+    "height": 22,
+    "points": {
+      "shoulder": [
+        4.82,
+        4.12
+      ],
+      "elbow": [
+        8.26,
+        19.25
+      ]
+    }
+  },
+  "upperL_night": {
+    "width": 15,
+    "height": 22,
+    "points": {
+      "shoulder": [
+        4.82,
+        4.12
+      ],
+      "elbow": [
+        8.26,
+        19.25
+      ]
+    }
+  },
+  "foreR_night": {
+    "width": 12,
+    "height": 20,
+    "points": {
+      "elbow": [
+        6.62,
+        1.33
+      ],
+      "wrist": [
+        6.48,
+        18.93
+      ]
+    }
+  },
+  "foreL_night": {
+    "width": 12,
+    "height": 20,
+    "points": {
+      "elbow": [
+        6.62,
+        1.33
+      ],
+      "wrist": [
+        6.48,
+        18.93
+      ]
+    }
+  },
+  "night": {
+    "width": 47,
+    "height": 57,
+    "points": {
+      "neck": [
+        24.23,
+        4.86
+      ],
+      "chest": [
+        24.86,
+        14.99
+      ],
+      "belt": [
+        14.0,
+        28.08
+      ],
+      "beltFront": [
+        31.75,
+        29.13
+      ],
+      "shoulderF": [
+        33.63,
+        14.14
+      ],
+      "shoulderB": [
+        13.37,
+        12.46
+      ],
+      "hipF": [
+        29.04,
+        33.14
+      ],
+      "hipB": [
+        19.64,
+        33.14
+      ],
+      "waist": [
+        24.23,
+        27.23
+      ]
+    }
+  },
+  "knuckleR": {
+    "width": 11,
+    "height": 8,
+    "points": {
+      "wrist": [
+        5.95,
+        1.03
+      ],
+      "center": [
+        5.69,
+        4.39
+      ]
+    }
+  },
+  "knuckleL": {
+    "width": 11,
+    "height": 8,
+    "points": {
+      "wrist": [
+        5.95,
+        1.03
+      ],
+      "center": [
+        5.69,
+        4.39
+      ]
+    }
+  },
+  "spear": {
+    "width": 11,
+    "height": 100,
+    "points": {
+      "grip": [
+        5,
+        84
+      ],
+      "grip2": [
+        5,
+        46
+      ],
+      "tip": [
+        5,
+        2
+      ]
+    }
+  },
+  "fan": {
+    "width": 7,
+    "height": 26,
+    "points": {
+      "grip": [
+        3,
+        20
+      ]
+    }
+  },
+  "fanOpen": {
+    "width": 39,
+    "height": 24,
+    "points": {
+      "grip": [
+        19,
+        20
+      ]
+    }
+  },
+  "dart": {
+    "width": 7,
+    "height": 20,
+    "points": {
+      "grip": [
+        3,
+        12
+      ]
+    }
+  },
+  "head_black": {
+    "width": 45,
+    "height": 45,
+    "points": {
+      "neck": [
+        21.77,
+        41.83
+      ],
+      "bun": [
+        12.14,
+        9.08
+      ],
+      "crown": [
+        24.91,
+        9.08
+      ],
+      "face": [
+        33.07,
+        31.69
+      ]
+    }
+  },
+  "hair_black": {
+    "width": 47,
+    "height": 55,
+    "points": {
+      "root": [
+        40.86,
+        9.58
+      ]
+    }
+  },
+  "head_silver": {
+    "width": 45,
+    "height": 45,
+    "points": {
+      "neck": [
+        21.77,
+        41.83
+      ],
+      "bun": [
+        12.14,
+        9.08
+      ],
+      "crown": [
+        24.91,
+        9.08
+      ],
+      "face": [
+        33.07,
+        31.69
+      ]
+    }
+  },
+  "hair_silver": {
+    "width": 47,
+    "height": 55,
+    "points": {
+      "root": [
+        40.86,
+        9.58
+      ]
+    }
+  },
+  "head_auburn": {
+    "width": 45,
+    "height": 45,
+    "points": {
+      "neck": [
+        21.77,
+        41.83
+      ],
+      "bun": [
+        12.14,
+        9.08
+      ],
+      "crown": [
+        24.91,
+        9.08
+      ],
+      "face": [
+        33.07,
+        31.69
+      ]
+    }
+  },
+  "hair_auburn": {
+    "width": 47,
+    "height": 55,
+    "points": {
+      "root": [
+        40.86,
+        9.58
+      ]
+    }
+  },
+  "head_chestnut": {
+    "width": 45,
+    "height": 45,
+    "points": {
+      "neck": [
+        21.77,
+        41.83
+      ],
+      "bun": [
+        12.14,
+        9.08
+      ],
+      "crown": [
+        24.91,
+        9.08
+      ],
+      "face": [
+        33.07,
+        31.69
+      ]
+    }
+  },
+  "hair_chestnut": {
+    "width": 47,
+    "height": 55,
+    "points": {
+      "root": [
+        40.86,
+        9.58
+      ]
+    }
+  },
+  "robe": {
+    "width": 47,
+    "height": 57,
+    "points": {
+      "neck": [
+        24.23,
+        4.86
+      ],
+      "chest": [
+        24.86,
+        14.99
+      ],
+      "belt": [
+        14.0,
+        28.08
+      ],
+      "beltFront": [
+        31.75,
+        29.13
+      ],
+      "shoulderF": [
+        33.63,
+        14.14
+      ],
+      "shoulderB": [
+        13.37,
+        12.46
+      ],
+      "hipF": [
+        29.04,
+        33.14
+      ],
+      "hipB": [
+        19.64,
+        33.14
+      ],
+      "waist": [
+        24.23,
+        27.23
+      ]
+    }
+  },
+  "upperR_robe": {
+    "width": 15,
+    "height": 22,
+    "points": {
+      "shoulder": [
+        4.82,
+        4.12
+      ],
+      "elbow": [
+        8.26,
+        19.25
+      ]
+    }
+  },
+  "upperL_robe": {
+    "width": 15,
+    "height": 22,
+    "points": {
+      "shoulder": [
+        4.82,
+        4.12
+      ],
+      "elbow": [
+        8.26,
+        19.25
+      ]
+    }
+  },
+  "foreR_robe": {
+    "width": 12,
+    "height": 20,
+    "points": {
+      "elbow": [
+        6.62,
+        1.33
+      ],
+      "wrist": [
+        6.48,
+        18.93
+      ]
+    }
+  },
+  "foreL_robe": {
+    "width": 12,
+    "height": 20,
+    "points": {
+      "elbow": [
+        6.62,
+        1.33
+      ],
+      "wrist": [
+        6.48,
+        18.93
+      ]
+    }
+  },
+  "scholar": {
+    "width": 47,
+    "height": 57,
+    "points": {
+      "neck": [
+        24.23,
+        4.86
+      ],
+      "chest": [
+        24.86,
+        14.99
+      ],
+      "belt": [
+        14.0,
+        28.08
+      ],
+      "beltFront": [
+        31.75,
+        29.13
+      ],
+      "shoulderF": [
+        33.63,
+        14.14
+      ],
+      "shoulderB": [
+        13.37,
+        12.46
+      ],
+      "hipF": [
+        29.04,
+        33.14
+      ],
+      "hipB": [
+        19.64,
+        33.14
+      ],
+      "waist": [
+        24.23,
+        27.23
+      ]
+    }
+  },
+  "upperR_scholar": {
+    "width": 15,
+    "height": 22,
+    "points": {
+      "shoulder": [
+        4.82,
+        4.12
+      ],
+      "elbow": [
+        8.26,
+        19.25
+      ]
+    }
+  },
+  "upperL_scholar": {
+    "width": 15,
+    "height": 22,
+    "points": {
+      "shoulder": [
+        4.82,
+        4.12
+      ],
+      "elbow": [
+        8.26,
+        19.25
+      ]
+    }
+  },
+  "foreR_scholar": {
+    "width": 12,
+    "height": 20,
+    "points": {
+      "elbow": [
+        6.62,
+        1.33
+      ],
+      "wrist": [
+        6.48,
+        18.93
+      ]
+    }
+  },
+  "foreL_scholar": {
+    "width": 12,
+    "height": 20,
+    "points": {
+      "elbow": [
+        6.62,
+        1.33
+      ],
+      "wrist": [
+        6.48,
+        18.93
+      ]
+    }
+  },
+  "orchid": {
+    "width": 47,
+    "height": 57,
+    "points": {
+      "neck": [
+        24.23,
+        4.86
+      ],
+      "chest": [
+        24.86,
+        14.99
+      ],
+      "belt": [
+        14.0,
+        28.08
+      ],
+      "beltFront": [
+        31.75,
+        29.13
+      ],
+      "shoulderF": [
+        33.63,
+        14.14
+      ],
+      "shoulderB": [
+        13.37,
+        12.46
+      ],
+      "hipF": [
+        29.04,
+        33.14
+      ],
+      "hipB": [
+        19.64,
+        33.14
+      ],
+      "waist": [
+        24.23,
+        27.23
+      ]
+    }
+  },
+  "upperR_orchid": {
+    "width": 15,
+    "height": 22,
+    "points": {
+      "shoulder": [
+        4.82,
+        4.12
+      ],
+      "elbow": [
+        8.26,
+        19.25
+      ]
+    }
+  },
+  "upperL_orchid": {
+    "width": 15,
+    "height": 22,
+    "points": {
+      "shoulder": [
+        4.82,
+        4.12
+      ],
+      "elbow": [
+        8.26,
+        19.25
+      ]
+    }
+  },
+  "foreR_orchid": {
+    "width": 12,
+    "height": 20,
+    "points": {
+      "elbow": [
+        6.62,
+        1.33
+      ],
+      "wrist": [
+        6.48,
+        18.93
+      ]
+    }
+  },
+  "foreL_orchid": {
+    "width": 12,
+    "height": 20,
+    "points": {
+      "elbow": [
+        6.62,
+        1.33
+      ],
+      "wrist": [
+        6.48,
+        18.93
+      ]
+    }
+  },
+  "hunter": {
+    "width": 47,
+    "height": 57,
+    "points": {
+      "neck": [
+        24.23,
+        4.86
+      ],
+      "chest": [
+        24.86,
+        14.99
+      ],
+      "belt": [
+        14.0,
+        28.08
+      ],
+      "beltFront": [
+        31.75,
+        29.13
+      ],
+      "shoulderF": [
+        33.63,
+        14.14
+      ],
+      "shoulderB": [
+        13.37,
+        12.46
+      ],
+      "hipF": [
+        29.04,
+        33.14
+      ],
+      "hipB": [
+        19.64,
+        33.14
+      ],
+      "waist": [
+        24.23,
+        27.23
+      ]
+    }
+  },
+  "upperR_hunter": {
+    "width": 15,
+    "height": 22,
+    "points": {
+      "shoulder": [
+        4.82,
+        4.12
+      ],
+      "elbow": [
+        8.26,
+        19.25
+      ]
+    }
+  },
+  "upperL_hunter": {
+    "width": 15,
+    "height": 22,
+    "points": {
+      "shoulder": [
+        4.82,
+        4.12
+      ],
+      "elbow": [
+        8.26,
+        19.25
+      ]
+    }
+  },
+  "foreR_hunter": {
+    "width": 12,
+    "height": 20,
+    "points": {
+      "elbow": [
+        6.62,
+        1.33
+      ],
+      "wrist": [
+        6.48,
+        18.93
+      ]
+    }
+  },
+  "foreL_hunter": {
+    "width": 12,
+    "height": 20,
+    "points": {
+      "elbow": [
+        6.62,
+        1.33
+      ],
+      "wrist": [
+        6.48,
+        18.93
+      ]
+    }
+  },
+  "lamellar": {
+    "width": 31,
+    "height": 40,
+    "points": {
+      "waist": [
+        15.5,
+        25.2
+      ]
+    }
+  },
+  "pauldronIronR": {
+    "width": 15,
+    "height": 21,
+    "points": {
+      "shoulder": [
+        6.75,
+        2.94
+      ]
+    }
+  },
+  "pauldronIronL": {
+    "width": 15,
+    "height": 21,
+    "points": {
+      "shoulder": [
+        6.75,
+        2.94
+      ]
+    }
+  },
+  "pauldronHideR": {
+    "width": 15,
+    "height": 22,
+    "points": {
+      "shoulder": [
+        6.75,
+        3.08
+      ]
+    }
+  },
+  "pauldronHideL": {
+    "width": 15,
+    "height": 22,
+    "points": {
+      "shoulder": [
+        6.75,
+        3.08
+      ]
+    }
+  },
+  "capeCrimson": {
+    "width": 54,
+    "height": 54,
+    "points": {
+      "top": [
+        48.6,
+        3.78
+      ]
+    }
+  },
+  "capeMidnight": {
+    "width": 54,
+    "height": 54,
+    "points": {
+      "top": [
+        48.6,
+        3.78
+      ]
+    }
+  },
+  "hatCrown": {
+    "width": 22,
+    "height": 11,
+    "points": {
+      "seat": [
+        9.9,
+        9.9
+      ]
+    }
+  },
+  "hatStraw": {
+    "width": 76,
+    "height": 28,
+    "points": {
+      "neck": [
+        39.53,
+        46.68
+      ]
+    }
+  },
+  "gourd": {
+    "width": 10,
+    "height": 16,
+    "points": {
+      "hook": [
+        4.5,
+        0.64
+      ]
+    }
+  },
+  "pendant": {
+    "width": 8,
+    "height": 20,
+    "points": {
+      "hook": [
+        4.0,
+        0.6
+      ]
+    }
+  },
+  "hemTeal": {
+    "width": 46,
+    "height": 44,
+    "points": {
+      "top": [
+        24.38,
+        3.52
+      ]
+    }
+  },
+  "hemCrimson": {
+    "width": 46,
+    "height": 44,
+    "points": {
+      "top": [
+        24.38,
+        3.52
+      ]
+    }
+  },
+  "tassets": {
+    "width": 28,
+    "height": 24,
+    "points": {
+      "top": [
+        14.0,
+        1.44
+      ]
+    }
+  },
+  "apron": {
+    "width": 28,
+    "height": 24,
+    "points": {
+      "top": [
+        14.0,
+        1.44
+      ]
+    }
+  }
+}

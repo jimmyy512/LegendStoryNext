@@ -1,0 +1,242 @@
+{
+  "arts": [
+    {
+      "id": "xianglong",
+      "name": "降龍十八掌",
+      "file": "xianglong.png",
+      "frames": 6,
+      "width": 127,
+      "height": 80,
+      "pad": 2,
+      "anchor": [
+        -4,
+        38
+      ],
+      "reach": "travel"
+    },
+    {
+      "id": "taiji",
+      "name": "太極拳",
+      "file": "taiji.png",
+      "frames": 6,
+      "width": 140,
+      "height": 120,
+      "pad": 2,
+      "anchor": [
+        0,
+        65
+      ],
+      "reach": "travel"
+    },
+    {
+      "id": "qishang",
+      "name": "七傷拳",
+      "file": "qishang.png",
+      "frames": 6,
+      "width": 133,
+      "height": 117,
+      "pad": 2,
+      "anchor": [
+        0,
+        64
+      ],
+      "reach": "travel"
+    },
+    {
+      "id": "jiuyin",
+      "name": "九陰白骨爪",
+      "file": "jiuyin.png",
+      "frames": 6,
+      "width": 145,
+      "height": 110,
+      "pad": 2,
+      "anchor": [
+        -4,
+        58
+      ],
+      "reach": "travel"
+    },
+    {
+      "id": "anran",
+      "name": "黯然銷魂掌",
+      "file": "anran.png",
+      "frames": 6,
+      "width": 126,
+      "height": 86,
+      "pad": 2,
+      "anchor": [
+        -6,
+        49
+      ],
+      "reach": "travel"
+    },
+    {
+      "id": "hama",
+      "name": "蛤蟆功",
+      "file": "hama.png",
+      "frames": 6,
+      "width": 128,
+      "height": 94,
+      "pad": 2,
+      "anchor": [
+        -6,
+        52
+      ],
+      "reach": "travel"
+    },
+    {
+      "id": "xuanming",
+      "name": "玄冥神掌",
+      "file": "xuanming.png",
+      "frames": 6,
+      "width": 166,
+      "height": 96,
+      "pad": 2,
+      "anchor": [
+        0,
+        54
+      ],
+      "reach": "travel"
+    },
+    {
+      "id": "luoying",
+      "name": "落英神劍掌",
+      "file": "luoying.png",
+      "frames": 6,
+      "width": 135,
+      "height": 86,
+      "pad": 2,
+      "anchor": [
+        0,
+        43
+      ],
+      "reach": "travel"
+    },
+    {
+      "id": "yiyang",
+      "name": "一陽指",
+      "file": "yiyang.png",
+      "frames": 6,
+      "width": 138,
+      "height": 57,
+      "pad": 2,
+      "anchor": [
+        0,
+        33
+      ],
+      "reach": "stretch"
+    },
+    {
+      "id": "liumai",
+      "name": "六脈神劍",
+      "file": "liumai.png",
+      "frames": 6,
+      "width": 136,
+      "height": 93,
+      "pad": 2,
+      "anchor": [
+        0,
+        49
+      ],
+      "reach": "stretch"
+    },
+    {
+      "id": "huoyan",
+      "name": "火焰刀",
+      "file": "huoyan.png",
+      "frames": 6,
+      "width": 124,
+      "height": 94,
+      "pad": 2,
+      "anchor": [
+        -11,
+        55
+      ],
+      "reach": "travel"
+    },
+    {
+      "id": "jingang",
+      "name": "大力金剛掌",
+      "file": "jingang.png",
+      "frames": 6,
+      "width": 138,
+      "height": 91,
+      "pad": 2,
+      "anchor": [
+        0,
+        53
+      ],
+      "reach": "travel"
+    },
+    {
+      "id": "w-sword",
+      "name": "長劍劍氣",
+      "file": "w-sword.png",
+      "frames": 6,
+      "width": 132,
+      "height": 75,
+      "pad": 2,
+      "anchor": [
+        -2,
+        37
+      ],
+      "reach": "travel"
+    },
+    {
+      "id": "w-saber",
+      "name": "彎刀刀罡",
+      "file": "w-saber.png",
+      "frames": 6,
+      "width": 135,
+      "height": 122,
+      "pad": 2,
+      "anchor": [
+        -1,
+        69
+      ],
+      "reach": "travel"
+    },
+    {
+      "id": "w-spear",
+      "name": "長槍槍芒",
+      "file": "w-spear.png",
+      "frames": 6,
+      "width": 131,
+      "height": 66,
+      "pad": 2,
+      "anchor": [
+        -3,
+        33
+      ],
+      "reach": "stretch"
+    },
+    {
+      "id": "w-fan",
+      "name": "摺扇扇風",
+      "file": "w-fan.png",
+      "frames": 6,
+      "width": 128,
+      "height": 103,
+      "pad": 2,
+      "anchor": [
+        -5,
+        54
+      ],
+      "reach": "travel"
+    },
+    {
+      "id": "w-darts",
+      "name": "飛鏢暗器",
+      "file": "w-darts.png",
+      "frames": 6,
+      "width": 123,
+      "height": 64,
+      "pad": 2,
+      "anchor": [
+        -3,
+        34
+      ],
+      "reach": "travel"
+    }
+  ]
+}

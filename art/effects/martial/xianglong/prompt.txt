@@ -1,0 +1,15 @@
+Use the image generation tool. Make ONE PNG, 1536 wide by 1024 tall: a 6-frame pixel-art ANIMATION SPRITE SHEET of a wuxia martial-arts special effect: Jin Yong's 降龍十八掌. The effect: a roaring GOLDEN DRAGON made of blazing golden qi bursting out of the palm and surging forward, dragon head leading with open jaws, long serpentine body trailing back to the palm, golden sparks and wind streaks.
+
+The references show the heroine character and her part sheet: match their exact pixel-art look (hard-edged 16-bit pixel art, chunky square pixels about 4 output pixels wide, limited vivid palette, crisp 1-2 pixel dark outline where appropriate, no antialiasing, no blur, no soft gradients). The effect is cast by that heroine facing RIGHT.
+
+Layout: an invisible 3 columns by 2 rows grid of equal 512x512 cells, read left to right then top to bottom = frames 1 to 6 in time order. In EVERY cell the caster's palm/fist/fingertip is at the SAME fixed spot: the LEFT EDGE of the cell, vertically centered (x=0, y=256 inside the cell). The effect starts there and travels to the RIGHT. Do NOT draw the character or any hand, only the effect.
+Frame 1: small gathering glow of qi at the palm spot (charge).
+Frame 2: the technique bursts out of the palm, small.
+Frame 3: the effect fully formed, about half the cell width, moving right.
+Frame 4: the effect at its biggest and most dramatic, reaching about 80 percent of the cell width.
+Frame 5: impact at the right side, the effect breaking apart with a burst.
+Frame 6: dissipating fragments and fading sparks near the right side.
+Keep the effect's look, colors and size consistent between frames so it plays as a smooth animation. Nothing may cross into a neighbouring cell.
+
+Background: flat solid pure magenta #FF00FF in every cell, no checkerboard, no grid lines, no text, no labels, no frame numbers, no shadows on the background. Do not use magenta or pink-magenta inside the effect itself (use salmon or rose instead of magenta if pink is needed).
+Save the final image as out.png in the current directory.

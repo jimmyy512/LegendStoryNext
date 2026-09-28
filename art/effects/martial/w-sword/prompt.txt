@@ -1,0 +1,15 @@
+Use the image generation tool. Make ONE PNG, 1536 wide by 1024 tall: a 6-frame pixel-art ANIMATION SPRITE SHEET of a wuxia WEAPON technique special effect: a wuxia 降龍十八掌. The effect: a sword-qi SLASH of a straight jian sword: a sharp thin crescent of pale cyan-white sword light sweeping diagonally from upper-left down to lower-right in front of the hand, followed by a flying crescent blade of qi shooting forward, with small glinting sparks.
+
+The references show the heroine character and her part sheet: match their exact pixel-art look (hard-edged 16-bit pixel art, chunky square pixels about 4 output pixels wide, limited vivid palette, crisp 1-2 pixel dark outline where appropriate, no antialiasing, no blur, no soft gradients). The effect is cast by that heroine facing RIGHT.
+
+Layout: an invisible 3 columns by 2 rows grid of equal 512x512 cells, read left to right then top to bottom = frames 1 to 6 in time order. In EVERY cell the caster's weapon hand (or spear tip) is at the SAME fixed spot: the LEFT EDGE of the cell, vertically centered (x=0, y=256 inside the cell). The effect starts there and travels to the RIGHT. Do NOT draw the character, hand or the weapon itself, only the effect.
+Frame 1: a small bright glint at the hand where the blade starts moving.
+Frame 2: a thin diagonal arc of sword light begins sweeping.
+Frame 3: a full diagonal crescent of cyan-white sword light in front of the hand.
+Frame 4: the crescent detaches and flies forward as a sharp blade of qi, longest and brightest.
+Frame 5: the flying qi blade hits at the right side with a crisp starburst.
+Frame 6: fading glints and thin light streaks.
+Keep the effect's look, colors and size consistent between frames so it plays as a smooth animation. Nothing may cross into a neighbouring cell.
+
+Background: flat solid pure magenta #FF00FF in every cell, no checkerboard, no grid lines, no text, no labels, no frame numbers, no shadows on the background. Do not use magenta or pink-magenta inside the effect itself (use salmon or rose instead of magenta if pink is needed).
+Save the final image as out.png in the current directory.

@@ -8,6 +8,14 @@ const loading = new LoadingScreen();
 loading.show('正在載入江湖引擎');
 
 async function boot(): Promise<void> {
+  if (new URLSearchParams(location.search).get('preview') === 'pixel-rig') {
+    const { PixelRigPreview } = await import('./dev/PixelRigPreview');
+    const preview = new PixelRigPreview();
+    import.meta.hot?.dispose(() => preview.dispose());
+    await preview.init((progress) => loading.show('正在組裝像素女俠', progress));
+    loading.hide();
+    return;
+  }
   if (new URLSearchParams(location.search).get('preview') === 'styles') {
     const { StyleComparison } = await import('./dev/StyleComparison');
     const preview = new StyleComparison();
@@ -48,10 +56,20 @@ async function boot(): Promise<void> {
       import('./services/SettingsRepository'),
     ]);
   // 停用本機儲存的瀏覽器仍可遊玩與匯出，所以延後到真正讀寫時才取得 localStorage。
-  const storage = {
-    getItem: (key: string) => localStorage.getItem(key),
-    setItem: (key: string, value: string) => localStorage.setItem(key, value),
-  };
+  const params = new URLSearchParams(location.search);
+  const combatPreview = params.get('preview') === 'combat';
+  const temporaryStorage = new Map<string, string>();
+  const storage = combatPreview
+    ? {
+        getItem: (key: string) => temporaryStorage.get(key) ?? null,
+        setItem: (key: string, value: string) => {
+          temporaryStorage.set(key, value);
+        },
+      }
+    : {
+        getItem: (key: string) => localStorage.getItem(key),
+        setItem: (key: string, value: string) => localStorage.setItem(key, value),
+      };
   const saves = new SaveRepository(storage);
   const game = new GameApplication(
     saves,
@@ -59,7 +77,19 @@ async function boot(): Promise<void> {
     loading,
     new SettingsRepository(storage),
   );
-  await game.init();
+  await game.init(
+    combatPreview
+      ? {
+          route: params.get('route') === 'fist' ? 'fist' : 'sword',
+          encounter:
+            params.get('enemies') === 'two'
+              ? 'bandits'
+              : params.get('enemies') === 'boss'
+                ? 'boss'
+                : 'trial',
+        }
+      : undefined,
+  );
   import.meta.hot?.dispose(() => game.dispose());
 }
 
