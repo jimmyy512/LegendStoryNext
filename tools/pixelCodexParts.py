@@ -146,7 +146,82 @@ def worn_on_head(sheet: str, head: Image.Image, neck: tuple[float, float]) -> tu
     return fit(hat, size), {'neck': joint}
 
 
+def limb_like(
+    new: Image.Image,
+    joints: tuple[str, str],
+    like: dict,
+    top: float,
+    bottom: float,
+    scale: float | None = None,
+    widen: float = 1.2,
+) -> tuple[Image.Image, dict, float]:
+    """筆直向下畫的肢段（Codex 褲管）換成原部件的長度與斜角。
+
+    joints 為 (上關節名, 下關節名)，top／bottom 是它們在新圖高度上的比例，x 取該處實心像素的中心。
+    依原部件兩關節的距離等比縮放，再旋轉到同樣的方向，骨架的膝、踝位置因此不用改。
+    保留各款原本的寬窄，緊身褲不會被拉成寬褲的外框。
+    給了 scale 就沿用寬度比例（小腿跟同款大腿一致），長度則壓到下關節再多 OVERHANG 像素，
+    褲腳剛好罩住靴筒口，不會把整隻靴子蓋掉。
+    """
+    upper, lower = joints
+    # Codex 的褲管畫得細長，照骨頭長度縮下來會比 Q 版身體細太多，橫向加寬。
+    new = new.resize((round(new.width * widen), new.height), Image.NEAREST)
+    solid = np.asarray(new)[..., 3] > 0
+
+    def center(fy: float) -> tuple[float, float]:
+        y = int(fy * new.height)
+        band = solid[max(0, y - 3) : y + 4]
+        cols = np.where(band.any(0))[0]
+        return (cols[0] + cols[-1] + 1) / 2, y
+
+    a, b = center(top), center(bottom)
+    (ax, ay), (bx, by) = like['points'][upper], like['points'][lower]
+    want = np.hypot(bx - ax, by - ay)
+    if scale is None:
+        scale = want / np.hypot(b[0] - a[0], b[1] - a[1])
+    else:
+        # 只壓縮長度：整段（含下關節以下的褲腳）縮成 want + OVERHANG。
+        k = (want + OVERHANG) / ((new.height - a[1]) * scale)
+        new = new.resize((new.width, max(1, round(new.height * k))), Image.NEAREST)
+        a, b = (a[0], a[1] * k), (b[0], b[1] * k)
+    # 關節點用標記圖跟著一起旋轉，免得自己推旋轉公式的方向。
+    def marker(point):
+        m = Image.new('L', new.size)
+        x, y = point
+        ImageDraw.Draw(m).ellipse((x - 4, y - 4, x + 4, y + 4), fill=255)
+        return m
+
+    def locate(m):
+        ys, xs = np.nonzero(np.asarray(m) > 127)
+        return xs.mean(), ys.mean()
+
+    target = np.degrees(np.arctan2(by - ay, bx - ax))
+    for sign in (1, -1):
+        angle = sign * (np.degrees(np.arctan2(b[1] - a[1], b[0] - a[0])) - target)
+        turned = new.rotate(angle, resample=Image.NEAREST, expand=True)
+        pa, pb = (locate(marker(pt).rotate(angle, resample=Image.NEAREST, expand=True)) for pt in (a, b))
+        if abs(np.degrees(np.arctan2(pb[1] - pa[1], pb[0] - pa[0])) - target) < 1:
+            break
+    size = (max(1, round(turned.width * scale)), max(1, round(turned.height * scale)))
+    sx, sy = size[0] / turned.width, size[1] / turned.height
+    ux, uy = pa[0] * sx, pa[1] * sy
+    # 下關節沿著肢段方向，放在原部件的骨頭長度處。
+    length = np.hypot(pb[0] - pa[0], pb[1] - pa[1])
+    lx, ly = ux + (pb[0] - pa[0]) / length * want, uy + (pb[1] - pa[1]) / length * want
+    return fit(turned, size), {upper: [round(ux, 2), round(uy, 2)], lower: [round(lx, 2), round(ly, 2)]}, scale
+
+
+OVERHANG = 4  # 褲腳延伸過踝關節的像素，收在靴子底下（靴子畫在小腿上），靴口前緣才不露縫
+
+# 褲子版型（codex/pants2）：表上的欄位，以及橫向加寬倍率。
+# 這張表照骨架規格畫：小腿短、頂端沒有關節圓帽、膝蓋一律有布或護膝蓋住、褲腳收窄進靴子。
+PANTS_SHEET = 'pants2'
+PANTS = {'leggings': (0, 1.2), 'linen': (1, 1.2), 'greaves': (2, 1.2), 'wraps': (3, 1.2), 'fur': (4, 1.2)}
+PANTS_COLUMNS = 5
+
 HAIR_COLORS = ['black', 'silver', 'auburn', 'chestnut']
+FACES = ['phoenix', 'round', 'serene', 'fierce']
+FACE_COLORS = ['brown', 'black', 'silver', 'auburn', 'chestnut']
 # 新衣裝：(軀幹編號, 上臂編號, 前臂編號)。紫蘭夜袍借用白金儒衫的白袖當內衫。
 OUTFITS = {
     'robe': (0, 4, 8),
@@ -171,6 +246,39 @@ def build(images: dict, points: dict, far_shade: float) -> None:
         add(f'head_{color}', replace_like(crop('hair-colors', head_box), box, joints, scale))
         box, joints, scale = original('hair')
         add(f'hair_{color}', replace_like(crop('hair-colors', tail_box), box, joints, scale))
+
+    # 褲子：六種不同剪裁，大腿與小腿各一段，照原部件的長度與斜角擺好。
+    legs = pieces(PANTS_SHEET)
+    for key, (index, widen) in PANTS.items():
+        # 大腿的膝關節取在下緣往上一點，讓大腿多蓋住小腿頂端，彎膝時不裂開。
+        thigh, j, scale = limb_like(crop(PANTS_SHEET, legs[index]), ('hip', 'knee'), points['thighR'], 0.08, 0.9, widen=widen)
+        shin, k, _ = limb_like(
+            crop(PANTS_SHEET, legs[index + PANTS_COLUMNS]),
+            ('knee', 'ankle'),
+            points['shinR'],
+            0.02,
+            0.94,
+            scale,
+            widen=widen,
+        )
+        for part, made, joints in (('thigh', thigh, j), ('shin', shin, k)):
+            add(f'{part}R_{key}', (made, joints))
+            add(f'{part}L_{key}', (shade(made, far_shade), joints))
+
+    # 臉型：每種臉型一張表，五顆頭依髮色排列（第一列棕、黑、銀，第二列赤褐、深棕挑白）。
+    head_box, head_joints, head_scale = original('head')
+    for face in FACES:
+        for color, box in zip(FACE_COLORS, pieces(f'face-{face}')[: len(FACE_COLORS)]):
+            add(f'head_{color}_{face}', replace_like(crop(f'face-{face}', box), head_box, head_joints, head_scale))
+
+    # 手：原本的張開手掌手指併成一片、看不到拇指，改用 Codex 重畫的；另加走路用的放鬆手。
+    # 第三欄的推掌手腕彎得不自然，不採用。
+    hand_boxes = pieces('hands')
+    box, joints, scale = original('palm')
+    for key, index in (('palm', 0), ('relaxed', 1)):
+        made, j = replace_like(crop('hands', hand_boxes[index]), box, joints, scale)
+        add(f'{key}R', (made, j))
+        add(f'{key}L', (shade(made, far_shade), j))
 
     # 衣裝：軀幹與兩段袖子。
     boxes = pieces('outfit-robe')

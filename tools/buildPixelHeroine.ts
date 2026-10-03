@@ -72,11 +72,12 @@ const slotBones: [string, string][] = [
   ['foreL', 'foreL'],
   ['upperL', 'upperL'],
   ['shoulderL', 'upperL'],
-  ['bootL', 'footL'],
+  // 靴子畫在小腿上：斜的褲腳收進水平的靴口裡，不會在靴口錯開。
   ['shinL', 'calfL'],
+  ['bootL', 'footL'],
   ['thighL', 'thighL'],
-  ['bootR', 'footR'],
   ['shinR', 'calfR'],
+  ['bootR', 'footR'],
   ['thighR', 'thighR'],
   ['robe', 'hip'],
   ['torso', 'torso'],
@@ -104,10 +105,12 @@ const perSide = (make: (side: 'L' | 'R') => Attachments): Attachments =>
 
 // 衣櫃：每一類各自一組 Skin，執行期自由組合。
 const OUTFITS = ['ivory', 'jade', 'night', 'robe', 'scholar', 'orchid', 'hunter'];
-const PANTS = ['ink', 'moon', 'indigo', 'umber'];
+const PANTS = ['ink', 'moon', 'indigo', 'umber', 'leggings', 'linen', 'greaves', 'wraps', 'fur'];
 const BOOTS = ['brown', 'black', 'white', 'red'];
 const HAIR_COLORS = ['brown', 'black', 'silver', 'auburn', 'chestnut'];
 const HAIR_STYLES = ['ponytail', 'bun'];
+// 臉型：classic 為原稿，其餘由 Codex 依各髮色重畫整顆頭（臉和頭髮在同一張圖上）。
+const FACES = ['classic', 'phoenix', 'round', 'serene', 'fierce'];
 /** 裝備附件：零件的 regionJoint 對齊到 base 部件上的 at 點，骨頭原點在 base 的 origin 點。 */
 const attachOn = (
   region: string,
@@ -186,14 +189,26 @@ const skins = [
       })),
     ),
   ),
+  // 髮型只管馬尾（盤髻不掛馬尾），頭部連同臉另成一組 head/<髮色>/<臉型>。
   ...HAIR_COLORS.flatMap((color) =>
     HAIR_STYLES.map((style) =>
-      skin(`hair/${color}/${style}`, {
-        head: { head: attach(variant('head', color, 'brown'), 'neck') },
-        // 盤髻只留頭上的髮髻，不掛馬尾。
-        ...(style === 'ponytail'
+      skin(
+        `hair/${color}/${style}`,
+        style === 'ponytail'
           ? { hair: { hair: attach(variant('hair', color, 'brown'), 'root') } }
-          : {}),
+          : {},
+      ),
+    ),
+  ),
+  ...HAIR_COLORS.flatMap((color) =>
+    FACES.map((face) =>
+      skin(`head/${color}/${face}`, {
+        head: {
+          head: attach(
+            face === 'classic' ? variant('head', color, 'brown') : `head_${color}_${face}`,
+            'neck',
+          ),
+        },
       }),
     ),
   ),
@@ -201,7 +216,14 @@ const skins = [
     skin(
       `hands/${name}`,
       perSide((side) => ({
-        [`hand${side}`]: { [`hand${side}`]: attach(`${name}${side}`, 'wrist') },
+        [`hand${side}`]: {
+          [`hand${side}`]: attach(`${name}${side}`, 'wrist'),
+          // 空手走路換成放鬆微握的手；握兵器或拳套時維持原本的手型。
+          [`hand${side}Relaxed`]: attach(
+            name === 'palm' ? `relaxed${side}` : `${name}${side}`,
+            'wrist',
+          ),
+        },
       })),
     ),
   ),
@@ -428,25 +450,131 @@ const slash = (side: 'L' | 'R') => {
   ]);
 };
 
-const walkTimes = [0, 0.2, 0.4, 0.6, 0.8];
-const swing = (a: number) => [a, 0, -a, 0, a];
+// 走路一步 0.8 秒，取 8 段。手臂與同側腳交錯：左腳在 0 秒最前，左手最後。
+const WALK_STEPS = 8;
+const WALK_TIME = 0.8;
+/** 空手擺臂：上臂前後擺，前臂慢半拍跟上。往前擺時手肘彎得多，往後擺時手臂較直，手腕再晚一點甩。 */
+const swingArm = (c: number, lag: number): Arm => {
+  const upper = -88 + 20 * c;
+  const fore = upper + 12 + 16 * ((lag + 1) / 2);
+  return [upper, fore, fore + 4 + 6 * lag];
+};
 const walk = (
   armed?: 'L' | 'R',
   hold: (s: number) => Arm = (s) => [-72 + s / 6, -20, -20, 28 + s / 4],
 ) =>
   animation(
-    walkTimes.map((time, i) => {
-      const s = swing(18)[i];
-      const pose: Pose = { torso: -4, head: 2, hair: [-4, 6, -4, 6, -4][i] };
-      // 左腳在 0 秒最前，手臂與腳交錯擺動。
-      if (armed !== 'L') pose.L = [-85 - s, -60 - s, -60 - s];
-      if (!armed) pose.R = [-85 + s, -60 + s, -60 + s];
+    Array.from({ length: WALK_STEPS + 1 }, (_, i) => {
+      const angle = (i / WALK_STEPS) * Math.PI * 2;
+      // c：右手往前為正；lag：同一條手臂晚約 35 度相位的擺動，給前臂與手腕用。
+      const c = Math.cos(angle);
+      const lag = Math.cos(angle - 0.6);
+      const pose: Pose = { torso: -4, head: 2, hair: 1 - 5 * Math.cos(angle * 2) };
+      if (armed !== 'L') pose.L = swingArm(-c, -lag);
+      if (!armed) pose.R = swingArm(c, lag);
       if (armed) {
-        pose[armed] = hold(s);
+        pose[armed] = hold(18 * c);
       }
-      return { time, pose, ease: 'linear' as Ease };
+      return { time: (i / WALK_STEPS) * WALK_TIME, pose, ease: 'linear' as Ease };
     }),
+    // 空手走路時雙手放鬆，不再是張開的手掌垂著擺。
+    armed ? undefined : relaxedHands(),
   );
+
+/** 空手移動時雙手換成放鬆微握的手。 */
+const relaxedHands = (): SlotTimeline =>
+  Object.fromEntries(
+    sides.map((side) => [`hand${side}`, { attachment: [{ time: 0, name: `hand${side}Relaxed` }] }]),
+  );
+type Hold = (s: number) => Arm;
+const holdBlade: Hold = (s) => [-72 + s / 6, -20, -20, 28 + s / 4];
+
+// 跑步一步 0.5 秒（執行期 RUN_TIME 相同）。身體前傾，手肘彎近九十度大幅擺動，馬尾往後飄。
+const RUN_TIME = 0.5;
+const runArm = (c: number, lag: number): Arm => {
+  const upper = -95 + 38 * c;
+  const fore = upper + 72 + 10 * lag;
+  return [upper, fore, fore + 8];
+};
+const run = (armed?: 'L' | 'R', hold: Hold = holdBlade) =>
+  animation(
+    Array.from({ length: WALK_STEPS + 1 }, (_, i) => {
+      const angle = (i / WALK_STEPS) * Math.PI * 2;
+      const c = Math.cos(angle);
+      const lag = Math.cos(angle - 0.6);
+      // 軀幹只微傾：下襬和軀幹是同一張圖、以腰為軸，傾太多下襬會甩到腿後面。前傾感改由腳落在身體後方來做。
+      const pose: Pose = { torso: -7, head: 5, hair: 16 - 6 * Math.cos(angle * 2) };
+      if (armed !== 'L') pose.L = runArm(-c, -lag);
+      if (!armed) pose.R = runArm(c, lag);
+      if (armed) {
+        pose[armed] = hold(10 * c);
+      }
+      return { time: (i / WALK_STEPS) * RUN_TIME, pose, ease: 'linear' as Ease };
+    }),
+    armed ? undefined : relaxedHands(),
+  );
+
+// 跳躍 0.9 秒（執行期 JUMP_TIME 相同）：蹲低、雙臂後擺，起跳時往前上甩，空中張開，落地緩衝。
+// 高度與收腿在執行期處理，這裡只管手臂、軀幹與頭髮。
+const jumpKeys: [number, number, number, Arm, Arm][] = [
+  // 時間、軀幹、馬尾、遠側手、近側手
+  [0, -6, -2, [-110, -90, -85], [-115, -95, -90]],
+  [0.15, -16, -6, [-135, -115, -110], [-140, -120, -115]],
+  [0.3, -2, 18, [20, 55, 65], [5, 45, 55]],
+  [0.5, 2, 26, [35, 70, 80], [15, 55, 65]],
+  [0.72, -12, 4, [-30, -5, 5], [-50, -20, -10]],
+  [0.9, -4, -2, [-70, -40, -30], [-85, -60, -55]],
+];
+const jump = (armed?: 'L' | 'R', hold: Hold = holdBlade) =>
+  animation(
+    jumpKeys.map(([time, torso, hair, far, near]) => {
+      const pose: Pose = { torso, head: -torso / 3, hair };
+      if (armed !== 'L') pose.L = far;
+      if (!armed) pose.R = near;
+      if (armed) {
+        pose[armed] = hold(0);
+      }
+      return { time, pose, ease: (time === 0.15 ? 'snap' : 'io') as Ease };
+    }),
+    armed ? undefined : relaxedHands(),
+  );
+
+// 倒地 1.4 秒（執行期 DOWN_TIME 相同）：中招後仰、雙臂亂甩，摔倒後攤在地上。
+// 整個人向後轉倒與腿部彎曲由執行期處理，手臂角度以站立的身體為準，躺平後跟著一起轉。
+const downKeys: [number, number, number, number, Arm, Arm][] = [
+  // 時間、軀幹、頭、馬尾、遠側手、近側手
+  [0, 10, 6, -10, [-10, 15, 25], [-30, 0, 10]],
+  [0.15, 16, 12, -16, [40, 70, 80], [20, 55, 65]],
+  [0.45, 8, 14, 20, [80, 110, 115], [60, 95, 100]],
+  [0.62, 2, -4, 30, [-40, -20, -15], [-150, -170, -175]],
+  [0.8, 4, 6, 24, [-55, -35, -30], [-135, -150, -155]],
+  [1.4, 4, 4, 26, [-60, -40, -35], [-130, -145, -150]],
+];
+const down = (armed?: 'L' | 'R', hold: Hold = holdBlade) =>
+  animation(
+    downKeys.map(([time, torso, head, hair, far, near]) => {
+      const pose: Pose = { torso, head, hair };
+      if (armed !== 'L') pose.L = far;
+      if (!armed) pose.R = near;
+      if (armed) {
+        // 持兵器的手先維持架勢，倒下後甩過頭頂攤在地上，兵刃順著手臂平躺，不再朝天豎著。
+        pose[armed] = time < 0.45 ? hold(0) : time < 0.62 ? [60, 85, 90, 95] : [75, 100, 105, 108];
+      }
+      return { time, pose, ease: (time === 0.62 ? 'snap' : 'io') as Ease };
+    }),
+    armed ? undefined : relaxedHands(),
+  );
+
+/** 一種持物方式的整組移動動作：走、跑、跳、倒地，名稱為 <動作><後綴>。 */
+const moves = (suffix: string, armed?: 'L' | 'R', hold?: Hold) => ({
+  [`walk${suffix}`]: walk(armed, hold),
+  [`run${suffix}`]: run(armed, hold),
+  [`jump${suffix}`]: jump(armed, hold),
+  [`down${suffix}`]: down(armed, hold),
+});
+/** 每隻手各一組，後綴再加 R／L。 */
+const movesPerHand = (suffix: string, hold: (side: 'L' | 'R') => Hold) =>
+  Object.assign({}, ...sides.map((side) => moves(`${suffix}${side}`, side, hold(side))));
 
 // ---- 其他兵器：每種各有待機、步行與攻擊，失能時改用左手版本 ----
 
@@ -649,29 +777,27 @@ const perHand = <T>(make: (side: 'L' | 'R') => T, prefix: string) =>
 
 const animations = {
   ...perHand((side) => breathing(spearGuard(side)), 'idleSpear'),
-  ...perHand(
-    (side) =>
-      walk(side, (s) => (side === 'R' ? [-108 + s / 8, -12, -12, 22] : [-62 + s / 8, 8, 8, 24])),
-    'walkSpear',
+  ...movesPerHand(
+    'Spear',
+    (side) => (s) => (side === 'R' ? [-108 + s / 8, -12, -12, 22] : [-62 + s / 8, 8, 8, 24]),
   ),
   ...perHand(thrust, 'thrust'),
   ...perHand((side) => breathing(fanGuard(side)), 'idleFan'),
-  ...perHand((side) => walk(side, (s) => [-78 + s / 6, 30, 50, 70]), 'walkFan'),
+  ...movesPerHand('Fan', () => (s) => [-78 + s / 6, 30, 50, 70]),
   ...perHand(fanSweep, 'fan'),
   ...perHand((side) => breathing(dartGuard(side)), 'idleDart'),
-  ...perHand((side) => walk(side, (s) => [-100 + s / 6, -35, -35, 70]), 'walkDart'),
+  ...movesPerHand('Dart', () => (s) => [-100 + s / 6, -35, -35, 70]),
   ...perHand(dartThrow, 'throw'),
   idleFist: breathing(fistGuard),
   punchBoth: punches(true),
   punchL: punches(false),
   idle,
-  walk: walk(),
+  ...moves(''),
   palmBoth: animation(pushed(['L', 'R'])),
   palmL: animation(pushed(['L'])),
   idleArmedR: armedIdle('R'),
   idleArmedL: armedIdle('L'),
-  walkArmedR: walk('R'),
-  walkArmedL: walk('L'),
+  ...movesPerHand('Armed', () => holdBlade),
   slashR: slash('R'),
   slashL: slash('L'),
   // 傷手覆蓋軌道：右臂自然下垂，只鍵右臂，疊在任何動作上。

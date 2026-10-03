@@ -1,0 +1,9 @@
+Use the image generation tool. Make ONE PNG, 1536 wide by 1024 tall: a kung fu PALM STRIKE hand (li zhang, standing palm) for a pixel-art wuxia heroine facing RIGHT.
+
+Reference 1 is her new open hand part (skin tone, outline, pixel scale). Reference 2 is her FOREARM with sleeve cuff lying HORIZONTAL, elbow on the left, wrist on the right. Reference 3 is the character, reference 4 the part sheet, for style. Match the exact pixel-art look (hard-edged 16-bit pixel art, chunky square pixels about 4 output pixels wide, warm skin tones, 1-2 pixel dark brown outline, no antialiasing, no gradients).
+
+Draw ONLY the HAND as it looks at the end of a horizontal forearm that comes in from the LEFT: the wrist is at the LEFT edge of the hand, at mid height. The wrist is bent back 90 degrees so the fingers point straight UP, fingers held together and straight, the thumb tucked along the side of the palm, the PALM faces RIGHT (forward, toward the enemy) and the heel of the palm is the part that pushes forward. We see the hand from the side, the little-finger edge nearest to us. It must look like a clean, strong, readable palm strike, anatomically correct, about the same size as reference 1. Include a small wrist stub at the left that tucks under the sleeve cuff. No forearm, no sleeve, no cuff.
+
+Draw FOUR variants of this same pose (slightly different finger shaping and thumb placement) so the best can be chosen, in a row, each fully isolated with generous padding.
+Background: flat solid pure magenta #FF00FF, no grid lines, no text.
+Save the final image as out.png in the current directory.

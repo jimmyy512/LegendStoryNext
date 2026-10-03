@@ -26,10 +26,21 @@ const LABELS: Record<string, Record<string, string>> = {
     orchid: '紫蘭夜袍',
     hunter: '獵戶短褂',
   },
-  pants: { ink: '墨黑褲', moon: '月白褲', indigo: '靛藍褲', umber: '赭褐褲' },
+  pants: {
+    ink: '墨黑燈籠褲',
+    moon: '月白燈籠褲',
+    indigo: '靛藍燈籠褲',
+    umber: '赭褐燈籠褲',
+    leggings: '緊身綁腿褲',
+    linen: '白麻寬褲',
+    greaves: '鐵甲護腿',
+    wraps: '纏腿短褲',
+    fur: '毛邊獵褲',
+  },
   boots: { brown: '棕皮靴', black: '烏皮靴', white: '白布靴', red: '赤皮靴' },
   hairColor: { brown: '栗棕', black: '烏黑', silver: '銀白', auburn: '赤褐', chestnut: '深棕挑白' },
   hairStyle: { ponytail: '高馬尾', bun: '盤髻' },
+  face: { classic: '原版', phoenix: '鳳眼', round: '圓臉杏眼', serene: '清冷', fierce: '英氣' },
   weapon: {
     none: '空手',
     sword: '長劍',
@@ -126,7 +137,7 @@ export class PixelRigPreview {
           <article><h2><span id="pixel-dot" class="pixel-dot disabled"></span><span id="pixel-injury-title">右手失能</span></h2><div id="pixel-injured" class="pixel-stage"></div><p id="pixel-injury-note"></p></article>
         </section>
         <section class="pixel-actions" aria-label="動作">
-          <button data-motion="idle" aria-pressed="true">待機</button><button data-motion="walk" aria-pressed="false">走路</button><button data-motion="attack" aria-pressed="false" id="pixel-attack">出招</button><button data-motion="hurt" aria-pressed="false">受擊</button>
+          <button data-motion="idle" aria-pressed="true">待機</button><button data-motion="walk" aria-pressed="false">走路</button><button data-motion="run" aria-pressed="false">跑步</button><button data-motion="jump" aria-pressed="false">跳躍</button><button data-motion="down" aria-pressed="false">倒地</button><button data-motion="attack" aria-pressed="false" id="pixel-attack">出招</button><button data-motion="hurt" aria-pressed="false">受擊</button>
         </section>
         <section class="pixel-playback">
           <button id="pixel-pause">暫停</button><button id="pixel-replay">重播</button><button id="pixel-step">逐格 +1/${PIXEL_FPS} 秒</button>
@@ -202,7 +213,7 @@ export class PixelRigPreview {
     if (this.playing && !document.hidden) {
       this.time += dt * this.speed;
       if (this.time >= this.duration) {
-        if (this.motion === 'idle' || this.motion === 'walk') {
+        if (this.motion === 'idle' || this.motion === 'walk' || this.motion === 'run') {
           this.time %= this.duration;
         } else {
           this.time = this.duration;
@@ -282,6 +293,7 @@ export class PixelRigPreview {
       ['boots', '鞋子', hero.skinOptions('boots')],
       ['hairColor', '髮色', hero.skinOptions('hair')],
       ['hairStyle', '髮型', hero.hairStyles(DEFAULT_LOOK.hairColor)],
+      ['face', '臉型', hero.faces(DEFAULT_LOOK.hairColor)],
       ['weapon', '兵器', Object.keys(WEAPONS)],
       ...GEAR_SLOTS.map((slot): [string, string, string[]] => [
         slot,
@@ -293,8 +305,8 @@ export class PixelRigPreview {
       `<label>${title} <select data-look="${key}">${values
         .map((id) => `<option value="${id}">${LABELS[key]?.[id] ?? id}</option>`)
         .join('')}</select></label>`;
-    document.getElementById('pixel-look')!.innerHTML = rows.slice(0, 6).map(html).join('');
-    document.getElementById('pixel-gear')!.innerHTML = rows.slice(6).map(html).join('');
+    document.getElementById('pixel-look')!.innerHTML = rows.slice(0, 7).map(html).join('');
+    document.getElementById('pixel-gear')!.innerHTML = rows.slice(7).map(html).join('');
     document.querySelectorAll<HTMLSelectElement>('[data-look]').forEach((select) =>
       select.addEventListener(
         'change',
@@ -350,6 +362,9 @@ export class PixelRigPreview {
     const motionLabel = {
       idle: '護身待機',
       walk: '走路',
+      run: '跑步',
+      jump: '跳躍',
+      down: '倒地',
       attack: this.attackName(),
       hurt: '受擊',
     }[this.motion];

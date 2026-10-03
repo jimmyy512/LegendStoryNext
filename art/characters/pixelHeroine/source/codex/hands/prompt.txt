@@ -1,0 +1,14 @@
+Use the image generation tool. Make ONE PNG, 1536 wide by 1024 tall: new HAND parts for a Spine skeletal rig of the SAME wuxia heroine.
+
+Reference 1 shows the current FOREARM with an OPEN PALM (left) and the forearm with a FIST (right). The open palm looks like a flat paddle: fingers merged into one block and no visible thumb. Reference 2 is the full part sheet, reference 3 the character, for style and pixel scale. Match the exact pixel-art look (hard-edged 16-bit pixel art, chunky square pixels about 4 output pixels wide, limited palette, warm skin tones like the reference, 1-2 pixel dark brown outline, no antialiasing, no gradients).
+
+Draw ONLY the HAND (no forearm, no sleeve, no cuff), starting at the wrist. Every hand hangs STRAIGHT DOWN like the reference palm: wrist at the TOP, fingers toward the bottom, seen from the side as on a character facing RIGHT, about the same size as the reference hand. Each hand includes a small round wrist stub at the top that will tuck under the sleeve cuff.
+
+Row 1, three hands (for the near side of the body, the back of the hand facing the viewer):
+1. OPEN PALM: a natural open hand, fingers together and slightly curved, the THUMB clearly separated and visible, knuckle creases, elegant and readable;
+2. RELAXED hand for walking: fingers loosely curled, thumb resting along the index finger, calm and natural;
+3. PALM STRIKE hand: the wrist bent back so the fingers point toward the RIGHT (forward) while the heel of the palm pushes DOWN, fingers together, thumb tucked, like a kung fu palm strike.
+Row 2: the same three hands again, identical design.
+
+Layout on flat solid pure magenta #FF00FF, no grid lines, no text: 3 columns by 2 rows, every hand fully isolated with generous padding.
+Save the final image as out.png in the current directory.

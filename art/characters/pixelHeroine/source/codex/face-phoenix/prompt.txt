@@ -1,0 +1,10 @@
+Use the image generation tool. Make ONE PNG, 1536 wide by 1024 tall: FIVE HEAD parts of the SAME wuxia heroine with a NEW FACE, one per hair color.
+
+Reference 1 (left piece) is her original HEAD part: facing RIGHT in 3/4 side view, brown hair with bangs, side locks and a bun with a red hair tie. Reference 2 shows the same head in four other hair colors (row 1). Reference 3 is the part sheet for style. Match the exact pixel-art look (hard-edged 16-bit pixel art, chunky square pixels about 4 output pixels wide, warm East Asian skin tones, 1-2 pixel dark brown outline, no antialiasing, no gradients).
+
+CRITICAL: the HAIR must stay exactly the same as the references (same hairstyle, bangs, side locks, bun, red tie, same colors), same head size, same pose and angle, same neck. ONLY the FACE changes: PHOENIX EYES: long narrow upswept almond eyes with sharp outer corners and a thin eyeliner flick, straight elegant brows, a slim V-shaped jaw, small calm mouth. Cool and sharp swordswoman. The face must stay East Asian and appealing, drawn clean and readable at this small pixel size.
+
+Five heads, all with this same new face, hair colors in this order: 1 brown (like reference 1), 2 jet black, 3 silver-white, 4 auburn red-brown, 5 dark chestnut with one white streak (colors exactly like reference 2).
+Layout: row 1 has heads 1, 2, 3; row 2 has heads 4, 5. Every head fully isolated with generous padding, no ponytail, no body.
+Background: flat solid pure magenta #FF00FF, no grid lines, no text.
+Save the final image as out.png in the current directory.

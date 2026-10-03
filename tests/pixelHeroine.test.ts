@@ -64,6 +64,75 @@ describe('像素女俠的實際骨架與裝備', () => {
     hero.destroy({ children: true });
   });
 
+  it('每種兵器都有跑、跳、倒地，失能時換左手版本', () => {
+    const hero = heroine();
+    for (const weapon of Object.keys(WEAPONS) as PixelWeapon[]) {
+      for (const injury of ['healthy', 'disabled'] as const) {
+        hero.equip(look({ weapon }), injury);
+        for (const motion of ['run', 'jump', 'down'] as const) {
+          hero.pose(motion, 0.3);
+          const name = hero.actor.state.getTrack(0)!.animation!.name;
+          expect(name.startsWith(motion)).toBe(true);
+          if (WEAPONS[weapon].sided) {
+            expect(name.endsWith(injury === 'disabled' ? 'L' : 'R')).toBe(true);
+          }
+        }
+      }
+    }
+    hero.destroy({ children: true });
+  });
+
+  it('跳躍騰空時雙腳離地並收腿，落地後回到地面', () => {
+    const hero = heroine();
+    hero.pose('jump', 0);
+    const standing = world(hero, 'hip').worldY;
+    hero.pose('jump', 0.45);
+    // y 向下：騰空時靴底高於地面，髖部也比起跳前高。
+    expect(Math.max(...soles(hero))).toBeLessThan(-20);
+    expect(world(hero, 'hip').worldY).toBeLessThan(standing - 25);
+    const leg = Math.hypot(
+      world(hero, 'footR').worldX - world(hero, 'thighR').worldX,
+      world(hero, 'footR').worldY - world(hero, 'thighR').worldY,
+    );
+    hero.pose('idle', 0);
+    const straight = Math.hypot(
+      world(hero, 'footR').worldX - world(hero, 'thighR').worldX,
+      world(hero, 'footR').worldY - world(hero, 'thighR').worldY,
+    );
+    expect(leg).toBeLessThan(straight - 3);
+    hero.pose('jump', 0.9);
+    for (const sole of soles(hero)) {
+      expect(Math.abs(sole)).toBeLessThan(1.5);
+    }
+    hero.destroy({ children: true });
+  });
+
+  it('倒地後整個人向後躺平，頭在腳的後方且貼近地面', () => {
+    const hero = heroine();
+    hero.pose('down', 1.4);
+    const head = world(hero, 'head');
+    const foot = world(hero, 'footR');
+    expect(head.worldX).toBeLessThan(foot.worldX - 40);
+    expect(Math.abs(head.worldY)).toBeLessThan(20);
+    hero.destroy({ children: true });
+  });
+
+  it('臉型依髮色換整顆頭，髮型只管馬尾', () => {
+    const hero = heroine();
+    const faces = hero.faces('silver');
+    expect(faces).toEqual(
+      expect.arrayContaining(['classic', 'phoenix', 'round', 'serene', 'fierce']),
+    );
+    const head = () =>
+      (hero.actor.skeleton.findSlot('head')!.pose.attachment as RegionAttachment).path;
+    hero.equip(look({ hairColor: 'silver', face: 'fierce' }), 'healthy');
+    expect(head()).toBe('head_silver_fierce');
+    hero.equip(look({ hairColor: 'silver', face: 'classic', hairStyle: 'bun' }), 'healthy');
+    expect(head()).toBe('head_silver');
+    expect(hero.actor.skeleton.findSlot('hair')!.pose.attachment).toBeNull();
+    hero.destroy({ children: true });
+  });
+
   it('站定的動作中，兩隻靴底都貼在地面且不滑動', () => {
     const hero = heroine();
     for (const [weapon, motions] of [

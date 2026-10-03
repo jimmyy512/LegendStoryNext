@@ -1,0 +1,18 @@
+Use the image generation tool. Make ONE PNG, 1536 wide by 1024 tall: FIVE different TROUSER designs for a Spine skeletal rig of a small chibi wuxia heroine, each split into a THIGH part and a CALF part that must join cleanly.
+
+Reference 1 shows the current THIGH part (left) and CALF part (right). Reference 2 shows them ASSEMBLED on the character in the game: a short slanted thigh, a very SHORT calf, and a big separate boot below. Reference 3 is the full part sheet for style. Match the exact pixel-art look (hard-edged 16-bit pixel art, chunky square pixels about 4 output pixels wide, limited palette, 1-2 pixel dark brown outline, no antialiasing, no gradients).
+
+Rules so the parts join cleanly on the rig:
+- THIGH: drawn pointing straight DOWN, hip at top (a round covered cap), same chunky width as reference 1. Its BOTTOM ends in a clean horizontal knee CUFF or band of cloth. The knee is always covered by cloth, a knee pad or wrapping, never bare skin.
+- CALF: drawn pointing straight DOWN, about 60 percent of the thigh length (short and chunky like reference 1, NOT as long as the thigh), NO round cap at the top: its top edge is plain fabric that will be hidden under the thigh cuff. Its bottom ends in a narrow gathered cuff or wrap at the ankle that tucks into a boot. NO foot and NO shoe.
+- Both parts of a design have the same width at the knee so they look continuous.
+
+Designs (clearly different silhouettes, not just colors):
+1. tight black LEGGINGS with criss-cross leather binding straps, slim;
+2. loose WHITE LINEN trousers, baggy on the thigh, gathered with a blue band at the ankle;
+3. ARMORED: dark trousers with a steel lamellar thigh guard and a steel shin greave with leather straps, a round steel knee cop covering the knee;
+4. brown knee-length breeches whose cuff covers the knee, and a calf tightly WRAPPED in cream cloth puttee bandages from knee to ankle (no bare skin showing);
+5. brown hunter's leather leggings with FUR trim at the knee cuff and at the ankle.
+
+Layout on flat solid pure magenta #FF00FF, no grid lines, no text: 5 columns (designs 1 to 5, left to right) by 2 rows. Row 1: the five THIGH parts. Row 2: the matching five CALF parts directly below. Every part fully isolated with padding, never touching another part.
+Save the final image as out.png in the current directory.

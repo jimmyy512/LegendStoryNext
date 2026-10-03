@@ -1,7 +1,7 @@
 import { Physics, Spine, Skin, Vector2, type Bone } from '@esotericsoftware/spine-pixi-v8';
 import { Container } from 'pixi.js';
 
-export type PixelMotion = 'idle' | 'walk' | 'attack' | 'hurt';
+export type PixelMotion = 'idle' | 'walk' | 'run' | 'jump' | 'down' | 'attack' | 'hurt';
 export type PixelWeapon = 'none' | 'sword' | 'saber' | 'spear' | 'fan' | 'darts' | 'knuckles';
 export type PixelInjury = 'healthy' | 'hurt' | 'disabled';
 
@@ -12,6 +12,8 @@ export interface PixelLook {
   boots: string;
   hairColor: string;
   hairStyle: string;
+  /** 臉型，依髮色各有一顆頭。 */
+  face: string;
   weapon: PixelWeapon;
   /** 疊加裝備，每類一件，'none' 表示不穿。 */
   gear: Record<GearSlot, string>;
@@ -24,6 +26,7 @@ export const DEFAULT_LOOK: PixelLook = {
   boots: 'brown',
   hairColor: 'brown',
   hairStyle: 'ponytail',
+  face: 'classic',
   weapon: 'none',
   gear: {
     headwear: 'none',
@@ -122,7 +125,9 @@ export const WEAPONS: Record<PixelWeapon, WeaponProfile> = {
 export const motionDuration = (motion: PixelMotion, weapon: PixelWeapon): number =>
   motion === 'attack'
     ? WEAPONS[weapon].duration
-    : { idle: IDLE_STEP * 8, walk: 0.8, hurt: 0.5, attack: 0 }[motion];
+    : { idle: IDLE_STEP * 8, walk: 0.8, run: 0.5, jump: 0.9, down: 1.4, hurt: 0.5, attack: 0 }[
+        motion
+      ];
 
 /** 待機每格秒數，需與 tools/buildPixelHeroine.ts 的 IDLE_STEP 相同。 */
 const IDLE_STEP = 0.125;
@@ -136,7 +141,15 @@ const STANCE = { L: 12, R: -11 };
 const CROUCH = 4;
 // 戴斗笠時馬尾改從帽簷下的後腦垂出（頭部骨頭座標，y 向上），否則髮根會穿出帽頂。
 const UNDER_HAT = { x: -2, y: -12 };
-const WALK = { home: { L: 3, R: -3 }, stride: 10, lift: 5, contact: 0.55 };
+type Gait = { home: Record<'L' | 'R', number>; stride: number; lift: number; contact: number };
+const WALK: Gait = { home: { L: 3, R: -3 }, stride: 10, lift: 5, contact: 0.55 };
+// 跑步每隻腳著地不到一半的時間，兩腳交替之間有騰空期。
+// 雙腳的中心落在身體後方，整個人像從腳踝往前傾。
+const RUN: Gait = { home: { L: 1, R: -5 }, stride: 18, lift: 13, contact: 0.34 };
+// 跳躍：蹲低到 JUMP.takeoff 起跳，JUMP.land 落地，最高 JUMP.height 像素；空中雙腳往上收 JUMP.tuck 像素。
+const JUMP = { takeoff: 0.18, land: 0.72, height: 38, tuck: 12, settle: 0.18 };
+// 倒地：向後轉倒躺平，身體往右挪讓整個人留在原位附近，並抬高到背貼地。
+const DOWN = { start: 0.12, fall: 0.45, angle: 90, shift: 55, lift: 22 };
 
 /** 雙骨鏈：上段、下段與末端骨，以及兩段在設定姿勢下的長度與方向。 */
 type Chain = {
@@ -216,6 +229,15 @@ export class PixelHeroine extends Container {
     ];
   }
 
+  /** 某個髮色底下可選的臉型。 */
+  faces(color: string): string[] {
+    const prefix = `head/${color}/`;
+    return this.actor.skeleton.data.skins
+      .map((skin) => skin.name)
+      .filter((name) => name.startsWith(prefix))
+      .map((name) => name.slice(prefix.length));
+  }
+
   /** 某個髮色底下可選的髮型。 */
   hairStyles(color: string): string[] {
     const prefix = `hair/${color}/`;
@@ -235,6 +257,7 @@ export class PixelHeroine extends Container {
       `pants/${look.pants}`,
       `boots/${look.boots}`,
       `hair/${look.hairColor}/${look.hairStyle}`,
+      `head/${look.hairColor}/${look.face}`,
       `hands/${profile.hands}`,
     ];
     if (profile.item) {
@@ -264,13 +287,15 @@ export class PixelHeroine extends Container {
     const profile = WEAPONS[this.look.weapon];
     const hand = disabled ? 'L' : 'R';
     const named = (name: string) => (profile.sided ? `${name}${hand}` : name);
+    // 跑、跳、倒地與走路共用持物方式：walkSpear → runSpear、jumpSpear、downSpear。
+    const moving = motion === 'walk' || motion === 'run' || motion === 'jump' || motion === 'down';
     const animation =
       motion === 'attack'
         ? disabled && profile.leftAttack
           ? profile.leftAttack
           : named(profile.attack)
-        : motion === 'walk'
-          ? named(profile.walk)
+        : moving
+          ? named(profile.walk.replace(/^walk/, motion))
           : named(profile.idle);
     // 受擊只帶動軀幹，疊在護身姿勢上，手中兵刃維持架勢。
     const key = motion === 'hurt' ? `${animation}+hurt` : animation;
@@ -333,11 +358,41 @@ export class PixelHeroine extends Container {
     hair.pose.x = hat ? x + UNDER_HAT.x : x;
     hair.pose.y = hat ? y + UNDER_HAT.y : y;
     const hip = this.actor.skeleton.findBone('hip')!.pose;
+    const t = this.poseTime;
+    const gait = this.motion === 'walk' ? WALK : this.motion === 'run' ? RUN : null;
     let phase = 0;
-    if (this.motion === 'walk') {
-      phase = (this.poseTime / motionDuration('walk', this.look.weapon)) % 1;
-      // 每步落地後重心最低，換腳中段最高。
-      hip.y += -1.5 * (0.5 + 0.5 * Math.cos(phase * Math.PI * 4));
+    let height = 0;
+    let air = 0;
+    let fall = 0;
+    if (gait) {
+      phase = (t / motionDuration(this.motion, this.look.weapon)) % 1;
+      // 每步落地後重心最低，換腳中段最高；跑步起伏更大並微蹲。
+      const bob = 0.5 + 0.5 * Math.cos(phase * Math.PI * 4);
+      hip.y += this.motion === 'run' ? -2 - 3 * bob : -1.5 * bob;
+    } else if (this.motion === 'jump') {
+      if (t < JUMP.takeoff) {
+        hip.y -= CROUCH + 6 * Math.sin(((t / JUMP.takeoff) * Math.PI) / 2);
+      } else if (t < JUMP.land) {
+        const s = (t - JUMP.takeoff) / (JUMP.land - JUMP.takeoff);
+        air = 4 * s * (1 - s);
+        height = JUMP.height * air;
+        hip.y += height - 2;
+      } else {
+        const s = Math.min(1, (t - JUMP.land) / JUMP.settle);
+        hip.y -= CROUCH + 7 * (1 - s);
+      }
+    } else if (this.motion === 'down') {
+      const s = Math.min(1, Math.max(0, (t - DOWN.start) / DOWN.fall));
+      fall = s * s * (3 - 2 * s);
+      // 中招先往後退半步，倒下後在地上彈一下。
+      hip.x -= 3 * Math.min(1, t / DOWN.start);
+      hip.y -= CROUCH * (1 - fall);
+      const land = DOWN.start + DOWN.fall;
+      const bounce = t > land && t < land + 0.2 ? Math.sin(((t - land) / 0.2) * Math.PI) * 4 : 0;
+      const root = this.actor.skeleton.getRootBone()!.pose;
+      root.rotation = DOWN.angle * fall - bounce;
+      root.x = DOWN.shift * fall;
+      root.y = DOWN.lift * fall;
     } else {
       hip.y -= CROUCH;
     }
@@ -346,26 +401,45 @@ export class PixelHeroine extends Container {
     cape.rotation =
       this.motion === 'walk'
         ? -10 + Math.sin(phase * Math.PI * 4) * 3
-        : this.motion === 'attack'
-          ? -12
-          : // 待機跟著八格呼吸逐格切換，比馬尾再慢一點，連續微轉會讓像素閃爍。
-            [-3, -3, -3, -4, -4, -5, -5, -4][Math.floor(this.poseTime / IDLE_STEP + 1e-6) % 8];
+        : this.motion === 'run'
+          ? -24 + Math.sin(phase * Math.PI * 4) * 4
+          : this.motion === 'jump'
+            ? -6 - height * 0.6
+            : this.motion === 'down'
+              ? -4 - 16 * fall
+              : this.motion === 'attack'
+                ? -12
+                : // 待機跟著八格呼吸逐格切換，比馬尾再慢一點，連續微轉會讓像素閃爍。
+                  [-3, -3, -3, -4, -4, -5, -5, -4][Math.floor(t / IDLE_STEP + 1e-6) % 8];
     for (const side of ['L', 'R'] as const) {
       let x: number = STANCE[side];
       let y = this.ankleHeight;
-      if (this.motion === 'walk') {
+      if (gait) {
         const p = (phase + (side === 'L' ? 0 : 0.5)) % 1;
-        if (p < WALK.contact) {
+        if (p < gait.contact) {
           // 支撐期：腳掌貼地，相對身體等速後移。
-          x = WALK.home[side] + WALK.stride * (1 - (2 * p) / WALK.contact);
+          x = gait.home[side] + gait.stride * (1 - (2 * p) / gait.contact);
         } else {
-          const s = (p - WALK.contact) / (1 - WALK.contact);
+          const s = (p - gait.contact) / (1 - gait.contact);
           const eased = s * s * (3 - 2 * s);
-          x = WALK.home[side] - WALK.stride + 2 * WALK.stride * eased;
-          y += Math.sin(s * Math.PI) * WALK.lift;
+          x = gait.home[side] - gait.stride + 2 * gait.stride * eased;
+          y += Math.sin(s * Math.PI) * gait.lift;
         }
+      } else if (height > 0) {
+        // 空中收腿：雙腳跟著身體升起後再往上收，腳離髖部變近，膝蓋因此彎起。
+        x = STANCE[side] * 0.5 + (side === 'L' ? 3 : -1);
+        y += height + JUMP.tuck * air;
       }
-      this.reach(this.legs[side], hip.x, hip.y, x, y);
+      const leg = this.legs[side];
+      this.reach(leg, hip.x, hip.y, x, y);
+      if (fall > 0) {
+        // 倒地後雙腿不再貼地，逐漸彎成仰躺時膝蓋朝上的姿勢，靴子跟著身體方向。
+        const thigh = lerp(leg.thigh.pose.rotation, side === 'L' ? 38 : 22, fall);
+        const calf = lerp(leg.calf.pose.rotation, side === 'L' ? -70 : -40, fall);
+        leg.thigh.pose.rotation = thigh;
+        leg.calf.pose.rotation = calf;
+        leg.foot.pose.rotation = -thigh - calf;
+      }
     }
   }
 
@@ -435,6 +509,10 @@ function solve(
   const jx = ox + Math.cos(t1) * upper;
   const jy = oy + Math.sin(t1) * upper;
   return [t1, Math.atan2(y - jy, x - jx)];
+}
+
+function lerp(a: number, b: number, t: number): number {
+  return a + (b - a) * t;
 }
 
 function missing(name: string): never {
