@@ -389,14 +389,24 @@ export class BattleHud extends Container {
     const hasStarted = b.clock.elapsed > 0;
     this.set(
       'phase',
-      b.result ? '交鋒結束' : b.paused ? (hasStarted ? '已暫停' : '準備中') : '交鋒中',
+      b.result
+        ? '交鋒結束'
+        : b.paused
+          ? danger.warning
+            ? '看清對手起手'
+            : hasStarted
+              ? '已暫停'
+              : '準備中'
+          : '交鋒中',
     );
-    let advice = b.paused
-      ? hasStarted
-        ? '交鋒已暫停；按「繼續交鋒」或點招式恢復'
-        : '選好站位後按「開始交鋒」；點招式也會繼續交鋒'
-      : danger.warning
-        ? danger.warning
+    let advice = danger.warning
+      ? b.paused
+        ? `${danger.warning.replace(/！拉開或防禦$/, '')}！點「立即防禦」減傷，或先「拉開距離」再繼續`
+        : danger.warning
+      : b.paused
+        ? hasStarted
+          ? '交鋒已暫停；按「繼續交鋒」或點招式恢復'
+          : '選好站位後按「開始交鋒」；點招式也會繼續交鋒'
         : b.guarding
           ? '收勢防守中 · 擋下攻擊後恢復普攻'
           : b.strike
@@ -419,6 +429,7 @@ export class BattleHud extends Container {
             : '成功撤退';
     }
     this.set('advice', advice);
+    this.texts.get('advice')!.style.fill = danger.warning && !b.result ? RED : GOLD;
     const queued = b.queuedAction;
     const skillName =
       queued?.type === 'skill'
@@ -502,7 +513,7 @@ export class BattleHud extends Container {
             ? '立即防禦\n腳力 20'
             : '立即防禦\n腳力 20 · 減傷 60%';
         enabled = enabled && b.stamina >= 20 && b.guardCooldown === 0;
-        active = b.defending || queued?.type === 'defend';
+        active = b.defending || queued?.type === 'defend' || (b.paused && !!danger.warning && enabled);
       }
       if (action === 'battle:escape') {
         enabled = enabled && b.encounter.escapable && workingLegs(b.player.body) > 0;

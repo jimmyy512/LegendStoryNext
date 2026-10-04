@@ -51,6 +51,7 @@ export class GameApplication {
   private lifetime = new AbortController();
   private playTimer = 0;
   private combatPreview = false;
+  private bossTellPauseUsed = false;
   private session = new GameSession();
   private dialogueEntity: MapEntity | null = null;
   private get state(): GameState | null {
@@ -343,6 +344,7 @@ export class GameApplication {
     this.autoSave();
     this.world.setEnabled(false);
     this.session.startBattle(id);
+    this.bossTellPauseUsed = false;
     this.sparringLesson = new SparringLesson();
     if (this.state.flags.includes('sparring-lesson-seen')) {
       this.sparringLesson.skip();
@@ -402,6 +404,15 @@ export class GameApplication {
     }
     const previousResult = battle.result;
     const events = battle.update(seconds);
+    if (
+      !this.bossTellPauseUsed &&
+      !battle.result &&
+      battle.encounterId === 'boss' &&
+      events.some((event) => event.kind === 'windup' && event.target === 'player')
+    ) {
+      battle.togglePause();
+      this.bossTellPauseUsed = true;
+    }
     for (const event of events) {
       if (event.kind === 'damage') {
         this.audio.play(event.target === 'player' ? 'hurt' : 'hit');
