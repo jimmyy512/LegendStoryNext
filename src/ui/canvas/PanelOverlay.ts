@@ -56,9 +56,11 @@ export class PanelOverlay {
     if (!this.model || !this.width) {
       return;
     }
-    const shade = new Graphics()
-      .rect(0, 0, this.width, this.height)
-      .fill({ color: 0x061512, alpha: this.model.layout === 'dialogue' ? 0.16 : 0.65 });
+    const shade = new Graphics().rect(0, 0, this.width, this.height).fill({
+      color: 0x061512,
+      alpha:
+        this.model.layout === 'dialogue' ? 0.16 : this.model.placement === 'battle' ? 0.24 : 0.65,
+    });
     shade.eventMode = 'static';
     this.root.addChild(shade);
     if (this.model.layout === 'creation') {
@@ -494,7 +496,9 @@ export class PanelOverlay {
 
   private drawNotice(): void {
     const model = this.model!;
-    const w = Math.min(480, this.width - 24);
+    const battleLesson = model.placement === 'battle';
+    const sideLesson = battleLesson && this.width >= 1100;
+    const w = Math.min(sideLesson ? 390 : 480, this.width - 24);
     const body = model.rows
       .filter((row) => row.kind !== 'action')
       .map((row) => this.row(row, w - 48));
@@ -502,7 +506,14 @@ export class PanelOverlay {
     const textH = body.reduce((sum, item) => sum + item.height + 12, 0);
     const h = Math.min(this.height - 24, Math.max(210, textH + 158));
     const panel = new Container();
-    panel.position.set((this.width - w) / 2, (this.height - h) / 2);
+    panel.position.set(
+      sideLesson ? this.width - w - 16 : (this.width - w) / 2,
+      sideLesson
+        ? Math.min(Math.max(190, (this.height - h) / 2), this.height - h - 12)
+        : battleLesson
+          ? this.height - h - 12
+          : (this.height - h) / 2,
+    );
     panel.eventMode = 'static';
     panel.hitArea = new Rectangle(0, 0, w, h);
     panel.addChild(this.panelBacking(w, h));

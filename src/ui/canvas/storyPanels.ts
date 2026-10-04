@@ -104,6 +104,7 @@ export function sparringLessonPanel(cue: SparringCue): GamePanel {
   return {
     title: defense ? '看準起手 · 先守一招' : '重擊已過 · 趁隙還擊',
     layout: 'notice',
+    placement: 'battle',
     dismissible: false,
     rows: [
       heading(defense ? '入門切磋 1 / 2 · 已暫停' : '入門切磋 2 / 2 · 已暫停'),

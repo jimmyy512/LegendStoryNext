@@ -15,6 +15,7 @@ export interface GamePanel {
   dismissible?: boolean;
   skipAction?: string;
   layout?: 'dialogue' | 'folio' | 'notice' | 'creation';
+  placement?: 'battle';
   hero?: GameState;
   inventory?: boolean;
   inventoryState?: GameState;
