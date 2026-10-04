@@ -1,5 +1,5 @@
 ﻿import { afterEach, describe, expect, it, vi } from 'vitest';
-import { Assets, Texture } from 'pixi.js';
+import { Assets, Sprite, Texture } from 'pixi.js';
 import { createBody } from '../src/game/body';
 import { PixelEnemy } from '../src/render/PixelEnemy';
 import { HumanoidEnemyRig } from '../src/render/HumanoidEnemyRig';
@@ -7,6 +7,24 @@ import { HumanoidEnemyRig } from '../src/render/HumanoidEnemyRig';
 afterEach(() => vi.restoreAllMocks());
 
 describe('enemy anticipation follows combat timing', () => {
+  it.each(['disciple', 'zombie', 'boss'])(
+    'keeps %s grounded during idle and anticipation',
+    (id) => {
+      vi.spyOn(Assets, 'get').mockImplementation((() => Texture.EMPTY) as typeof Assets.get);
+      const enemy = new PixelEnemy(id, createBody());
+      for (let frame = 0; frame < 120; frame++) {
+        enemy.update(1 / 60);
+        const sprite = enemy.children.find((child) => child.visible) as Sprite;
+        expect(sprite.y).toBe(0);
+        expect(sprite.anchor.y).toBeLessThan(1);
+      }
+      enemy.playAttack();
+      enemy.update(0.5);
+      const sprite = enemy.children.find((child) => child.visible) as Sprite;
+      expect(sprite.y).toBe(0);
+      enemy.destroy({ children: true });
+    },
+  );
   function actor() {
     vi.spyOn(Assets, 'get').mockImplementation((() => Texture.EMPTY) as typeof Assets.get);
     const pose = vi.spyOn(HumanoidEnemyRig.prototype, 'pose');

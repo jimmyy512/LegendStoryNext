@@ -1,6 +1,7 @@
 import { Assets, Container, Rectangle, Sprite, Texture } from 'pixi.js';
 import type { BodyPart, BodyState } from '../game/body';
 import { HumanoidEnemyRig } from './HumanoidEnemyRig';
+import { ENEMY_FRAME_BASELINES } from './EnemyFrameRegistration';
 
 type Motion = 'idle' | 'walk' | 'windup' | 'attack' | 'hurt' | 'guard' | 'down';
 type Frame =
@@ -97,7 +98,7 @@ export class PixelEnemy extends Container {
       texture.source.scaleMode = 'nearest';
       const sprite = new Sprite(texture);
       const registration = FRAME_REGISTRATION[key];
-      sprite.anchor.set(0.5, registration?.baseline ?? 1);
+      sprite.anchor.set(0.5, registration?.baseline ?? ENEMY_FRAME_BASELINES[key] ?? 1);
       sprite.scale.set(registration?.scale ?? profile.scale);
       sprite.visible = false;
       this.addChild(sprite);
@@ -229,7 +230,6 @@ export class PixelEnemy extends Container {
       return;
     }
     const walking = Math.sin(this.time * this.profile.pace * 9);
-    const breathing = Math.sin(this.time * this.profile.pace * 2.8);
     let name: Frame = 'idle';
     let x = 0;
     let y = 0;
@@ -237,13 +237,9 @@ export class PixelEnemy extends Container {
     if (this.motion === 'walk') {
       // Alternate authored stance and planted step; neither frame is warped.
       name = walking > 0.08 ? 'step' : 'idle';
-      y = -Math.abs(walking) * 1.5;
-    } else if (this.motion === 'idle') {
-      y = -Math.max(0, breathing) * 1.3;
     } else if (this.motion === 'windup') {
       // Hold anticipation until the combat simulation resolves the strike.
       x = easeOut(phase) * 7;
-      y = -Math.max(0, breathing) * 0.5;
       if (this.hasSlashSequence) {
         name = phase < 0.55 ? 'prepare' : 'lift';
         x = 0;

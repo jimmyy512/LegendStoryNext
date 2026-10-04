@@ -15,6 +15,7 @@ import { QUESTS } from '../data/content';
 import { MAPS } from '../data/maps';
 import type { Battle } from '../game/battle';
 import { getStats } from '../game/state';
+import { availableTalentPoints } from '../game/talents';
 import { nextObjective, objectiveLabel, type ObjectiveKind } from '../game/objectives';
 import type { GameState } from '../game/types';
 import type { GamePanel } from './canvas/model';
@@ -136,7 +137,7 @@ export class GameView {
     height?: number;
     primary?: boolean;
     icon?: NavigationArt;
-  }): void {
+  }): Container {
     const button = control({ ...options, width: options.width ?? 64, press: this.press });
     if (options.icon) {
       const image = new Sprite(navigationTexture(options.icon));
@@ -170,6 +171,7 @@ export class GameView {
     }
     button.position.set(options.x, options.y);
     this.hud.addChild(button);
+    return button;
   }
 
   private home(): void {
@@ -426,8 +428,8 @@ export class GameView {
     const navWidth = Math.min(560, this.width - 20);
     const start = narrow ? (this.width - navWidth) / 2 : this.width - navWidth - 16;
     const top = this.height - 90;
-    entries.forEach(([title, action, icon], index) =>
-      this.button({
+    entries.forEach(([title, action, icon], index) => {
+      const button = this.button({
         label: title,
         action,
         icon,
@@ -436,8 +438,26 @@ export class GameView {
         height: 78,
         x: start + (index * navWidth) / 5,
         y: top,
-      }),
-    );
+      });
+      const points = availableTalentPoints(
+        this.screen.kind === 'explore' ? this.screen.state : { level: 1, talents: [] },
+      );
+      if (action === 'panel:character' && points > 0) {
+        const badge = control({
+          label: `天賦 ${points}`,
+          action: 'talent-page',
+          width: 54,
+          height: 40,
+          primary: true,
+          press: this.press,
+        });
+        const badgeText = badge.children.find((child) => child instanceof Text) as Text;
+        badgeText.style.fontSize = 12;
+        badge.position.set(navWidth / 5 - 60, -18);
+        badge.accessibleTitle = `尚有 ${points} 點天賦可領悟，開啟天賦`;
+        button.addChild(badge);
+      }
+    });
     this.caption(this.screen.notice, top - 34);
   }
 

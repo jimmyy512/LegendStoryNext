@@ -1,4 +1,5 @@
 import { Assets, Container, Graphics, Sprite, Texture } from 'pixi.js';
+import { ENEMY_FRAME_BASELINES } from './EnemyFrameRegistration';
 
 const INTERVAL: Record<string, number> = {
   master: 4.8,
@@ -35,30 +36,37 @@ export class PixelWorldActor extends Container {
     stillTexture.source.scaleMode = 'nearest';
     gestureTexture.source.scaleMode = 'nearest';
     const base = kind === 'npc' ? 62 / stillTexture.height : scale;
-    const pose = (texture: Texture, name: string) => {
+    const pose = (texture: Texture, name: string, key: string) => {
       const root = new Container();
       root.label = name;
       const w = texture.width * base,
         h = texture.height * base;
-      const waist = -h * 0.38;
+      const baseline = ENEMY_FRAME_BASELINES[key] ?? 1;
+      const waist = -h * baseline * 0.38;
       const lower = new Sprite(texture),
         upper = new Sprite(texture);
       for (const sprite of [lower, upper]) {
-        sprite.anchor.set(0.5, 1);
+        sprite.anchor.set(0.5, baseline);
         sprite.scale.set(base);
       }
       lower.label = 'planted-lower-body';
       upper.label = 'breathing-upper-body';
       const lowerMask = new Graphics().rect(-w / 2, waist, w, -waist + 1).fill(0xffffff);
-      const upperMask = new Graphics().rect(-w / 2, -h - 1, w, h + waist + 2).fill(0xffffff);
+      const upperMask = new Graphics()
+        .rect(-w / 2, -h * baseline - 1, w, h * baseline + waist + 2)
+        .fill(0xffffff);
       root.addChild(lower, upper, lowerMask, upperMask);
       lower.mask = lowerMask;
       upper.mask = upperMask;
       this.addChild(root);
       return { root, upper, scale: base, waist };
     };
-    this.still = pose(stillTexture, 'still-pose');
-    this.gesture = pose(gestureTexture, 'gesture-pose');
+    this.still = pose(stillTexture, 'still-pose', `${kind}:${id}${wounded ? ':down' : ''}`);
+    this.gesture = pose(
+      gestureTexture,
+      'gesture-pose',
+      `${kind}:${id}:${kind === 'npc' ? 'gesture' : 'attack'}`,
+    );
     this.gesture.root.visible = false;
     this.interval = wounded ? Infinity : (INTERVAL[id] ?? 4);
     this.time = (id.length * 0.77) % this.interval;

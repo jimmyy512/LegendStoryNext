@@ -570,6 +570,12 @@ ${new Date(record.savedAt).toLocaleString('zh-TW')}`),
       }
       return;
     }
+    if (action === 'talent-page') {
+      if (!this.dialogue) {
+        this.showPanel('character', 'talents');
+      }
+      return;
+    }
     if (action.startsWith('talent:')) {
       if (!this.dialogue && this.panel === 'character') {
         const id = action.slice(7);
