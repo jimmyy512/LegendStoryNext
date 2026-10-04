@@ -64,6 +64,7 @@ export class PixelEnemy extends Container {
   private travelDirection = 1;
   private readonly frames: Partial<Record<Frame, Sprite>>;
   private readonly hasSlashSequence: boolean;
+  private readonly isBoss: boolean;
   private readonly profile: Profile;
   private motion: Motion = 'idle';
   private time = 0;
@@ -81,6 +82,7 @@ export class PixelEnemy extends Container {
       throw new Error(`Missing enemy animation profile: ${id}`);
     }
     this.profile = profile;
+    this.isBoss = id === 'boss';
     if (id === 'bandit') {
       this.rig = new HumanoidEnemyRig(Assets.get<Texture>('enemy:bandit:rig'));
       this.rig.scale.set(0.95);
@@ -240,7 +242,12 @@ export class PixelEnemy extends Container {
     } else if (this.motion === 'windup') {
       // Hold anticipation until the combat simulation resolves the strike.
       x = easeOut(phase) * 7;
-      if (this.hasSlashSequence) {
+      if (this.isBoss) {
+        // The authored step lowers the sword before the thrust. Keeping the
+        // extended idle sword here made the warning read as a frozen attack.
+        name = 'step';
+        x = -easeOut(phase) * 5;
+      } else if (this.hasSlashSequence) {
         name = phase < 0.55 ? 'prepare' : 'lift';
         x = 0;
         y = 0;
@@ -253,6 +260,9 @@ export class PixelEnemy extends Container {
         x = 7 - easeOut((phase - 0.3) / 0.18) * this.profile.lunge;
       } else {
         x = -(this.profile.lunge - 7) * (1 - easeOut((phase - 0.79) / 0.21));
+        if (this.isBoss) {
+          name = 'step';
+        }
       }
       if (this.hasSlashSequence) {
         name = phase < 0.56 ? 'attack' : phase < 0.8 ? 'follow' : 'recover';

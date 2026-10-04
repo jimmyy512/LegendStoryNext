@@ -7,6 +7,25 @@ import { HumanoidEnemyRig } from '../src/render/HumanoidEnemyRig';
 afterEach(() => vi.restoreAllMocks());
 
 describe('enemy anticipation follows combat timing', () => {
+  it('holds the boss sword low before thrusting and returns through the planted step', () => {
+    vi.spyOn(Assets, 'get').mockImplementation((() => Texture.EMPTY) as typeof Assets.get);
+    const enemy = new PixelEnemy('boss', createBody());
+    const visibleFrame = () => enemy.children.findIndex((child) => child.visible);
+    expect(visibleFrame()).toBe(0);
+    enemy.playAttack();
+    enemy.update(0.5);
+    expect(visibleFrame()).toBe(1);
+    enemy.update(1);
+    expect(visibleFrame()).toBe(1);
+    enemy.playStrike();
+    expect(visibleFrame()).toBe(2);
+    enemy.update(0.44);
+    expect(visibleFrame()).toBe(1);
+    enemy.update(0.3);
+    expect(visibleFrame()).toBe(0);
+    enemy.destroy({ children: true });
+  });
+
   it.each(['disciple', 'zombie', 'boss'])(
     'keeps %s grounded during idle and anticipation',
     (id) => {

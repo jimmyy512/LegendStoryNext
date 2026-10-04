@@ -17,6 +17,7 @@ type Button = {
   height: number;
   enabled: boolean;
   active?: boolean;
+  emergency?: boolean;
 };
 const GOLD = 0xe9c783,
   TEAL = 0x75d6c0,
@@ -29,6 +30,7 @@ export class BattleHud extends Container {
   private texts = new Map<string, Text>();
   private buttons = new Map<string, Button>();
   private bars = new Graphics();
+  private warningFrame = new Graphics();
   private ownBody: BodyDiagram;
   private enemyBody: BodyDiagram;
   private dockY: number;
@@ -70,7 +72,15 @@ export class BattleHud extends Container {
         .rect(x + 2, this.dockY + 13, 3, 3)
         .fill(0x1c352d);
     }
-    this.addChild(bg, this.bars);
+    if (w > 750 && !this.compact) {
+      this.warningFrame
+        .roundRect(w / 2 - 173, 10, 346, 82, 8)
+        .stroke({ color: RED, width: 2 })
+        .rect(w / 2 - 169, 22, 4, 57)
+        .fill(RED);
+      this.warningFrame.visible = false;
+    }
+    this.addChild(bg, this.bars, this.warningFrame);
     this.ownBody = new BodyDiagram(() => this.press('injuries'));
     this.enemyBody = new BodyDiagram((part) => this.press(`body:${part}`));
     this.ownBody.scale.set(this.bodyScale);
@@ -291,7 +301,7 @@ export class BattleHud extends Container {
     root.accessible = true;
     root.accessibleTitle = title;
     root.tabIndex = 0;
-    const button = { root, bg, text: t, width, height, enabled: true };
+    const button: Button = { root, bg, text: t, width, height, enabled: true };
     this.buttons.set(action, button);
     this.addChild(root);
     root.on('pointertap', (e) => {
@@ -354,7 +364,12 @@ export class BattleHud extends Container {
               ? '破綻 · 趁隙追擊'
               : b.intent(b.target),
     );
-    this.set('title', b.encounter.name);
+    const pausedThreat = b.paused && !!danger.warning && !b.result;
+    this.warningFrame.visible = pausedThreat;
+    this.set('title', pausedThreat ? '敵方起手 · 戰術暫停' : b.encounter.name);
+    if (this.texts.has('title')) {
+      this.texts.get('title')!.style.fill = pausedThreat ? RED : GOLD;
+    }
     const lastHit = [...b.events]
       .reverse()
       .find(
@@ -398,7 +413,7 @@ export class BattleHud extends Container {
         ? '交鋒結束'
         : b.paused
           ? danger.warning
-            ? '看清對手起手'
+            ? '先防禦，或拉開距離後再繼續'
             : hasStarted
               ? '已暫停'
               : '準備中'
@@ -498,11 +513,13 @@ export class BattleHud extends Container {
           ? '返回探索'
           : b.paused
             ? b.clock.elapsed > 0
-              ? '繼續交鋒'
+              ? pausedThreat
+                ? '繼續交鋒 · 敵方即將命中'
+                : '繼續交鋒'
               : '開始交鋒'
             : '暫停交鋒';
         enabled = true;
-        active = b.paused;
+        active = b.paused && !pausedThreat;
       }
       const skill = SKILLS[b.player.route].find((s) => action === `battle:skill:${s.id}`);
       if (skill) {
@@ -518,7 +535,8 @@ export class BattleHud extends Container {
             ? '立即防禦\n腳力 20'
             : '立即防禦\n腳力 20 · 減傷 60%';
         enabled = enabled && b.stamina >= 20 && b.guardCooldown === 0;
-        active = b.defending || queued?.type === 'defend' || (b.paused && !!danger.warning && enabled);
+        active =
+          b.defending || queued?.type === 'defend' || (b.paused && !!danger.warning && enabled);
       }
       if (action === 'battle:escape') {
         enabled = enabled && b.encounter.escapable && workingLegs(b.player.body) > 0;
@@ -536,14 +554,16 @@ export class BattleHud extends Container {
       if (button.text.text !== title) {
         button.text.text = title;
       }
-      if (button.active !== active) {
+      const emergency = action === 'battle:pause' && pausedThreat;
+      if (button.active !== active || button.emergency !== emergency) {
         button.active = active;
+        button.emergency = emergency;
         button.bg.clear();
         drawGamePlate(button.bg, 0, 0, button.width, button.height, {
-          primary: action === 'battle:pause',
+          primary: action === 'battle:pause' && !pausedThreat,
           active,
         });
-        button.text.style.fill = action === 'battle:pause' ? 0x13221e : 0xe8e9db;
+        button.text.style.fill = action === 'battle:pause' && !pausedThreat ? 0x13221e : 0xe8e9db;
       }
     }
     if (b.result) {
