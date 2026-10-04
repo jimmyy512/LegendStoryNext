@@ -16,6 +16,7 @@ import { MAPS } from '../data/maps';
 import type { Battle } from '../game/battle';
 import { getStats } from '../game/state';
 import { availableTalentPoints } from '../game/talents';
+import { NotificationQueue } from './NotificationQueue';
 import { nextObjective, objectiveLabel, type ObjectiveKind } from '../game/objectives';
 import type { GameState } from '../game/types';
 import type { GamePanel } from './canvas/model';
@@ -47,7 +48,41 @@ export class GameView {
   updateMapPosition(point: Point): void {
     this.minimap?.setPosition(point);
   }
-  private toastTimer = 0;
+  private readonly notifications = new NotificationQueue();
+  private notificationDrawn: string | null = null;
+  private messageWidth = 0;
+  private messageHeight = 0;
+  private reducedMotion = false;
+
+  updateNotifications(seconds: number, reducedMotion: boolean): void {
+    this.reducedMotion = reducedMotion;
+    this.notifications.update(seconds);
+    if (this.notificationDrawn !== this.notifications.current) {
+      this.notificationDrawn = this.notifications.current;
+      clear(this.messages);
+      if (this.notificationDrawn) {
+        this.drawNotification(this.notificationDrawn);
+      }
+    }
+    this.positionNotification();
+  }
+
+  private positionNotification(): void {
+    const q = this.notifications;
+    const enter = Math.min(1, q.elapsed / q.entrance);
+    const leave = Math.max(0, Math.min(1, (q.elapsed - q.entrance - q.hold) / q.exit));
+    const progress = 1 - Math.pow(1 - enter, 3);
+    const offset = this.reducedMotion
+      ? 0
+      : (1 - progress + leave * leave) * (this.messageWidth + 32);
+    this.messages.alpha = this.reducedMotion ? 1 : Math.min(1, enter * 2) * (1 - leave);
+    this.messages.position.set(
+      (this.width < 640
+        ? (this.width - this.messageWidth) / 2
+        : this.width - this.messageWidth - 24) + offset,
+      Math.max(220, this.height - this.messageHeight - (this.width < 640 ? 160 : 100)),
+    );
+  }
   constructor(
     private readonly root: Container,
     private readonly press: (action: string) => void,
@@ -81,6 +116,7 @@ export class GameView {
     this.panels.resize(width, height);
     this.loading.resize(width, height);
     clear(this.messages);
+    this.notificationDrawn = null;
   }
 
   renderHome(): void {
@@ -253,7 +289,6 @@ export class GameView {
         y: menuY + index * 60,
       });
     });
-    this.button({ label: '全螢幕', action: 'fullscreen', x: w - 90, y: 20, width: 72 });
     const footer = label('第一章 · 初入全真', { size: 12, color: 0xb7bfa8 });
     footer.position.set(x, h - 35);
     this.hud.addChild(footer);
@@ -268,8 +303,10 @@ export class GameView {
     const card = new Container();
     card.position.set(10, 10);
     const portrait = new PixelBattleHero(state, { showInjuryTint: false });
-    portrait.scale.set(0.72);
-    portrait.position.set(42, 41 - portrait.impactPoint('head').y * 0.72);
+    const head = portrait.impactPoint('head');
+    const portraitScale = 0.95;
+    portrait.scale.set(portraitScale);
+    portrait.position.set(42 - head.x * portraitScale, 47 - head.y * portraitScale);
     const mask = new Graphics().circle(42, 41, 24).fill(0xffffff);
     const portraitGround = new Graphics().circle(42, 41, 24).fill(0x162b24);
     portrait.mask = mask;
@@ -324,14 +361,23 @@ export class GameView {
           : '';
     if (this.width > 600) {
       const heading = label(title, {
-        size: 20,
+        size: 16,
         family: '"Noto Serif TC", "PMingLiU", serif',
       });
-      heading.anchor.set(0.5, 0);
-      heading.position.set(this.width / 2, 13);
+      const plaque = drawGamePlate(new Graphics(), 0, 0, 244, 32);
+      plaque.position.set(10, 111);
+      heading.anchor.set(0, 0.5);
+      heading.position.set(22, 127);
+      this.hud.addChild(plaque);
       this.hud.addChild(heading);
+    } else {
+      const heading = label(title, { size: 15, width: 106, color: 0xf0dfad });
+      const plaque = drawGamePlate(new Graphics(), 0, 0, 116, 32);
+      plaque.position.set(this.width - 126, 14);
+      heading.anchor.set(0.5, 0.5);
+      heading.position.set(this.width - 68, 30);
+      this.hud.addChild(plaque, heading);
     }
-    this.button({ label: '全螢幕', action: 'fullscreen', x: this.width - 76, y: 10 });
   }
 
   private exploration(): void {
@@ -343,7 +389,7 @@ export class GameView {
     const mobile = this.width < 620;
     const objectiveWidth = mobile ? this.width - 20 : 330;
     const objectiveX = this.width - objectiveWidth - 10;
-    const objectiveY = mobile ? 108 : 62;
+    const objectiveY = mobile ? 108 : 16;
     const card = new Container();
     card.position.set(objectiveX, objectiveY);
     card.addChild(drawGamePlate(new Graphics(), 0, 0, objectiveWidth, 102, { active: true }));
@@ -387,17 +433,17 @@ export class GameView {
       label: expanded ? '收起小地圖' : '展開小地圖',
       action: 'map-toggle',
       width: 116,
-      height: 40,
+      height: mobile ? 40 : 32,
       press: () => {
         this.mapExpanded = !expanded;
         this.draw();
       },
     });
-    toggle.position.set(this.width - 126, mobile ? 56 : objectiveY + 112);
+    toggle.position.set(mobile ? this.width - 126 : 138, mobile ? 56 : 111);
     const mapIcon = new Sprite(navigationTexture('map'));
     mapIcon.anchor.set(0.5);
     mapIcon.scale.set(28 / Math.max(mapIcon.texture.width, mapIcon.texture.height));
-    mapIcon.position.set(20, 20);
+    mapIcon.position.set(20, mobile ? 20 : 16);
     mapIcon.eventMode = 'none';
     const toggleTitle = toggle.children.find((child) => child instanceof Text) as Text;
     toggleTitle.style.fontSize = 12;
@@ -408,13 +454,11 @@ export class GameView {
       this.minimap = new ExplorationMinimap(
         this.screen.state,
         next,
-        mobile ? 230 : 260,
+        mobile ? 170 : 244,
         this.press,
+        false,
       );
-      this.minimap.position.set(
-        this.width - (mobile ? 240 : 270),
-        objectiveY + (mobile ? 112 : 158),
-      );
+      this.minimap.position.set(10, mobile ? objectiveY + 112 : 151);
       this.hud.addChild(this.minimap);
     }
     const entries = [
@@ -476,6 +520,11 @@ export class GameView {
   }
 
   toast(message: string): void {
+    this.notifications.enqueue(message);
+    this.updateNotifications(0, this.reducedMotion);
+  }
+
+  private drawNotification(message: string): void {
     clear(this.messages);
     const reward = /獲得|找到.*銀兩|銀兩.*經驗/.test(message);
     const blocked = /無法通行|無法抵達/.test(message);
@@ -504,17 +553,12 @@ export class GameView {
     heading.position.set(74, 10);
     text.position.set(74, 38);
     this.messages.addChild(heading, text);
-    this.messages.position.set(
-      this.width < 640 ? (this.width - maxW) / 2 : this.width - maxW - 24,
-      Math.max(220, this.height - h - (this.width < 640 ? 160 : 100)),
-    );
+    this.messageWidth = maxW;
+    this.messageHeight = h;
     this.messages.eventMode = 'none';
-    window.clearTimeout(this.toastTimer);
-    this.toastTimer = window.setTimeout(() => clear(this.messages), 4200);
   }
 
   dispose(): void {
-    window.clearTimeout(this.toastTimer);
     clear(this.root);
   }
 }

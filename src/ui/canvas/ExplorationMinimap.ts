@@ -15,16 +15,20 @@ export class ExplorationMinimap extends Container {
     objective: MapEntity | null,
     width: number,
     press: (action: string) => void,
+    showTitle = true,
   ) {
     super();
     this.cell = (width - 20) / COLS;
     const height = this.cell * ROWS;
-    this.addChild(surface(width, height + 63));
+    const inset = showTitle ? 30 : 8;
+    this.addChild(surface(width, height + inset + 33));
     const title = label(MAPS[state.map].name, { size: 14, color: 0xe8c983 });
     title.position.set(10, 5);
-    this.addChild(title);
+    if (showTitle) {
+      this.addChild(title);
+    }
     const map = new Container();
-    map.position.set(10, 30);
+    map.position.set(10, inset);
     this.addChild(map);
     const art = new Sprite(Assets.get(`explore:${state.map}`));
     art.width = width - 20;
@@ -79,7 +83,7 @@ export class ExplorationMinimap extends Container {
       width: width - 16,
       color: 0xd2d9c4,
     });
-    legend.position.set(8, height + 34);
+    legend.position.set(8, height + inset + 4);
     this.addChild(legend);
   }
   setPosition(point: Point): void {

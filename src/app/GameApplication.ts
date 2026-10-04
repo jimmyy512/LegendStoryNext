@@ -109,7 +109,12 @@ export class GameApplication {
     this.world.onInteract = (entity) => this.interact(entity);
     this.world.onBlocked = () => this.toast('那裡無法通行，請點選道路或附近地點。');
     this.world.onTarget = (index) => this.selectTarget(index);
-    this.world.onUpdate = (seconds) => this.updateBattle(seconds);
+    this.world.onUpdate = (seconds) => {
+      if (document.visibilityState === 'visible') {
+        this.view.updateNotifications(seconds, this.reducedMotion);
+      }
+      this.updateBattle(seconds);
+    };
     this.playTimer = window.setInterval(() => {
       if (this.state && !this.transitions.busy && document.visibilityState === 'visible') {
         this.session.advanceTime();
