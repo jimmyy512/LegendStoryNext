@@ -3,6 +3,7 @@ import {
   BODY_PARTS,
   PART_CAPACITY,
   PART_NAMES,
+  bodyCondition,
   type BodyPart,
   type BodyState,
 } from '../../game/body';
@@ -39,7 +40,7 @@ export class BodyDiagram extends Container {
       this.parts.set(part, g);
       this.addChild(g);
     }
-    const legend = label('紅：受傷  黑：損毀', { size: 10 });
+    const legend = label('紅：受傷  黑：重傷／失能', { size: 10 });
     legend.anchor.set(0.5, 0);
     legend.position.set(38, 131);
     this.addChild(legend);
@@ -70,7 +71,7 @@ export class BodyDiagram extends Container {
       }
       accessibleLabel(
         g,
-        `${PART_NAMES[part]} ${body[part]}/${PART_CAPACITY[part]} ${body[part] <= 0 ? '損毀' : damaged ? '受傷' : '完好'}`,
+        `${PART_NAMES[part]} ${body[part]}/${PART_CAPACITY[part]} ${bodyCondition(body, part)}`,
       );
     }
   }

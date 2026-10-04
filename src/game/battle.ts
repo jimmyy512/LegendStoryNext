@@ -647,7 +647,8 @@ export class Battle {
     const base = Math.max(
       1,
       Math.round(
-        (this.stats.attack * multiplier - defense * 0.65) *
+        (this.stats.attack * multiplier * (this.player.body.head === 0 ? 0.7 : 1) -
+          defense * 0.65) *
           (opening ? (this.player.talents.includes('opening') ? 1.55 : 1.35) : 1),
       ),
     );
@@ -669,8 +670,17 @@ export class Battle {
       kind: 'damage',
     });
     if (disabled) {
+      if (part === 'head') {
+        enemy.strikeRange = null;
+        enemy.windup = 0;
+        enemy.progress = 0;
+        enemy.recovery = Math.max(enemy.recovery, 1.2);
+        enemy.opening = true;
+      }
       events.push({
-        text: `${enemy.name}的${PART_NAMES[part]}已重傷。`,
+        text: part === 'head'
+          ? `${enemy.name}頭部重傷，攻勢中斷，露出破綻。`
+          : `${enemy.name}的${PART_NAMES[part]}已重傷。`,
         target: index,
         part: part,
         kind: 'injury',
@@ -700,7 +710,9 @@ export class Battle {
     const base = Math.max(
       1,
       Math.round(
-        enemy.stats.attack * (noHands ? 0.65 : heavy ? heavyMultiplier : 1) -
+        enemy.stats.attack *
+          (noHands ? 0.65 : heavy ? heavyMultiplier : 1) *
+          (enemy.body.head === 0 ? 0.7 : 1) -
           this.stats.defense * 0.65,
       ),
     );
@@ -744,8 +756,16 @@ export class Battle {
       events.push({ text: '失心傀儡纏住身形，腳力減少 24。' });
     }
     if (disabled) {
+      if (part === 'head') {
+        this.strike = null;
+        this.playerProgress = 0;
+        this.recovery = Math.max(this.recovery, 1.2);
+        this.counter = false;
+      }
       events.push({
-        text: `你的${PART_NAMES[part]}已重傷，請留意可用招式與移動姿態。`,
+        text: part === 'head'
+          ? '你的頭部重傷，起招中斷且攻擊力降低。'
+          : `你的${PART_NAMES[part]}已重傷，請留意可用招式與移動姿態。`,
         target: 'player',
         part,
         kind: 'injury',

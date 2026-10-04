@@ -134,7 +134,13 @@ export class GameApplication {
   }
 
   async init(
-    preview?: { route: Route; encounter: string; map: GameState['map']; injured?: boolean },
+    preview?: {
+      route: Route;
+      encounter: string;
+      map: GameState['map'];
+      injured?: boolean;
+      chapterBoss?: boolean;
+    },
     worldPreview?: GameState['map'],
     previewCondition?: 'injured' | 'immobile' | 'aftermath',
     previewEquipment = false,
@@ -143,7 +149,7 @@ export class GameApplication {
     await this.world.init(document.querySelector('#canvas-host')!);
     this.loading.attach(this.view.loading);
     if (preview) {
-      const state = createCombatPreview(preview.route);
+      const state = createCombatPreview(preview.route, preview.chapterBoss);
       if (preview.injured) {
         state.body.rightArm = 0;
       }
@@ -151,7 +157,9 @@ export class GameApplication {
       await this.start(state);
       this.startBattle(preview.encounter);
       if (this.battle) {
-        prepareCombatPreview(this.battle);
+        if (!preview.chapterBoss) {
+          prepareCombatPreview(this.battle);
+        }
         this.renderBattle();
       }
     } else if (worldPreview) {

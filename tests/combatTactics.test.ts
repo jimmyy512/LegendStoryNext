@@ -105,4 +105,41 @@ describe('氣勢與追擊', () => {
     expect(fight.enemies[0].progress).toBe(progress);
     expect(fight.enemies[0].opening).toBe(true);
   });
+
+  it('頭部重傷打斷首領蓄勢並給玩家一次追擊窗口', () => {
+    const fight = battle();
+    fight.autoAttack = false;
+    fight.targetPart = 'head';
+    fight.enemies[0].body.head = 1;
+    fight.enemies[0].strikeRange = { min: 1, max: 4 };
+    fight.enemies[0].windup = 1.2;
+    strike(fight);
+    expect(fight.enemies[0].body.head).toBe(0);
+    expect(fight.enemies[0].strikeRange).toBeNull();
+    expect(fight.enemies[0].recovery).toBeGreaterThan(0.5);
+    expect(fight.enemies[0].opening).toBe(true);
+    expect(fight.events.some((event) => event.text.includes('攻勢中斷'))).toBe(true);
+  });
+
+  it('我方頭部重傷會中斷起招', () => {
+    const fight = new Battle(createGame('演武', 'sword'), 'boss', () => 0.99);
+    fight.enemies[0].position = fight.playerPosition + 2.5;
+    fight.player.body.head = 1;
+    fight.autoAttack = false;
+    fight.paused = false;
+    fight.enemies[0].progress = 1;
+    fight.update(0.05);
+    fight.strike = {
+      action: { type: 'attack', target: 0 },
+      remaining: 1,
+      range: { min: 1, max: 4 },
+      part: 'chest',
+      empowered: false,
+    };
+    fight.update(0.6);
+    expect(fight.player.body.head).toBe(0);
+    expect(fight.strike).toBeNull();
+    expect(fight.recovery).toBeGreaterThan(0);
+    expect(fight.events.some((event) => event.text.includes('起招中斷'))).toBe(true);
+  });
 });

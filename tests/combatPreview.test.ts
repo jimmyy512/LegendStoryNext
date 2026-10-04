@@ -28,3 +28,15 @@ describe('高等級演武', () => {
     }
   }
 });
+
+describe('第一章首領實玩預覽', () => {
+  it.each(['sword', 'fist'] as const)('%s 保留第一章敵方原始數值', (route) => {
+    const state = createCombatPreview(route, true);
+    const battle = new Battle(state, 'boss', () => 0.5);
+    expect(state.level).toBe(3);
+    expect(state.hp).toBe(getStats(state).maxHp);
+    expect(state.inventory[state.weapon!]).toBe(1);
+    expect(battle.enemies[0].stats.maxHp).toBe(ENEMIES.boss.maxHp);
+    expect(battle.enemies[0].hp).toBe(ENEMIES.boss.maxHp);
+  });
+});

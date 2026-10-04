@@ -331,11 +331,13 @@ export class BattleHud extends Container {
       `自動攻擊 ${Math.round(b.playerProgress * 100)}%`,
       b.defending
         ? '護體防守'
-        : b.exhausted
-          ? '腳力耗盡'
-          : b.holdingPosition
-            ? '停步回氣'
-            : `氣勢 ${'◆'.repeat(b.momentum)}${'◇'.repeat(3 - b.momentum)}${b.momentum === 3 ? ' 招式爆發' : ''}`,
+        : b.player.body.head === 0
+          ? '頭部重傷 · 攻擊力下降'
+          : b.exhausted
+            ? '腳力耗盡'
+            : b.holdingPosition
+              ? '停步回氣'
+              : `氣勢 ${'◆'.repeat(b.momentum)}${'◇'.repeat(3 - b.momentum)}${b.momentum === 3 ? ' 招式爆發' : ''}`,
     ]
       .filter(Boolean)
       .join('\n');
@@ -344,11 +346,13 @@ export class BattleHud extends Container {
       'enemyStatus',
       enemy.strikeRange
         ? b.intent(b.target)
-        : enemy.broken
-          ? '破甲 · 防禦降低'
-          : enemy.opening
-            ? '破綻 · 趁隙追擊'
-            : b.intent(b.target),
+        : enemy.body.head === 0
+          ? '頭部重傷 · 攻擊力下降'
+          : enemy.broken
+            ? '破甲 · 防禦降低'
+            : enemy.opening
+              ? '破綻 · 趁隙追擊'
+              : b.intent(b.target),
     );
     this.set('title', b.encounter.name);
     const lastHit = [...b.events]
@@ -356,6 +360,7 @@ export class BattleHud extends Container {
       .find(
         (e) =>
           e.kind === 'damage' ||
+          e.kind === 'injury' ||
           e.kind === 'miss' ||
           e.kind === 'guard' ||
           e.kind === 'heal' ||
@@ -373,7 +378,7 @@ export class BattleHud extends Container {
           : '';
       this.set(
         'lastHit',
-        lastHit.kind === 'talent'
+        lastHit.kind === 'injury' || lastHit.kind === 'talent'
           ? lastHit.text
           : lastHit.kind === 'damage'
             ? lastHit.blocked

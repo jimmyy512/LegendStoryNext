@@ -5,13 +5,18 @@ import type { Route } from './types';
 
 export const PREVIEW_LEVEL = 10;
 
-export function createCombatPreview(route: Route) {
-  const state = createGame('演武俠客', route);
-  state.level = PREVIEW_LEVEL;
+export function createCombatPreview(route: Route, chapterBoss = false) {
+  const state = createGame(chapterBoss ? '驗收俠客' : '演武俠客', route);
+  state.level = chapterBoss ? 3 : PREVIEW_LEVEL;
   state.weapon = route === 'sword' ? 'sword' : 'wraps';
   state.armor = 'robe';
-  for (const id of Object.values(EQUIPMENT_ITEMS).flat()) {
-    state.inventory[id] = 1;
+  if (!chapterBoss) {
+    for (const id of Object.values(EQUIPMENT_ITEMS).flat()) {
+      state.inventory[id] = 1;
+    }
+  } else {
+    state.inventory[state.weapon] = 1;
+    state.inventory.robe = 1;
   }
   restore(state);
   return state;
