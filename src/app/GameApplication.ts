@@ -3,9 +3,16 @@ import { MAPS } from '../data/maps';
 import { type Battle, type BattleAction } from '../game/battle';
 import { BODY_PARTS, PART_NAMES, PART_CAPACITY, type BodyPart } from '../game/body';
 import { GameSession } from '../game/GameSession';
+import { opponentName } from '../game/opponentName';
+import { entityPresentation } from '../game/entityPresentation';
+import { activeObjective, nextObjective, type ObjectiveKind } from '../game/objectives';
+import { SparringLesson } from '../game/SparringLesson';
+import { nearestWalkable } from '../game/pathfinding';
 import { createCombatPreview, prepareCombatPreview } from '../game/combatPreview';
 import { decodeSave, encodeSave, type SaveSlot } from '../game/save';
 import { createGame } from '../game/state';
+import { TALENTS, type TalentId } from '../game/talents';
+import { ROUTE_NAMES } from '../game/martialTraining';
 import { getDialogue, isEntityVisible, type Dialogue } from '../game/story';
 import type { GameState, ItemId, MapEntity, Route } from '../game/types';
 import { World } from '../render/world';
@@ -22,6 +29,8 @@ import {
   dialoguePanel,
   endingPanel,
   medicinePanel,
+  sparringLessonPanel,
+  equipmentRewardPanel,
 } from '../ui/canvas/storyPanels';
 
 import { TransitionController } from '../core/TransitionController';
@@ -32,9 +41,10 @@ import type { SettingsRepository } from '../services/SettingsRepository';
 import { guardGameGestures } from '../ui/BrowserGestures';
 import { GameView } from '../ui/GameView';
 import type { LoadingScreen } from '../ui/LoadingScreen';
-import { injuryRows, PanelView, type Panel } from '../ui/PanelView';
+import { PanelView, type Panel } from '../ui/PanelView';
 
 export class GameApplication {
+  private guidedObjective: ObjectiveKind = 'main';
   private audio = new AudioService();
   private world = new World();
   private transitions: TransitionController;
@@ -50,6 +60,7 @@ export class GameApplication {
     return this.session.battle;
   }
   private selectedTarget = 0;
+  private sparringLesson = new SparringLesson();
   private view: GameView;
   private panels = new PanelView();
   private dialogue: Dialogue | null = null;
@@ -93,6 +104,7 @@ export class GameApplication {
       });
     this.world.onStep = (point) => {
       this.session.move(point);
+      this.view.updateMapPosition(point);
     };
     this.world.onInteract = (entity) => this.interact(entity);
     this.world.onBlocked = () => this.toast('那裡無法通行，請點選道路或附近地點。');
@@ -115,18 +127,49 @@ export class GameApplication {
     );
   }
 
-  async init(preview?: { route: Route; encounter: string }): Promise<void> {
-    this.combatPreview = !!preview;
+  async init(
+    preview?: { route: Route; encounter: string; map: GameState['map']; injured?: boolean },
+    worldPreview?: GameState['map'],
+    previewCondition?: 'injured' | 'immobile',
+    previewEquipment = false,
+  ): Promise<void> {
+    this.combatPreview = !!preview || !!worldPreview;
     await this.world.init(document.querySelector('#canvas-host')!);
     this.loading.attach(this.view.loading);
     if (preview) {
       const state = createCombatPreview(preview.route);
+      if (preview.injured) {
+        state.body.rightArm = 0;
+      }
+      state.map = preview.map;
       await this.start(state);
       this.startBattle(preview.encounter);
       if (this.battle) {
         prepareCombatPreview(this.battle);
         this.renderBattle();
       }
+    } else if (worldPreview) {
+      const state = previewEquipment ? createCombatPreview('sword') : createGame('無名', 'sword');
+      state.map = worldPreview;
+      if (previewCondition) {
+        state.body.head = 33;
+        state.body.leftLeg = 0;
+        state.body.rightArm = 0;
+        state.hp = 64;
+        if (previewCondition === 'immobile') {
+          state.body.leftArm = 0;
+          state.body.rightLeg = 0;
+        }
+      }
+      state.position =
+        worldPreview === 'temple'
+          ? { x: 3, y: 7 }
+          : worldPreview === 'mountain'
+            ? { x: 2, y: 4 }
+            : worldPreview === 'cave'
+              ? { x: 3, y: 12 }
+              : state.position;
+      await this.start(state);
     } else {
       await this.start(createGame('無名', 'sword'), true);
     }
@@ -147,12 +190,18 @@ export class GameApplication {
     this.view.renderHome();
   }
 
-  private async start(state: GameState, home = false): Promise<boolean> {
+  private async start(
+    state: GameState,
+    home = false,
+    objective: ObjectiveKind = 'main',
+  ): Promise<boolean> {
     this.world.setEnabled(false);
+    state.position = nearestWalkable(MAPS[state.map], state.position);
     const completed = await this.transitions.run({
       label: `正在前往${MAPS[state.map].name}`,
       prepare: (progress) => this.assets.prepare(state.map, progress),
       commit: () => {
+        this.guidedObjective = objective;
         this.world.showMap(state);
         if (home) {
           this.session.end();
@@ -187,7 +236,9 @@ export class GameApplication {
     }
     this.world.setHeroState(this.state);
     this.renderHud();
-    this.view.renderExploration(this.state, this.notice);
+    this.guidedObjective = activeObjective(this.state, this.guidedObjective);
+    this.world.setObjective(nextObjective(this.state, this.guidedObjective));
+    this.view.renderExploration(this.state, this.notice, this.guidedObjective);
   }
 
   private renderHud(): void {
@@ -209,7 +260,9 @@ export class GameApplication {
         this.toast((error as Error).message);
         return;
       }
-      void this.start(destination).catch((error: Error) => this.toast(error.message));
+      void this.start(destination, false, this.guidedObjective).catch((error: Error) =>
+        this.toast(error.message),
+      );
       return;
     }
     this.dialogueEntity = entity;
@@ -219,7 +272,16 @@ export class GameApplication {
   }
 
   private renderDialogue(): void {
-    this.openModal(dialoguePanel(this.dialogue!, this.dialogueIndex));
+    this.openModal(
+      dialoguePanel(this.dialogue!, this.dialogueIndex, this.dialogueEntity!, this.state!),
+    );
+    this.world.setDialogueShot(
+      this.dialogueEntity!,
+      this.dialogue!.beats?.[this.dialogueIndex]?.shot ??
+        (this.dialogueIndex === 0 ? 'two-shot' : 'speaker'),
+      () => this.view.dialogueStageHeight,
+      this.reducedMotion,
+    );
   }
 
   private chooseStory(action: string): void {
@@ -249,8 +311,13 @@ export class GameApplication {
     if (outcome.shop) {
       this.showPanel('shop');
     }
+    if (outcome.martialTraining) {
+      this.showPanel('character', 'skills');
+    }
     if (outcome.ending) {
       this.showEnding();
+    } else if (outcome.equipmentReward) {
+      this.openModal(equipmentRewardPanel(outcome.equipmentReward, outcome.message ?? ''));
     }
   }
 
@@ -261,6 +328,10 @@ export class GameApplication {
     this.autoSave();
     this.world.setEnabled(false);
     this.session.startBattle(id);
+    this.sparringLesson = new SparringLesson();
+    if (this.state.flags.includes('sparring-lesson-seen')) {
+      this.sparringLesson.skip();
+    }
     this.selectedTarget = 0;
     this.renderBattle();
   }
@@ -338,21 +409,32 @@ export class GameApplication {
       this.world.showEvents(events);
     }
     this.view.updateBattleClock(battle);
+    const cue = this.sparringLesson.next(battle, events);
+    if (cue) {
+      this.openModal(sparringLessonPanel(cue));
+    }
   }
 
   private finishBattle(): void {
     if (!this.state || !this.battle?.result) {
       return;
     }
+    const bossVictory = this.battle.encounterId === 'boss' && this.battle.result === 'victory';
     this.notice = this.session.finishBattle() ?? this.notice;
     this.world.showMap(this.state);
     this.world.setEnabled(true);
     this.renderExploration();
     this.autoSave();
     this.toast(this.notice);
+    if (bossVictory) {
+      const boss = MAPS.cave.entities.find((entity) => entity.id === 'boss');
+      if (boss) {
+        this.interact(boss);
+      }
+    }
   }
 
-  private showPanel(panel: Panel | null): void {
+  private showPanel(panel: Panel | null, initialSection?: string): void {
     if (!this.state || this.battle || !panel) {
       return;
     }
@@ -362,6 +444,7 @@ export class GameApplication {
       reducedMotion: this.reducedMotion,
       audioVolume: this.audio.volume,
     });
+    panelContent.initialSection = initialSection;
     this.openModal(panelContent);
   }
 
@@ -401,6 +484,7 @@ ${new Date(record.savedAt).toLocaleString('zh-TW')}`),
   }
 
   private closeModal(resume = true): void {
+    this.world.endDialogueShot();
     this.view.closePanel();
     this.dialogue = null;
     this.dialogueEntity = null;
@@ -411,15 +495,46 @@ ${new Date(record.savedAt).toLocaleString('zh-TW')}`),
   }
 
   private dispatch(action: string): void {
-    // 全螢幕和檔案選擇必須保留在使用者手勢呼叫鏈內。
+    // 全螢幕、檔案選擇和下載保留在使用者手勢呼叫鏈內，不經過 await。
     if (action === 'fullscreen') {
       void this.toggleFullscreen();
       return;
     }
+    if ((action === 'import' || action === 'export') && !this.transitions.busy) {
+      if (this.battle || this.dialogue) {
+        return;
+      }
+      if (action === 'import') {
+        (document.querySelector('#import-file') as HTMLInputElement).click();
+      } else if (this.state) {
+        try {
+          const blob = new Blob([encodeSave(this.state)], { type: 'application/json' });
+          const url = URL.createObjectURL(blob);
+          const link = document.createElement('a');
+          link.href = url;
+          link.download = `口袋江湖-${new Date().toISOString().slice(0, 10)}.json`;
+          link.hidden = true;
+          document.body.appendChild(link);
+          link.click();
+          link.remove();
+          window.setTimeout(() => URL.revokeObjectURL(url), 30000);
+          this.toast('已送出備份下載，請保留 JSON 檔。');
+        } catch (error) {
+          if (import.meta.env.DEV) {
+            console.error('Export backup failed', String(error));
+          }
+          this.toast(error instanceof Error ? `匯出失敗：${error.message}` : '無法匯出備份。');
+        }
+      }
+      return;
+    }
     void this.audio.unlock().then(() => this.audio.play('ui'));
-    void this.handle(action).catch((error: unknown) =>
-      this.toast(error instanceof Error ? error.message : '操作失敗。'),
-    );
+    void this.handle(action).catch((error: unknown) => {
+      if (import.meta.env.DEV) {
+        console.error('Game action failed', action, String(error));
+      }
+      this.toast(error instanceof Error ? error.message : '操作失敗。');
+    });
   }
 
   private async toggleFullscreen(): Promise<void> {
@@ -444,6 +559,35 @@ ${new Date(record.savedAt).toLocaleString('zh-TW')}`),
     if (await this.handleCanvasAction(action)) {
       return;
     }
+    if (action.startsWith('martial:')) {
+      const route = action.slice(8);
+      if (!this.dialogue && this.panel === 'character' && this.session.changeMartialArt(route)) {
+        this.world.showMap(this.state!);
+        this.renderExploration();
+        this.showPanel('character', 'skills');
+        this.autoSave();
+        this.toast(`已改修${ROUTE_NAMES[route as Route]}，招式與內功已切換。`);
+      }
+      return;
+    }
+    if (action.startsWith('talent:')) {
+      if (!this.dialogue && this.panel === 'character') {
+        const id = action.slice(7);
+        if (this.session.changeTalent(id)) {
+          this.renderExploration();
+          this.showPanel('character', id === 'reset' ? 'talents' : `talents:${id}`);
+          this.autoSave();
+          this.toast(
+            id === 'reset'
+              ? '天賦點數已退還，可重新選擇。'
+              : `已領悟${TALENTS[id as TalentId].name}。`,
+          );
+        } else {
+          this.toast('目前無法配置。請確認剩餘點數，重新配置需回到全真山門。');
+        }
+      }
+      return;
+    }
     if (action.startsWith('hair:')) {
       if (
         !this.dialogue &&
@@ -461,6 +605,11 @@ ${new Date(record.savedAt).toLocaleString('zh-TW')}`),
         this.dialogueIndex++;
         this.renderDialogue();
       }
+      return;
+    }
+    if (action === 'dialogue-skip' && this.dialogue) {
+      this.dialogueIndex = this.dialogue.lines.length - 1;
+      this.renderDialogue();
       return;
     }
     if (action.startsWith('story:')) {
@@ -503,9 +652,20 @@ ${new Date(record.savedAt).toLocaleString('zh-TW')}`),
     if (action.startsWith('load:')) {
       const slot = action.slice(5) as SaveSlot;
       if (this.state) {
+        const record = this.saves.readSave(slot);
+        if (!record) {
+          this.toast('這份存檔已不存在，請重新選擇旅程。');
+          this.showPanel('save');
+          return;
+        }
         this.openModal({
           title: '讀取這份進度？',
+          layout: 'notice',
           rows: [
+            heading(slot === 'manual' ? '手動存檔' : '自動存檔'),
+            paragraph(
+              `${record.state.name} · 第 ${record.state.level} 重\n${MAPS[record.state.map].name} · ${QUESTS[record.state.quest].title}\n${new Date(record.savedAt).toLocaleString('zh-TW')}`,
+            ),
             paragraph('目前未儲存的進度會被取代。'),
             makeAction('確定讀取', `confirm-load:${slot}`),
             makeAction('取消', 'panel:save'),
@@ -518,21 +678,6 @@ ${new Date(record.savedAt).toLocaleString('zh-TW')}`),
     }
     if (action.startsWith('confirm-load:')) {
       await this.load(action.slice(13) as SaveSlot);
-      return;
-    }
-    if (action === 'import') {
-      (document.querySelector('#import-file') as HTMLInputElement).click();
-      return;
-    }
-    if (action === 'export' && this.state && !this.battle && !this.dialogue) {
-      const blob = new Blob([encodeSave(this.state)], { type: 'application/json' });
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = `口袋江湖-${new Date().toISOString().slice(0, 10)}.json`;
-      link.click();
-      window.setTimeout(() => URL.revokeObjectURL(url), 1000);
-      this.toast('旅程備份已匯出。');
       return;
     }
     if (action === 'menu' || action === 'menu-confirm') {
@@ -549,6 +694,14 @@ ${new Date(record.savedAt).toLocaleString('zh-TW')}`),
     if (!this.state) {
       return;
     }
+    if (action === 'rescue' && !this.battle && !this.dialogue) {
+      const arrived = await this.start(this.session.prepareRescue());
+      if (arrived) {
+        this.autoSave();
+        this.toast('路人將你送回山門，傷勢已經治好。');
+      }
+      return;
+    }
     if (action.startsWith('entity:') && !this.view.modalVisible && !this.battle) {
       const entity = MAPS[this.state.map].entities.find((entry) => entry.id === action.slice(7));
       if (entity) {
@@ -558,6 +711,13 @@ ${new Date(record.savedAt).toLocaleString('zh-TW')}`),
     }
     if (action.startsWith('panel:')) {
       this.showPanel(action.slice(6) as Panel);
+      return;
+    }
+    if (action.startsWith('inspect-item:')) {
+      const item = action.slice(13) as ItemId;
+      if (this.state.inventory[item] > 0) {
+        this.showPanel('bag', item);
+      }
       return;
     }
     if (action === 'save' && !this.battle && !this.dialogue) {
@@ -651,12 +811,15 @@ ${new Date(record.savedAt).toLocaleString('zh-TW')}`),
       this.act({ type: 'item', item: action.slice(12) as ItemId });
       return;
     }
-    if (!this.battle && /^(buy|sell|use|equip):/.test(action)) {
+    if (!this.battle && /^(buy|sell|use|equip|unequip):/.test(action)) {
       const [verb, id] = action.split(':') as [string, ItemId];
-      const success = this.session.changeItem(verb as 'buy' | 'sell' | 'use' | 'equip', id);
+      const success = this.session.changeItem(
+        verb as 'buy' | 'sell' | 'use' | 'equip' | 'unequip',
+        id,
+      );
       this.toast(
         success
-          ? `${ITEMS[id].name}：${{ buy: '購買完成', sell: '出售完成', use: '使用完成', equip: '已裝備' }[verb]}`
+          ? `${ITEMS[id].name}：${{ buy: '購買完成', sell: '出售完成', use: '使用完成', equip: '已裝備', unequip: '已卸下' }[verb]}`
           : '目前無法執行，請確認數量、銀兩或是否需要恢復。',
       );
       const panel = this.panel;
@@ -681,6 +844,18 @@ ${new Date(record.savedAt).toLocaleString('zh-TW')}`),
       });
     } else if (action === 'nearby' && this.state) {
       this.showNearby();
+    } else if (action.startsWith('guide:') && this.state) {
+      const kind = action.slice(6);
+      if (!['main', 'rest', 'herb', 'wine', 'training', 'martial'].includes(kind)) {
+        return true;
+      }
+      this.guidedObjective = activeObjective(this.state, kind as ObjectiveKind);
+      const next = nextObjective(this.state, this.guidedObjective);
+      this.closeModal();
+      this.renderExploration();
+      if (next) {
+        await this.handle(`entity:${next.id}`);
+      }
     } else if (action.startsWith('travel:') && this.state) {
       this.closeModal();
       await this.handle(`entity:${action.slice(7)}`);
@@ -702,12 +877,10 @@ ${new Date(record.savedAt).toLocaleString('zh-TW')}`),
       title: `${MAPS[state.map].name} · 附近`,
       rows: MAPS[state.map].entities
         .filter((entity) => isEntityVisible(state, entity))
-        .map((entity) =>
-          makeAction(
-            `${entity.name} · ${{ npc: '交談', enemy: '戰鬥', portal: '前往', chest: '查看', herb: '採集', clue: '調查' }[entity.kind]}`,
-            `travel:${entity.id}`,
-          ),
-        ),
+        .map((entity) => {
+          const presentation = entityPresentation(state, entity);
+          return makeAction(`${presentation.name} · ${presentation.action}`, `travel:${entity.id}`);
+        }),
     });
   }
 
@@ -716,15 +889,35 @@ ${new Date(record.savedAt).toLocaleString('zh-TW')}`),
     if (!battle) {
       return false;
     }
-    if (action === 'battle-targets') {
+    if (action.startsWith('lesson:')) {
+      if (
+        action !== 'lesson:defend' &&
+        this.state &&
+        !this.state.flags.includes('sparring-lesson-seen')
+      ) {
+        this.state.flags.push('sparring-lesson-seen');
+      }
+      if (action === 'lesson:skip') {
+        this.sparringLesson.skip();
+      }
+      if (action === 'lesson:defend') {
+        battle.holdingPosition = true;
+        this.act({ type: 'defend' });
+      } else {
+        battle.paused = action === 'lesson:choose';
+        this.closeModal(false);
+        this.renderBattle();
+      }
+    } else if (action === 'battle-targets') {
       this.openModal({
         title: '選擇敵人',
         rows: battle.enemies.map((enemy, index) => ({
           ...makeAction(
-            `${enemy.name} · 生命 ${enemy.hp}/${enemy.stats.maxHp}\n${battle.intent(index)}`,
+            `${opponentName(battle.enemies, index)}${index === battle.target ? ' · 目前目標' : ''} · 生命 ${enemy.hp}/${enemy.stats.maxHp}\n${battle.intent(index)}`,
             `pick-target:${index}`,
           ),
           disabled: enemy.hp <= 0,
+          selected: index === battle.target,
         })),
       });
     } else if (action === 'battle-parts') {
@@ -740,7 +933,7 @@ ${new Date(record.savedAt).toLocaleString('zh-TW')}`),
         })),
       });
     } else if (action === 'injuries') {
-      this.openModal({ title: '我的傷勢', rows: injuryRows(battle.player) });
+      this.openModal({ title: '我的傷勢', rows: [{ kind: 'body', body: battle.player.body }] });
     } else if (action === 'battle-help') {
       this.openModal(combatGuidePanel(battle));
     } else if (action === 'battle-help-close') {
@@ -790,6 +983,7 @@ ${new Date(record.savedAt).toLocaleString('zh-TW')}`),
       this.pendingImport = record.state;
       this.openModal({
         title: '匯入旅程備份？',
+        layout: 'notice',
         rows: [
           paragraph(summary),
           paragraph('確認後將接續這份旅程，並更新自動存檔。手動存檔會保留。'),

@@ -1,4 +1,5 @@
 import { readFileSync } from 'node:fs';
+import { createBody } from '../src/game/body';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import {
   AtlasAttachmentLoader,
@@ -45,6 +46,109 @@ function soles(hero: PixelHeroine): number[] {
 const world = (hero: PixelHeroine, bone: string) => hero.actor.skeleton.findBone(bone)!.appliedPose;
 
 describe('像素女俠的實際骨架與裝備', () => {
+  it('瞄準頭部與腿部時，出劍手高度隨部位改變且收勢回到同一姿勢', () => {
+    const hero = heroine();
+    hero.equip(look({ weapon: 'sword' }), 'healthy', createBody());
+    const height = (part: 'head' | 'chest' | 'leftLeg', time: number) => {
+      hero.setAttackPart(part);
+      hero.pose('attack', time);
+      return world(hero, 'handR').worldY;
+    };
+    const head = height('head', 0.59);
+    const chest = height('chest', 0.59);
+    const leg = height('leftLeg', 0.59);
+    expect(head).toBeLessThan(chest - 10);
+    expect(leg).toBeGreaterThan(chest + 10);
+    expect(height('head', 1.2)).toBeCloseTo(height('leftLeg', 1.2), 3);
+    hero.destroy({ children: true });
+  });
+  it('命中部位跟隨真正骨架，頭部高於胸腹及腿部', () => {
+    const hero = heroine();
+    hero.pose('idle', 0);
+    const head = hero.impactPoint('head');
+    expect(head.y).toBeLessThan(hero.impactPoint('chest').y);
+    expect(hero.impactPoint('chest').y).toBeLessThan(hero.impactPoint('abdomen').y);
+    expect(hero.impactPoint('abdomen').y).toBeLessThan(hero.impactPoint('leftLeg').y);
+    hero.pose('down', 0.8);
+    expect(hero.impactPoint('head').y).toBeGreaterThan(head.y + 30);
+    hero.destroy({ children: true });
+  });
+  it('戰鬥移步改變落腳但保留出劍姿勢，停步後恢復原本支撐', () => {
+    const hero = heroine();
+    hero.equip(look({ weapon: 'sword' }), 'healthy', createBody());
+    hero.pose('attack', 0.4);
+    const hand = [world(hero, 'handR').worldX, world(hero, 'handR').worldY];
+    const feet = [world(hero, 'footL').worldX, world(hero, 'footR').worldX];
+    hero.setFootwork(0.25, 1, 1);
+    hero.pose('attack', 0.4);
+    expect([world(hero, 'handR').worldX, world(hero, 'handR').worldY]).toEqual(hand);
+    expect([world(hero, 'footL').worldX, world(hero, 'footR').worldX]).not.toEqual(feet);
+    expect(Math.max(...soles(hero))).toBeLessThan(2);
+    hero.setFootwork(0.25, 0, 1);
+    hero.pose('attack', 0.4);
+    expect([world(hero, 'footL').worldX, world(hero, 'footR').worldX]).toEqual(feet);
+    hero.destroy({ children: true });
+  });
+
+  it('左手失能時掌招改用右掌，傷手維持下垂', () => {
+    const hero = heroine();
+    const body = { ...createBody(), leftArm: 0 };
+    for (const weapon of ['none', 'knuckles'] as const) {
+      hero.equip(look({ weapon }), 'healthy', body);
+      hero.pose('attack', 0.75);
+      expect(hero.actor.state.getTrack(0)!.animation!.name).toBe(
+        weapon === 'none' ? 'palmR' : 'punchR',
+      );
+      expect(world(hero, 'handL').worldY).toBeGreaterThan(world(hero, 'upperL').worldY + 15);
+      expect(world(hero, 'handR').worldX).toBeGreaterThan(world(hero, 'head').worldX + 8);
+    }
+    hero.destroy({ children: true });
+  });
+
+  it('雙手失能不掛武器，治療後恢復原本持劍手', () => {
+    const hero = heroine();
+    hero.equip(look({ weapon: 'sword' }), 'disabled', { ...createBody(), leftArm: 0, rightArm: 0 });
+    hero.pose('idle', 0);
+    for (const side of ['L', 'R']) {
+      expect(hero.actor.skeleton.findSlot(`weapon${side}`)!.pose.attachment).toBeNull();
+      expect(world(hero, `hand${side}`).worldY).toBeGreaterThan(
+        world(hero, `upper${side}`).worldY + 15,
+      );
+    }
+    hero.equip(look({ weapon: 'sword' }), 'healthy', createBody());
+    hero.pose('attack', 0.75);
+    expect(hero.actor.skeleton.findSlot('weaponR')!.pose.attachment).not.toBeNull();
+    hero.destroy({ children: true });
+  });
+
+  it('單腿失能步行不騰空，傷腳不再蹬地', () => {
+    const hero = heroine();
+    hero.equip(look({ weapon: 'none' }), 'healthy', { ...createBody(), leftLeg: 0 });
+    const injuredX: number[] = [];
+    for (let i = 0; i < 20; i++) {
+      hero.pose('run', i / 40);
+      expect(Math.abs(soles(hero)[0])).toBeLessThan(1.5);
+      injuredX.push(world(hero, 'footL').worldX);
+    }
+    expect(Math.max(...injuredX) - Math.min(...injuredX)).toBeLessThan(0.01);
+    hero.destroy({ children: true });
+  });
+
+  it('雙腿失能降低重心，移動時健手支撐且暫收武器', () => {
+    const hero = heroine();
+    hero.equip(look({ weapon: 'sword' }), 'healthy');
+    hero.pose('idle', 0);
+    const healthyY = world(hero, 'hip').worldY;
+    hero.equip(look({ weapon: 'sword' }), 'healthy', { ...createBody(), leftLeg: 0, rightLeg: 0 });
+    hero.pose('idle', 0);
+    expect(world(hero, 'hip').worldY).toBeGreaterThan(healthyY + 20);
+    hero.pose('run', 0.2);
+    expect(hero.actor.skeleton.findSlot('weaponR')!.pose.attachment).toBeNull();
+    expect(world(hero, 'handR').worldY).toBeGreaterThan(world(hero, 'head').worldY + 25);
+    hero.pose('idle', 0);
+    expect(hero.actor.skeleton.findSlot('weaponR')!.pose.attachment).not.toBeNull();
+    hero.destroy({ children: true });
+  });
   it('空手與持劍使用不同待機、步行與攻擊軌道', () => {
     const hero = heroine();
     hero.pose('idle', 0.2);

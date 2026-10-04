@@ -8,6 +8,14 @@ const loading = new LoadingScreen();
 loading.show('正在載入江湖引擎');
 
 async function boot(): Promise<void> {
+  if (new URLSearchParams(location.search).get('preview') === 'enemy-rig') {
+    const { EnemyRigPreview } = await import('./dev/EnemyRigPreview');
+    const preview = new EnemyRigPreview();
+    import.meta.hot?.dispose(() => preview.dispose());
+    await preview.init();
+    loading.hide();
+    return;
+  }
   if (new URLSearchParams(location.search).get('preview') === 'pixel-rig') {
     const { PixelRigPreview } = await import('./dev/PixelRigPreview');
     const preview = new PixelRigPreview();
@@ -58,18 +66,21 @@ async function boot(): Promise<void> {
   // 停用本機儲存的瀏覽器仍可遊玩與匯出，所以延後到真正讀寫時才取得 localStorage。
   const params = new URLSearchParams(location.search);
   const combatPreview = params.get('preview') === 'combat';
+  const worldPreview = params.get('preview') === 'world';
+  const requestedMap = params.get('map');
   const temporaryStorage = new Map<string, string>();
-  const storage = combatPreview
-    ? {
-        getItem: (key: string) => temporaryStorage.get(key) ?? null,
-        setItem: (key: string, value: string) => {
-          temporaryStorage.set(key, value);
-        },
-      }
-    : {
-        getItem: (key: string) => localStorage.getItem(key),
-        setItem: (key: string, value: string) => localStorage.setItem(key, value),
-      };
+  const storage =
+    combatPreview || worldPreview
+      ? {
+          getItem: (key: string) => temporaryStorage.get(key) ?? null,
+          setItem: (key: string, value: string) => {
+            temporaryStorage.set(key, value);
+          },
+        }
+      : {
+          getItem: (key: string) => localStorage.getItem(key),
+          setItem: (key: string, value: string) => localStorage.setItem(key, value),
+        };
   const saves = new SaveRepository(storage);
   const game = new GameApplication(
     saves,
@@ -81,14 +92,33 @@ async function boot(): Promise<void> {
     combatPreview
       ? {
           route: params.get('route') === 'fist' ? 'fist' : 'sword',
+          injured: params.get('condition') === 'injured',
           encounter:
             params.get('enemies') === 'two'
               ? 'bandits'
               : params.get('enemies') === 'boss'
                 ? 'boss'
-                : 'trial',
+                : params.get('enemies') === 'zombie'
+                  ? 'undead'
+                  : 'trial',
+          map:
+            requestedMap === 'temple' || requestedMap === 'mountain' || requestedMap === 'cave'
+              ? requestedMap
+              : 'forest',
         }
       : undefined,
+    worldPreview &&
+      (requestedMap === 'temple' || requestedMap === 'mountain' || requestedMap === 'cave')
+      ? requestedMap
+      : worldPreview
+        ? 'forest'
+        : undefined,
+    worldPreview && params.get('condition') === 'immobile'
+      ? 'immobile'
+      : worldPreview && params.get('condition') === 'injured'
+        ? 'injured'
+        : undefined,
+    worldPreview && params.get('kit') === 'equipment',
   );
   import.meta.hot?.dispose(() => game.dispose());
 }

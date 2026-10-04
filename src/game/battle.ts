@@ -56,12 +56,19 @@ export interface BattleEvent {
   target?: number | 'player';
   part?: BodyPart;
   amount?: number;
+  blocked?: number;
+  opening?: boolean;
   skill?: string;
   heavy?: boolean;
+  move?: string;
   style?: 'sword' | 'fist';
-  kind?: 'damage' | 'heal' | 'guard' | 'injury' | 'windup' | 'miss';
+  kind?: 'damage' | 'heal' | 'guard' | 'injury' | 'windup' | 'miss' | 'talent';
 }
 export type BattleResult = 'victory' | 'defeat' | 'escaped' | null;
+
+// 固定戰場邊界；起始位置與最大戰術距離都落在這段路面內。
+export const BATTLE_LEFT = 7.5;
+export const BATTLE_RIGHT = 19.2;
 
 export class Battle {
   readonly player: GameState;
@@ -90,6 +97,8 @@ export class Battle {
   events: BattleEvent[] = [];
   private pending: BattleAction | null = null;
   private immediateEvents: BattleEvent[] = [];
+  /** Separate group tells without shortening any opponent's readable windup. */
+  private enemyTellDelay = 0;
 
   constructor(
     state: GameState,
@@ -115,7 +124,7 @@ export class Battle {
       actions: 0,
       broken: 0,
       opening: false,
-      position: 16 + index * 0.8,
+      position: 16 + index * 1.6,
       stamina: 100,
       exhausted: false,
       windup: 0,
@@ -149,15 +158,22 @@ export class Battle {
       return '已敗退';
     }
     if (enemy.strikeRange) {
-      return `${this.isHeavy(enemy) ? '重擊' : '攻擊'}起手 ${Math.max(0, enemy.windup).toFixed(1)}秒`;
+      return `${this.isHeavy(enemy) ? `${this.heavyMove(enemy)} · 重擊` : '攻擊'}起手 ${Math.max(0, enemy.windup).toFixed(1)}秒`;
     }
     if (enemy.opening) {
-      return '破綻露出 · 追擊傷害 +35%';
+      return `破綻露出 · 追擊傷害 +${this.player.talents.includes('opening') ? 55 : 35}%`;
     }
     if (workingHands(enemy.body) === 0) {
       return '雙手失能 · 改以腿法';
     }
-    return this.isHeavy(enemy) ? '蓄勢重擊 · 雙手' : '普通攻擊 · 單手';
+    return this.isHeavy(enemy)
+      ? `${this.heavyMove(enemy)} · ${this.heavyHint(enemy)}`
+      : '普通攻擊 · 單手';
+  }
+
+  preparingHeavy(index: number): boolean {
+    const enemy = this.enemies[index];
+    return enemy.hp > 0 && !!enemy.strikeRange && this.isHeavy(enemy);
   }
 
   skillPower(id: string): number {
@@ -223,6 +239,7 @@ export class Battle {
     const emitted: BattleEvent[] = this.immediateEvents.splice(0);
     this.clock.advance(seconds, (dt) => {
       this.moveFighters(dt);
+      this.enemyTellDelay = Math.max(0, this.enemyTellDelay - dt);
       this.guardCooldown = Math.max(0, this.guardCooldown - dt);
       this.recovery = Math.max(0, this.recovery - dt);
       if (this.strike) {
@@ -287,6 +304,7 @@ export class Battle {
                 source: 'player',
                 target: 'target' in action ? action.target : undefined,
                 skill: action.type === 'skill' ? action.skill : undefined,
+                part: this.strike.part,
                 kind: 'windup',
               });
             } else {
@@ -318,6 +336,20 @@ export class Battle {
                 source: index,
                 kind: 'miss',
               });
+              if (
+                this.isHeavy(enemy) &&
+                workingHands(enemy.body) > 0 &&
+                this.player.talents.includes('footwork')
+              ) {
+                const recovered = Math.min(15, 100 - this.stamina);
+                this.stamina += recovered;
+                if (recovered > 0) {
+                  emitted.push({
+                    text: `游身卸力 · 避開重擊，恢復 ${Math.floor(recovered)} 腳力。`,
+                    kind: 'talent',
+                  });
+                }
+              }
             }
             enemy.actions++;
             enemy.broken = Math.max(0, enemy.broken - 1);
@@ -326,16 +358,24 @@ export class Battle {
           }
         } else if (enemy.recovery === 0) {
           enemy.progress = Math.min(1, enemy.progress + dt / this.interval(enemy.stats.speed));
-          if (enemy.progress >= 1 && this.inRange(index, this.enemyRange(index))) {
+          if (
+            enemy.progress >= 1 &&
+            this.enemyTellDelay <= 1e-8 &&
+            this.inRange(index, this.enemyRange(index))
+          ) {
+            // Leave room for the first attacker to withdraw before the next
+            // contact. This also keeps overlapping tells readable in a group.
+            this.enemyTellDelay = 0.65;
             enemy.progress = 0;
             enemy.opening = false;
             enemy.strikeRange = this.enemyRange(index);
-            enemy.windup = this.isHeavy(enemy) ? 1 : 0.5;
+            enemy.windup = this.isHeavy(enemy) ? this.heavyWindup(enemy) : 0.5;
             emitted.push({
-              text: `${enemy.name}${this.isHeavy(enemy) ? '重擊' : '攻擊'}起手，可拉開距離閃避。`,
+              text: `${enemy.name}${this.isHeavy(enemy) ? `準備${this.heavyMove(enemy)}，${this.heavyHint(enemy)}。` : '攻擊起手，可拉開距離閃避。'}`,
               source: index,
               target: 'player',
               heavy: this.isHeavy(enemy),
+              move: this.isHeavy(enemy) ? this.heavyMove(enemy) : undefined,
               kind: 'windup',
             });
           }
@@ -372,11 +412,16 @@ export class Battle {
     if (workingHands(enemy.body) === 0) {
       return { min: 1, max: 2.5 };
     }
-    return enemy.id === 'boss'
-      ? { min: 2, max: 5 }
-      : enemy.id === 'bandit'
-        ? { min: 1.5, max: 4 }
-        : { min: 1, max: 3 };
+    if (enemy.id === 'boss') {
+      return { min: 2, max: 5 };
+    }
+    if (enemy.id === 'bandit') {
+      return { min: 1.5, max: this.isHeavy(enemy) ? 4.5 : 4 };
+    }
+    if (enemy.id === 'zombie') {
+      return { min: 1, max: this.isHeavy(enemy) ? 2.7 : 3 };
+    }
+    return { min: 1, max: 3 };
   }
 
   inRange(index: number, range: AttackRange): boolean {
@@ -387,7 +432,8 @@ export class Battle {
   setDistance(value: number): void {
     if (Number.isFinite(value) && !this.result) {
       this.holdingPosition = false;
-      this.desiredDistance = Math.max(1, Math.min(10, value));
+      // 近身指令仍需留出目前兵器的出手空間，否則持劍追到牆邊會互卡。
+      this.desiredDistance = Math.max(this.attackRange().min, Math.min(10, value));
     }
   }
 
@@ -396,7 +442,7 @@ export class Battle {
     this.exhausted = this.exhausted ? this.stamina < 30 : this.stamina < 1;
     const delta = this.distance() - this.desiredDistance;
     const direction =
-      Math.abs(delta) > 0.12 &&
+      (Math.abs(delta) > 0.12 || (delta < 0 && this.distance() < this.attackRange().min)) &&
       !this.holdingPosition &&
       !this.strike &&
       !this.recovery &&
@@ -409,8 +455,9 @@ export class Battle {
       ...this.enemies.filter((enemy) => enemy.hp > 0).map((enemy) => enemy.position),
     );
     this.playerPosition = Math.max(
-      0,
+      BATTLE_LEFT,
       Math.min(
+        BATTLE_RIGHT - 1,
         nearest - 1,
         this.playerPosition + direction * Math.min(Math.abs(delta), speed * dt),
       ),
@@ -445,7 +492,7 @@ export class Battle {
       const speed = (1.2 + enemy.stats.speed * 0.03) * movementRate(enemy.body);
       enemy.position = Math.max(
         this.playerPosition + 1,
-        Math.min(30, enemy.position + direction * Math.min(Math.abs(gap), speed * dt)),
+        Math.min(BATTLE_RIGHT, enemy.position + direction * Math.min(Math.abs(gap), speed * dt)),
       );
       enemy.stamina = Math.max(
         0,
@@ -599,7 +646,10 @@ export class Battle {
     const opening = enemy.opening;
     const base = Math.max(
       1,
-      Math.round((this.stats.attack * multiplier - defense * 0.65) * (opening ? 1.35 : 1)),
+      Math.round(
+        (this.stats.attack * multiplier - defense * 0.65) *
+          (opening ? (this.player.talents.includes('opening') ? 1.55 : 1.35) : 1),
+      ),
     );
     const damage = power > 0 ? Math.max(1, Math.round(base * power)) : 0;
     if (damage > 0) {
@@ -614,6 +664,7 @@ export class Battle {
       part: part,
       amount: damage,
       skill,
+      opening,
       style: this.player.weapon === 'sword' ? 'sword' : this.player.route,
       kind: 'damage',
     });
@@ -636,10 +687,21 @@ export class Battle {
       ? { hands: 0, legs: 1 }
       : { hands: heavy ? 2 : 1, legs: 0 };
     const power = limbPower(enemy.body, requirement);
+    const heavyMultiplier =
+      enemy.id === 'disciple'
+        ? 1.55
+        : enemy.id === 'zombie'
+          ? 1.7
+          : enemy.id === 'bandit'
+            ? 1.9
+            : enemy.hp <= enemy.stats.maxHp / 2
+              ? 2.35
+              : 2.1;
     const base = Math.max(
       1,
       Math.round(
-        enemy.stats.attack * (noHands ? 0.65 : heavy ? 2.1 : 1) - this.stats.defense * 0.65,
+        enemy.stats.attack * (noHands ? 0.65 : heavy ? heavyMultiplier : 1) -
+          this.stats.defense * 0.65,
       ),
     );
     const damage =
@@ -654,18 +716,33 @@ export class Battle {
       'chest',
       'head',
     ];
-    const part = parts[Math.min(parts.length - 1, Math.floor(this.random() * parts.length))];
+    const part =
+      heavy && enemy.id === 'bandit'
+        ? this.random() < 0.5
+          ? 'leftLeg'
+          : 'rightLeg'
+        : heavy && enemy.id === 'zombie'
+          ? this.random() < 0.5
+            ? 'leftArm'
+            : 'rightArm'
+          : parts[Math.min(parts.length - 1, Math.floor(this.random() * parts.length))];
     this.player.hp = Math.max(0, this.player.hp - damage);
     const disabled = damagePart(this.player.body, part, (damage * 100) / this.stats.maxHp);
     events.push({
-      text: `${enemy.name}${noHands ? '踢擊' : heavy ? '重擊' : '普攻'}命中你的${PART_NAMES[part]}，造成 ${damage} 傷害${this.defending ? '（已減傷）' : ''}。`,
+      text: `${enemy.name}${noHands ? '踢擊' : heavy ? this.heavyMove(enemy) : '普攻'}命中你的${PART_NAMES[part]}，造成 ${damage} 傷害${this.defending ? '（已減傷）' : ''}。`,
       source: index,
       target: 'player',
       part,
       amount: damage,
       heavy,
+      blocked: this.defending ? Math.max(0, Math.round(base * power) - damage) : 0,
+      move: heavy ? this.heavyMove(enemy) : undefined,
       kind: 'damage',
     });
+    if (heavy && enemy.id === 'zombie' && damage > 0) {
+      this.stamina = Math.max(0, this.stamina - 24);
+      events.push({ text: '失心傀儡纏住身形，腳力減少 24。' });
+    }
     if (disabled) {
       events.push({
         text: `你的${PART_NAMES[part]}已重傷，請留意可用招式與移動姿態。`,
@@ -676,15 +753,54 @@ export class Battle {
     }
     if (this.defending && damage > 0 && this.player.hp > 0) {
       this.gainMomentum(events);
+      if (heavy && !noHands && this.player.talents.includes('breath')) {
+        const recovered = Math.min(4, this.stats.maxMp - this.player.mp);
+        this.player.mp += recovered;
+        if (recovered > 0) {
+          events.push({ text: `守中養氣 · 接下重擊，恢復 ${recovered} 內力。`, kind: 'talent' });
+        }
+      }
     }
     this.guarding = false;
     if (this.counter && this.player.hp > 0 && this.inRange(index, this.attackRange())) {
-      this.hitEnemy(index, 0.85, '護體反擊', { hands: 1, legs: 0 }, events);
+      this.hitEnemy(
+        index,
+        SKILLS.fist.find((skill) => skill.effect === 'counter')!.multiplier,
+        '護體反擊',
+        { hands: 1, legs: 0 },
+        events,
+      );
     }
   }
 
   private isHeavy(enemy: BattleEnemy): boolean {
     return (enemy.actions + 1) % ENEMIES[enemy.id].heavyEvery === 0;
+  }
+
+  private heavyMove(enemy: BattleEnemy): string {
+    return (
+      {
+        disciple: '試勢直掌',
+        bandit: '斷腿橫掃',
+        zombie: '縛臂陰爪',
+        boss: enemy.hp <= enemy.stats.maxHp / 2 ? '焚心劍・絕境' : '焚心劍',
+      }[enemy.id] ?? '重擊'
+    );
+  }
+
+  private heavyHint(enemy: BattleEnemy): string {
+    return (
+      {
+        disciple: '收勢防禦或退開',
+        bandit: '會掃腿，拉開距離',
+        zombie: '會傷手並耗腳力',
+        boss: '長距離劍氣，退遠或防禦',
+      }[enemy.id] ?? '可防禦或退開'
+    );
+  }
+
+  private heavyWindup(enemy: BattleEnemy): number {
+    return { disciple: 1.8, bandit: 0.9, zombie: 1.35, boss: 1 }[enemy.id] ?? 1;
   }
 
   private gainMomentum(events: BattleEvent[]): void {

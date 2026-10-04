@@ -5,12 +5,12 @@ import { dialoguePortrait } from '../src/ui/dialoguePortrait';
 describe('互動立繪', () => {
   const entities = Object.values(MAPS).flatMap((map) => map.entities);
 
-  it('所有非人物互動使用物件圖，人物仍保留人物立繪', () => {
+  it('所有非人物互動使用物件圖，人物使用專屬像素立繪', () => {
     for (const entity of entities.filter((entry) => entry.kind !== 'portal')) {
       const art = dialoguePortrait(entity);
       const person = entity.kind === 'npc' || entity.kind === 'enemy';
       expect(art.includes('object-portrait')).toBe(!person);
-      expect(art.includes('portrait-bg-npc')).toBe(person);
+      expect(art.includes('character-portrait')).toBe(person);
     }
   });
 

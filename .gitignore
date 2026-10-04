@@ -4,6 +4,7 @@ test-results/
 playwright-report/
 .DS_Store
 *.local
+.playtest-vite-*.log
 
 # 像素產生器暫存
 tools/pixelgen/cache/
@@ -16,3 +17,6 @@ art/effects/martial/*/ref*.png
 art/effects/martial/*/.own
 art/characters/pixelHeroine/source/codex/*/pieces.png
 __pycache__/
+
+# Local browser review captures; selected evidence may be added explicitly.
+.impeccable/review/

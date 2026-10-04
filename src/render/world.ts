@@ -1,10 +1,13 @@
-import { Application, Container, type Ticker } from 'pixi.js';
+import { AccessibilitySystem, Application, Container, type Ticker } from 'pixi.js';
 import { SceneManager } from '../core/SceneManager';
 import type { Battle, BattleEvent } from '../game/battle';
 import type { GameState, MapEntity, Point } from '../game/types';
 import { battleDockHeight } from '../ui/canvas/BattleHud';
 import { HEIGHT, WIDTH } from './art';
-import { cameraFrame } from './camera';
+import { battleCameraY, cameraFrame } from './camera';
+import { dialogueCameraFrame } from './dialogueCamera';
+import type { DialogueShot } from '../game/chapterOneDialogue';
+import { TILE } from '../data/maps';
 import { BattleScene } from './scenes/BattleScene';
 import { ExplorationScene } from './scenes/ExplorationScene';
 import type { PixiScene } from './scenes/PixiScene';
@@ -25,6 +28,13 @@ export class World {
   private scenes = new SceneManager<PixiScene>();
   private exploration: ExplorationScene | null = null;
   private battle: BattleScene | null = null;
+  private dialogueShot: {
+    entity: MapEntity;
+    shot: DialogueShot;
+    stageHeight: () => number;
+    reducedMotion: boolean;
+  } | null = null;
+  private returningFromDialogue = false;
   private tick = (ticker: Ticker): void => {
     const dt = Math.min(ticker.deltaMS / 1000, 0.05);
     this.onUpdate(dt);
@@ -33,6 +43,7 @@ export class World {
   };
 
   async init(host: HTMLElement): Promise<void> {
+    AccessibilitySystem.defaultOptions.deactivateOnMouseMove = false;
     await this.app.init({
       width: WIDTH,
       height: HEIGHT,
@@ -44,6 +55,8 @@ export class World {
     this.host = host;
     this.app.stage.addChild(this.sceneRoot, this.ui);
     host.appendChild(this.app.canvas);
+    this.app.renderer.accessibility.setAccessibilityEnabled(true);
+    this.app.renderer.accessibility.div.classList.add('game-accessibility-layer');
     this.observer = new ResizeObserver(() => this.resize());
     this.observer.observe(host);
     this.resize();
@@ -51,6 +64,8 @@ export class World {
   }
 
   showMap(state: GameState): void {
+    this.dialogueShot = null;
+    this.returningFromDialogue = false;
     const scene = new ExplorationScene(state);
     scene.onInteract = (entity) => this.onInteract(entity);
     scene.onStep = (point) => this.onStep(point);
@@ -67,6 +82,20 @@ export class World {
   setEnabled(enabled: boolean): void {
     this.exploration?.setEnabled(enabled);
   }
+  setDialogueShot(
+    entity: MapEntity,
+    shot: DialogueShot,
+    stageHeight: () => number,
+    reducedMotion: boolean,
+  ): void {
+    this.dialogueShot = { entity, shot, stageHeight, reducedMotion };
+    this.exploration?.setDialogueActive(true);
+  }
+  endDialogueShot(): void {
+    this.returningFromDialogue = !!this.dialogueShot && !this.dialogueShot.reducedMotion;
+    this.dialogueShot = null;
+    this.exploration?.setDialogueActive(false);
+  }
 
   setHeroState(state: GameState): void {
     this.exploration?.setHeroState(state);
@@ -76,7 +105,12 @@ export class World {
     this.exploration?.navigate(entity);
   }
 
+  setObjective(entity: MapEntity | null): void {
+    this.exploration?.setObjective(entity);
+  }
+
   showBattle(battle: Battle, selected: number): void {
+    const enteringBattle = !this.battle;
     if (!this.battle) {
       const scene = new BattleScene();
       scene.onTarget = (index) => this.onTarget(index);
@@ -89,6 +123,9 @@ export class World {
       this.exploration = null;
     } else {
       this.battle.showBattle(battle, selected);
+    }
+    if (enteringBattle) {
+      this.updateCamera(true);
     }
     this.app.canvas.setAttribute('aria-label', '半即時戰鬥畫面，選擇敵人與部位後使用下方指令');
   }
@@ -114,10 +151,10 @@ export class World {
     const bottom = parseFloat(safe.paddingBottom) || 0;
     this.ui.position.set(left, top);
     this.onResize(width - left - right, height - top - bottom);
-    this.updateCamera();
+    this.updateCamera(true);
   }
 
-  private updateCamera(): void {
+  private updateCamera(snap = false): void {
     if (this.battle) {
       const bounds = this.battle.cameraBounds;
       const top = this.app.screen.height < 520 ? 106 : this.app.screen.width < 620 ? 158 : 185;
@@ -125,31 +162,65 @@ export class World {
         100,
         this.app.screen.height -
           top -
-          battleDockHeight(this.app.screen.width, this.app.screen.height),
+          battleDockHeight(this.app.screen.width, this.app.screen.height, this.battle.finished),
+      );
+      // Desktop framing includes generous side space. On a portrait phone that
+      // padding makes both fighters tiny and exposes the top/bottom of the art.
+      const portrait = this.app.screen.width < 620 && this.app.screen.height >= 520;
+      // Cap close-combat zoom so weapons and leaning poses remain inside the phone viewport.
+      const frameWidth = Math.max(
+        portrait ? Math.max(480, bounds.width - 320) : bounds.width,
+        bounds.poseWidth ?? 0,
       );
       const scale = Math.min(
-        (this.app.screen.width - 32) / bounds.width,
+        (this.app.screen.width - (portrait ? 16 : 32)) / frameWidth,
         stageHeight / (310 + (bounds.width - 440) * 0.2),
       );
-      const weight = 0.12;
+      const weight = snap ? 1 : 0.12;
       this.sceneRoot.scale.set(this.sceneRoot.scale.x + (scale - this.sceneRoot.scale.x) * weight);
       const actual = this.sceneRoot.scale.x;
+      const art = this.battle.artBounds;
+      // The extended arena covers both boundaries; keep the actors, not the art center, in view.
       const x = this.app.screen.width / 2 - bounds.x * actual;
-      const y = top + stageHeight * 0.5 - bounds.y * actual;
+      const y = battleCameraY(top, stageHeight, bounds.y, actual, art);
       this.sceneRoot.position.set(
         this.sceneRoot.x + (x - this.sceneRoot.x) * weight,
         this.sceneRoot.y + (y - this.sceneRoot.y) * weight,
       );
+      this.battle.coverBackdrop(
+        (top - this.sceneRoot.y) / actual,
+        (top + stageHeight - this.sceneRoot.y) / actual,
+      );
       return;
     }
     const focus = this.exploration?.cameraFocus ?? { x: WIDTH / 2, y: HEIGHT * 0.6 };
-    const frame = cameraFrame({
-      viewport: this.app.screen,
-      scene: { width: WIDTH, height: HEIGHT },
-      focus,
-    });
-    this.sceneRoot.scale.set(frame.scale);
-    this.sceneRoot.position.set(frame.x, frame.y);
+    const dialogue = this.dialogueShot;
+    const frame = dialogue
+      ? dialogueCameraFrame({
+          viewport: this.app.screen,
+          scene: { width: WIDTH, height: HEIGHT },
+          player: focus,
+          subject: { x: (dialogue.entity.x + 0.5) * TILE, y: (dialogue.entity.y + 0.7) * TILE },
+          shot: dialogue.shot,
+          stageHeight: dialogue.stageHeight(),
+        })
+      : cameraFrame({
+          viewport: this.app.screen,
+          scene: { width: WIDTH, height: HEIGHT },
+          focus,
+        });
+    const animated = dialogue || this.returningFromDialogue;
+    const weight = snap || dialogue?.reducedMotion || !animated ? 1 : 0.12;
+    this.sceneRoot.scale.set(
+      this.sceneRoot.scale.x + (frame.scale - this.sceneRoot.scale.x) * weight,
+    );
+    this.sceneRoot.position.set(
+      this.sceneRoot.x + (frame.x - this.sceneRoot.x) * weight,
+      this.sceneRoot.y + (frame.y - this.sceneRoot.y) * weight,
+    );
+    if (!dialogue && Math.abs(this.sceneRoot.scale.x - frame.scale) < 0.001) {
+      this.returningFromDialogue = false;
+    }
   }
 
   dispose(): void {

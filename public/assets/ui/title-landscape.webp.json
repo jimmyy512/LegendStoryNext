@@ -1,0 +1,5 @@
+{
+  "source": "public/assets/backgrounds/battle/forest.webp",
+  "origin": "art/backgrounds/battle/source/forest-stylized.png",
+  "usage": "Independent common-bundle copy for title and character screens, retained when the forest map bundle unloads. No new image generation."
+}

@@ -1,0 +1,132 @@
+{
+  "frames": {
+    "npc:chance-qinglan": {
+      "frame": {
+        "x": 164,
+        "y": 16,
+        "w": 264,
+        "h": 496
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 122,
+        "y": 16,
+        "w": 264,
+        "h": 496
+      },
+      "sourceSize": {
+        "w": 512,
+        "h": 512
+      }
+    },
+    "npc:chance-tangwan": {
+      "frame": {
+        "x": 627,
+        "y": 0,
+        "w": 278,
+        "h": 512
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 116,
+        "y": 0,
+        "w": 278,
+        "h": 512
+      },
+      "sourceSize": {
+        "w": 512,
+        "h": 512
+      }
+    },
+    "npc:chance-suyin": {
+      "frame": {
+        "x": 1127,
+        "y": 16,
+        "w": 276,
+        "h": 496
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 101,
+        "y": 16,
+        "w": 276,
+        "h": 496
+      },
+      "sourceSize": {
+        "w": 512,
+        "h": 512
+      }
+    },
+    "npc:chance-qinglan:gesture": {
+      "frame": {
+        "x": 100,
+        "y": 512,
+        "w": 337,
+        "h": 497
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 58,
+        "y": 15,
+        "w": 337,
+        "h": 497
+      },
+      "sourceSize": {
+        "w": 512,
+        "h": 512
+      }
+    },
+    "npc:chance-tangwan:gesture": {
+      "frame": {
+        "x": 584,
+        "y": 512,
+        "w": 327,
+        "h": 498
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 73,
+        "y": 14,
+        "w": 327,
+        "h": 498
+      },
+      "sourceSize": {
+        "w": 512,
+        "h": 512
+      }
+    },
+    "npc:chance-suyin:gesture": {
+      "frame": {
+        "x": 1126,
+        "y": 513,
+        "w": 288,
+        "h": 497
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 100,
+        "y": 15,
+        "w": 288,
+        "h": 497
+      },
+      "sourceSize": {
+        "w": 512,
+        "h": 512
+      }
+    }
+  },
+  "meta": {
+    "image": "world-v2.png",
+    "size": {
+      "w": 1536,
+      "h": 1024
+    },
+    "scale": "1"
+  }
+}

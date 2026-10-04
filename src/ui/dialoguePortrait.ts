@@ -1,5 +1,14 @@
 import type { MapEntity } from '../game/types';
+import { ENCOUNTERS } from '../data/content';
 import { escapeHtml, portrait } from './html';
+
+const NPC_ART: Record<string, string> = {
+  qing: 'qing',
+  master: 'master',
+  yin: 'yin',
+  fong: 'fong',
+  wo: 'wo',
+};
 
 const OBJECT_ART = {
   chest:
@@ -13,7 +22,28 @@ const OBJECT_ART = {
 };
 
 export function dialoguePortrait(entity: MapEntity): string {
+  const companion = {
+    'chance-qinglan': [0, 500],
+    'chance-tangwan': [506, 526],
+    'chance-suyin': [1034, 502],
+  }[entity.id];
+  if (companion) {
+    return `<svg viewBox="${companion[0]} 0 ${companion[1]} 1024" role="img" aria-label="${escapeHtml(entity.name)}" class="portrait-art character-portrait"><image href="${import.meta.env.BASE_URL}assets/characters/companions/portraits-v1.png" width="1536" height="1024" /></svg>`;
+  }
   if (entity.kind === 'npc' || entity.kind === 'enemy') {
+    const enemy = entity.encounter && ENCOUNTERS[entity.encounter]?.enemies[0];
+    const folder = entity.kind === 'enemy' || entity.id === 'wounded' ? 'enemies' : 'npcs';
+    const file =
+      entity.id === 'wounded'
+        ? 'bandit-chibi'
+        : entity.kind === 'enemy'
+          ? enemy === 'bandit'
+            ? 'bandit-chibi'
+            : enemy
+          : NPC_ART[entity.id];
+    if (file) {
+      return `<img class="portrait-art character-portrait" src="${import.meta.env.BASE_URL}assets/characters/${folder}/${file}.webp" alt="${escapeHtml(entity.name)}" />`;
+    }
     return portrait('#91a593', 'npc');
   }
   let art = OBJECT_ART.clue;

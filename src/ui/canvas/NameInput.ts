@@ -1,8 +1,21 @@
 import { Input } from '@pixi/ui';
 import type { DestroyOptions } from 'pixi.js';
+import { Graphics } from 'pixi.js';
+import { drawGamePlate } from './widgets';
 
 /** 直接同步原生欄位的完整值，保留中文組字、選取取代與貼上行為。 */
 export class NameInput extends Input {
+  resizeField(width: number): void {
+    this.scale.set(1);
+    if (this._bg instanceof Graphics) {
+      drawGamePlate(this._bg.clear(), 0, 0, width, 48);
+    }
+    this.updateInputMaskSize();
+    this.align();
+    if (this.input) {
+      this.input.style.width = `${width}px`;
+    }
+  }
   protected createInputField(): void {
     super.createInputField();
     if (!this.input) {

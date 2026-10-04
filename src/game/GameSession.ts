@@ -2,7 +2,10 @@ import { MAPS } from '../data/maps';
 import { isHairStyle } from './appearance';
 import { Battle, type BattleAction } from './battle';
 import { isWalkable } from './pathfinding';
-import { buy, equip, sell, useMedicine } from './state';
+import { buy, equip, unequip, sell, useMedicine, restore } from './state';
+import { movementRate } from './body';
+import { learnTalent, resetTalents } from './talents';
+import { changeMartialArt } from './martialTraining';
 import { applyStoryAction, getDialogue, settleBattle } from './story';
 import type { GameState, ItemId, MapEntity, Point } from './types';
 
@@ -52,7 +55,8 @@ export class GameSession {
       throw new Error('入口不存在。');
     }
     if (
-      (entity.to === 'mountain' || entity.to === 'cave') &&
+      ((state.map === 'temple' && entity.to === 'mountain') ||
+        (state.map === 'mountain' && entity.to === 'cave')) &&
       ['arrival', 'trial', 'report', 'bandits'].includes(state.quest)
     ) {
       throw new Error('禁地暫不開放，先完成山下的委託。');
@@ -61,6 +65,18 @@ export class GameSession {
     candidate.map = entity.to;
     candidate.position = { ...entity.spawn };
     return candidate;
+  }
+
+  /** 四肢失能時仍可脫困；換圖成功前不改動目前旅程。 */
+  prepareRescue(): GameState {
+    if (!this.current || this.encounter || movementRate(this.current.body) > 0) {
+      throw new Error('只有無法移動時才能請人送回山門。');
+    }
+    const state = structuredClone(this.current);
+    state.map = 'temple';
+    state.position = { x: 3, y: 7 };
+    restore(state);
+    return state;
   }
 
   choose(entity: MapEntity, action: string): ReturnType<typeof applyStoryAction> {
@@ -94,11 +110,11 @@ export class GameSession {
     return message;
   }
 
-  changeItem(verb: 'buy' | 'sell' | 'use' | 'equip', id: ItemId): boolean {
+  changeItem(verb: 'buy' | 'sell' | 'use' | 'equip' | 'unequip', id: ItemId): boolean {
     if (!this.current || this.encounter) {
       return false;
     }
-    return { buy, sell, use: useMedicine, equip }[verb](this.current, id);
+    return { buy, sell, use: useMedicine, equip, unequip }[verb](this.current, id);
   }
 
   changeHair(hair: string): boolean {
@@ -107,5 +123,16 @@ export class GameSession {
     }
     this.current.hair = hair;
     return true;
+  }
+
+  changeTalent(id: string): boolean {
+    if (!this.current || this.encounter) {
+      return false;
+    }
+    return id === 'reset' ? resetTalents(this.current) : learnTalent(this.current, id);
+  }
+
+  changeMartialArt(route: string): boolean {
+    return !!this.current && !this.encounter && changeMartialArt(this.current, route);
   }
 }

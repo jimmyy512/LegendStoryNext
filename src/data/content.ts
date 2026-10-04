@@ -8,6 +8,8 @@ import type {
   Skill,
 } from '../game/types';
 
+export const CHAPTER_REWARD = { jade: 1, gold: 50, xp: 60 } as const;
+
 export const ITEMS: Record<ItemId, ItemDefinition> = {
   herb: {
     name: '金創藥',
@@ -59,6 +61,41 @@ export const ITEMS: Record<ItemId, ItemDefinition> = {
     price: 65,
     defense: 6,
   },
+  inkPants: {
+    name: '墨布長褲',
+    kind: 'armor',
+    description: '耐磨的日常長褲，方便行走。',
+    price: 12,
+  },
+  guardPants: {
+    name: '護膝武褲',
+    kind: 'armor',
+    description: '膝前加襯的武褲。防禦 +2。',
+    price: 38,
+    defense: 2,
+  },
+  brownBoots: { name: '褐皮短靴', kind: 'armor', description: '貼腳的短靴，適合山路。', price: 12 },
+  swiftBoots: {
+    name: '輕身快靴',
+    kind: 'armor',
+    description: '輕巧黑靴，出手更靈活。身法 +1。',
+    price: 42,
+    speed: 1,
+  },
+  strawHat: {
+    name: '竹編斗笠',
+    kind: 'armor',
+    description: '遮陽擋雨的斗笠。防禦 +1。',
+    price: 20,
+    defense: 1,
+  },
+  taoistCrown: {
+    name: '全真道冠',
+    kind: 'armor',
+    description: '門中行走弟子的束髮冠。攻擊 +1。',
+    price: 28,
+    attack: 1,
+  },
   jade: {
     name: '無字玉佩',
     kind: 'quest',
@@ -66,9 +103,9 @@ export const ITEMS: Record<ItemId, ItemDefinition> = {
     price: 0,
   },
   letter: {
-    name: '山賊口供',
+    name: '藥車線索',
     kind: 'quest',
-    description: '記下了後山夜間傳來怪聲的線索。',
+    description: '山賊留下的貨單與口供，記著春生堂藥車、銅手押車人，以及後山夜間帶走旅人的道袍客。',
     price: 0,
   },
   flower: {
@@ -81,7 +118,7 @@ export const ITEMS: Record<ItemId, ItemDefinition> = {
   journal: {
     name: '殘缺手札',
     kind: 'quest',
-    description: '洪長恨留下的筆記，記錄著救回靈姍的執念。',
+    description: '洪長恨的筆記。記著失蹤旅人的名字、春生堂貨單與交貨日期，還有救回靈姍的執念。',
     price: 0,
   },
 };
@@ -113,7 +150,7 @@ export const SKILLS: Record<Route, Skill[]> = {
       name: '抱元守一',
       description: '減傷至下次行動，期間受到攻擊時反擊。',
       cost: 5,
-      multiplier: 0,
+      multiplier: 0.85,
       effect: 'counter',
     },
     {
@@ -135,7 +172,7 @@ export const INNER_ARTS: Record<Route, { name: string; description: string }> = 
 export const ENEMIES: Record<string, EnemyDefinition> = {
   disciple: {
     name: '試招弟子',
-    maxHp: 42,
+    maxHp: 86,
     maxMp: 0,
     attack: 10,
     defense: 3,
@@ -143,7 +180,7 @@ export const ENEMIES: Record<string, EnemyDefinition> = {
     color: 0x7eaa9e,
     xp: 25,
     gold: 12,
-    heavyEvery: 3,
+    heavyEvery: 2,
   },
   bandit: {
     name: '山道刀客',

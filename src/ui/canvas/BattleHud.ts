@@ -1,9 +1,13 @@
-import { Container, Graphics, Text, Rectangle } from 'pixi.js';
+import { Assets, Container, Graphics, Sprite, Text, type Texture } from 'pixi.js';
 import { SKILLS } from '../../data/content';
-import type { Battle } from '../../game/battle';
+import { BATTLE_LEFT, type Battle } from '../../game/battle';
+import { battleThreat } from '../../game/battleThreat';
+import { opponentName } from '../../game/opponentName';
 import { PART_CAPACITY, PART_NAMES, workingLegs } from '../../game/body';
 import { BodyDiagram } from './BodyDiagram';
-import { label } from './widgets';
+import { battleOutcomeSheet } from './BattleOutcome';
+import { battleSkillStatus } from './battleSkillStatus';
+import { accessibleLabel, drawGamePlate, label } from './widgets';
 
 type Button = {
   root: Container;
@@ -17,49 +21,55 @@ type Button = {
 const GOLD = 0xe9c783,
   TEAL = 0x75d6c0,
   RED = 0xef8d7b;
-export const battleDockHeight = (width: number, height: number): number =>
-  width < 620 ? 270 : height < 520 ? 156 : 202;
+export const battleDockHeight = (width: number, height: number, finished = false): number =>
+  height < 520 ? (finished ? 186 : 140) : width < 620 ? 354 : 240;
 
 /** 持續存在的戰鬥 HUD。只有版面尺寸改變才重建，不因每次命中銷毀按鈕。 */
 export class BattleHud extends Container {
   private texts = new Map<string, Text>();
   private buttons = new Map<string, Button>();
   private bars = new Graphics();
-  private ruler = new Graphics();
   private ownBody: BodyDiagram;
   private enemyBody: BodyDiagram;
-  private banner = new Container();
-  private rulerWidth: number;
   private dockY: number;
   private compact: boolean;
   private mobile: boolean;
   private cardWidth: number;
   private bodyScale: number;
+  private outcome: Container | null = null;
 
   constructor(
     private battle: Battle,
     private w: number,
-    h: number,
+    private h: number,
     private press: (action: string) => void,
   ) {
     super();
-    this.mobile = w < 620;
     this.compact = h < 520;
-    this.cardWidth = Math.min(300, (w - 32) / 2);
+    this.mobile = w < 620 && !this.compact;
+    this.cardWidth = Math.min(320, (w - 32) / 2);
     this.bodyScale = this.compact ? 0.42 : this.mobile ? 0.55 : 0.85;
     this.dockY = h - battleDockHeight(w, h);
     const cardH = this.compact ? 94 : this.mobile ? 137 : 165;
     const bg = new Graphics();
     for (const x of [12, w - 12 - this.cardWidth]) {
-      bg.roundRect(x, 12, this.cardWidth, cardH, 12)
-        .fill({ color: 0x102322, alpha: 0.94 })
-        .stroke({ color: 0x4c685e, width: 1 });
+      drawGamePlate(bg, x, 12, this.cardWidth, cardH, { alpha: 0.94 });
+    }
+    if (w > 750 && !this.compact) {
+      drawGamePlate(bg, w / 2 - 170, 12, 340, 78, { alpha: 0.84 });
     }
     bg.rect(0, this.dockY, w, h - this.dockY)
-      .fill({ color: 0x0d201e, alpha: 0.97 })
-      .moveTo(0, this.dockY)
-      .lineTo(w, this.dockY)
-      .stroke({ color: 0x8e7c53, width: 1 });
+      .fill({ color: 0x10231f, alpha: 0.98 })
+      .rect(0, this.dockY, w, 3)
+      .fill(0xb79a5d)
+      .rect(0, this.dockY + 5, w, 1)
+      .fill({ color: 0x577466, alpha: 0.7 });
+    for (const x of [20, w - 27]) {
+      bg.rect(x, this.dockY + 11, 7, 7)
+        .fill(0x9f8454)
+        .rect(x + 2, this.dockY + 13, 3, 3)
+        .fill(0x1c352d);
+    }
     this.addChild(bg, this.bars);
     this.ownBody = new BodyDiagram(() => this.press('injuries'));
     this.enemyBody = new BodyDiagram((part) => this.press(`body:${part}`));
@@ -75,18 +85,18 @@ export class BattleHud extends Container {
     const enemyTitle = this.texts.get('enemyName')!;
     enemyTitle.eventMode = 'static';
     enemyTitle.cursor = 'pointer';
-    enemyTitle.accessible = true;
+    enemyTitle.accessible = this.compact || (!this.mobile && w <= 750);
     enemyTitle.accessibleTitle = '切換對手';
     enemyTitle.on('pointertap', () => this.press('battle-targets'));
-    this.put('hp', contentX, 48, this.mobile ? 11 : 14);
-    this.put('enemyHp', enemyX, 48, this.mobile ? 11 : 14);
-    this.put('mp', contentX, 76, 11, 0x9dcde3);
+    this.put('hp', contentX, 48, this.mobile ? 11 : 15);
+    this.put('enemyHp', enemyX, 48, this.mobile ? 11 : 15);
+    this.put('mp', contentX, 76, this.mobile ? 11 : 12, 0x9dcde3);
     if (!this.compact) {
       this.put(
         'ownStatus',
         contentX,
         101,
-        this.mobile ? 10 : 12,
+        this.mobile ? 10 : 13,
         TEAL,
         this.cardWidth - 78 * this.bodyScale - 20,
       );
@@ -94,106 +104,122 @@ export class BattleHud extends Container {
         'enemyStatus',
         enemyX,
         101,
-        this.mobile ? 10 : 12,
+        this.mobile ? 10 : 13,
         RED,
         this.cardWidth - 78 * this.bodyScale - 20,
       );
       this.put('target', enemyX, 77, 11, GOLD);
     }
     if (w > 750 && !this.compact) {
-      this.put('title', w / 2, 22, 20, GOLD, 0, true);
+      this.put('title', w / 2, 22, 20, GOLD, 0, true).style.fontFamily =
+        '"Noto Serif TC", "PMingLiU", serif';
       this.put('phase', w / 2, 54, 14, TEAL, 0, true);
       this.put('lastHit', w / 2, 82, 14, 0xe2d9bf, w - this.cardWidth * 2 - 70, true);
-      this.makeButton('battle-targets', '切換對手', w - this.cardWidth + 90, 144, 100, 26);
+      this.makeButton('battle-targets', '切換對手', w - this.cardWidth + 90, 136, 112, 28);
     }
     if (this.mobile) {
+      const hasMultipleTargets = battle.enemies.length > 1;
+      const commandWidth = hasMultipleTargets ? (this.cardWidth - 6) / 2 : this.cardWidth;
+      const commandX = w - 12 - this.cardWidth;
+      if (hasMultipleTargets) {
+        this.makeButton('battle-targets', '切換對手', commandX, 153, commandWidth, 36);
+      } else {
+        enemyTitle.accessible = true;
+      }
       this.makeButton(
         'battle-parts',
         '選攻擊部位',
-        enemyX,
-        121,
-        this.cardWidth - 78 * this.bodyScale - 16,
-        24,
+        commandX + (hasMultipleTargets ? commandWidth + 6 : 0),
+        153,
+        commandWidth,
+        36,
       );
     }
-    if (this.compact) {
+    if (this.compact && !this.mobile) {
       this.makeButton('battle-parts', '選部位', w - this.cardWidth + 160, 78, 70, 24);
     }
-    const centerW = Math.min(960, w - 24),
+    const centerW = Math.min(1280, w - 24),
       start = (w - centerW) / 2;
-    this.put('advice', w / 2, this.dockY + 8, this.compact ? 12 : 15, GOLD, centerW - 170, true);
-    this.makeButton('battle-help', '？ 說明', start + centerW - 76, this.dockY + 5, 76, 26);
-    this.put('action', start, this.dockY + (this.compact ? 29 : 37), 12, TEAL, centerW);
-    this.rulerWidth = this.mobile ? centerW : centerW * 0.46;
-    const rulerY = this.dockY + (this.mobile ? 76 : this.compact ? 49 : 62);
-    this.ruler.position.set(start, rulerY);
-    this.ruler.eventMode = 'static';
-    this.ruler.cursor = 'pointer';
-    this.ruler.hitArea = new Rectangle(0, 0, this.rulerWidth, 40);
-    this.ruler.on('pointerdown', (e) => {
-      const x = this.ruler.toLocal(e.global).x;
-      this.press(`distance:${1 + (9 * (x - 40)) / (this.rulerWidth - 44)}`);
-    });
-    this.addChild(this.ruler);
-    const legendY = rulerY - 2;
-    this.put('rulerLegend', start + 3, legendY + 3, 10, 0xc1d8ca);
-    this.set('rulerLegend', '我射程\n敵射程');
-    const moveX = this.mobile ? start : start + centerW * 0.5;
-    const moveY = this.mobile ? rulerY + 48 : rulerY;
-    const moveW = this.mobile ? centerW : centerW * 0.5;
-    [
-      ['近身\n貼身纏鬥', 'distance:2'],
-      ['持距\n站在射程內', `distance:${battle.player.route === 'sword' ? 4.3 : 2.3}`],
-      ['拉開\n退出敵射程', 'distance:8'],
-      ['停步回氣\n恢復腳力', 'distance-hold'],
-    ].forEach(([name, action], i) =>
-      this.makeButton(action, name, moveX + (i * moveW) / 4, moveY, moveW / 4 - 5, 40),
+    this.put(
+      'advice',
+      start,
+      this.dockY + (this.compact ? 5 : 9),
+      this.compact ? 13 : this.mobile ? 14 : 19,
+      GOLD,
+      centerW - 100,
     );
-    const skillY = this.mobile ? moveY + 44 : rulerY + 48;
-    const gap = 6,
-      cols = this.mobile ? 3 : 6,
-      bw = (centerW - gap * (cols - 1)) / cols;
+    this.makeButton('battle-help', '操作說明', start + centerW - 88, this.dockY + 6, 88, 28);
+    this.put(
+      'action',
+      start,
+      this.dockY + (this.compact ? 28 : this.mobile ? 56 : 39),
+      this.mobile ? 12 : this.compact ? 11 : 14,
+      TEAL,
+      centerW,
+    );
+    const moveW = this.mobile ? centerW : this.compact ? centerW * 0.49 : centerW * 0.43 - 12;
+    const moveY = this.dockY + (this.compact ? 44 : this.mobile ? 103 : 86);
+    if (!this.compact) {
+      this.put('moveHeading', start, moveY - 24, this.mobile ? 12 : 15, 0xb9c9bc).text = '走位';
+      this.put(
+        'skillHeading',
+        this.mobile ? start : start + centerW * 0.43,
+        this.mobile ? this.dockY + 167 : moveY - 24,
+        this.mobile ? 12 : 15,
+        GOLD,
+      ).text = '武學 · 點選後於下次出手施放';
+    }
+    [
+      ['貼近對手', 'distance:2'],
+      ['保持射程', `distance:${battle.player.route === 'sword' ? 4.3 : 2.3}`],
+      ['拉開距離', 'distance:8'],
+      ['停步回氣', 'distance-hold'],
+    ].forEach(([name, action], i) =>
+      this.makeButton(
+        action,
+        name,
+        start + (i * moveW) / 4,
+        moveY,
+        moveW / 4 - 5,
+        this.compact ? 44 : 54,
+      ),
+    );
+    const skillX = this.mobile ? start : start + centerW * (this.compact ? 0.51 : 0.43);
+    const skillW = this.mobile ? centerW : centerW * (this.compact ? 0.49 : 0.57);
+    const skillY = this.compact ? moveY : this.mobile ? this.dockY + 188 : moveY;
     const skills = SKILLS[battle.player.route];
+    skills.forEach((skill, i) =>
+      this.makeButton(
+        `battle:skill:${skill.id}`,
+        skill.name,
+        skillX + (i * skillW) / skills.length,
+        skillY,
+        skillW / skills.length - 6,
+        this.compact ? 44 : this.mobile ? 72 : 66,
+      ),
+    );
     const commands = [
       ['battle:pause', '開始交鋒'],
-      ...skills.map((s) => [`battle:skill:${s.id}`, s.name]),
-      ['battle:defend', '防禦'],
-      ['battle:items', '藥品'],
+      ['battle:defend', '立即防禦'],
+      ['battle:items', '使用藥品'],
       ['battle:escape', '撤退'],
     ];
+    const commandY = this.dockY + (this.compact ? 94 : this.mobile ? 276 : 169);
+    const commandW = this.mobile || this.compact ? centerW : Math.min(920, centerW);
     commands.forEach(([action, name], i) =>
       this.makeButton(
         action,
         name,
-        start + (i % cols) * (bw + gap),
-        skillY + Math.floor(i / cols) * 46,
-        bw,
-        41,
+        start + (i * commandW) / commands.length,
+        commandY,
+        commandW / commands.length - 6,
+        this.compact ? 40 : this.mobile ? 58 : 58,
       ),
     );
     if (!this.mobile && !this.compact) {
-      this.put('keys', w / 2, h - 23, 11, 0x9aaca2, 0, true).text =
-        'A / D 調整距離　·　空白鍵 暫停　·　點敵人部位圖選擇攻擊位置';
+      this.put('keys', start + commandW + 18, commandY + 8, 12, 0x9aaca2).text =
+        '空白鍵：暫停\n點敵方部位圖：選擇攻擊位置';
     }
-    this.addChild(this.banner);
-    const bannerW = Math.min(390, w - 32),
-      bannerY = Math.max(cardH + 28, (this.dockY + cardH) / 2 - 40);
-    this.banner.addChild(
-      new Graphics()
-        .roundRect(0, 0, bannerW, 112, 12)
-        .fill({ color: 0x102322, alpha: 0.94 })
-        .stroke({ color: GOLD, width: 1 }),
-    );
-    this.banner.position.set((w - bannerW) / 2, bannerY);
-    this.banner.eventMode = 'static';
-    this.banner.cursor = 'pointer';
-    this.banner.on('pointertap', () => this.press('battle:pause'));
-    const bannerTitle = this.put('bannerTitle', bannerW / 2, 10, 20, GOLD, 0, true, this.banner);
-    bannerTitle.text = '準備交鋒';
-    this.put('bannerHelp', bannerW / 2, 44, 12, 0xdce4d6, bannerW - 24, true, this.banner).text =
-      '先按「開始交鋒」\n進入射程會自動普攻，點招式預約下一擊';
-    this.put('bannerHint', bannerW / 2, 86, 11, 0x9dcde3, bannerW - 24, true, this.banner).text =
-      '第一次交手？按操作區右上「？ 說明」看規則';
     this.update(battle);
   }
   private put(
@@ -229,13 +255,37 @@ export class BattleHud extends Container {
     width: number,
     height: number,
   ): void {
+    const skillId = action.startsWith('battle:skill:')
+      ? action.slice('battle:skill:'.length)
+      : null;
+    const iconSize = this.compact ? 30 : this.mobile ? 40 : 50;
     const root = new Container(),
       bg = new Graphics(),
-      t = label(title, { size: this.mobile || this.compact ? 12 : 14, width: width - 10 });
-    t.anchor.set(0.5);
-    t.position.set(width / 2, height / 2);
+      t = label(title, {
+        size: skillId
+          ? this.compact
+            ? 11
+            : this.mobile
+              ? 13
+              : 17
+          : this.mobile || this.compact
+            ? 12
+            : 17,
+        width: width - (skillId ? iconSize + 24 : 12),
+      });
+    t.anchor.set(skillId ? 0 : 0.5, 0.5);
+    t.position.set(skillId ? iconSize + 18 : width / 2, height / 2);
     root.position.set(x, y);
     root.addChild(bg, t);
+    if (skillId) {
+      const texture = Assets.get<Texture>(`skill-icon:${skillId}`);
+      texture.source.scaleMode = 'nearest';
+      const icon = new Sprite(texture);
+      icon.width = iconSize;
+      icon.height = iconSize;
+      icon.position.set(8, (height - iconSize) / 2);
+      root.addChild(icon);
+    }
     root.eventMode = 'static';
     root.cursor = 'pointer';
     root.accessible = true;
@@ -251,19 +301,24 @@ export class BattleHud extends Container {
       }
     });
   }
+
   update(b: Battle): void {
+    if (this.outcome) {
+      return;
+    }
     this.battle = b;
     const enemy = b.enemies[b.target],
       range = b.attackRange(b.queuedAction?.type === 'skill' ? b.queuedAction.skill : undefined);
     const distance = b.distance(),
       inRange = b.inRange(b.target, range),
       waiting = b.playerProgress >= 1 && !inRange;
+    const danger = battleThreat(b);
     this.ownBody.update(b.player.body);
     this.enemyBody.update(enemy.body, b.targetPart);
     this.set('ownName', `Lv.${b.player.level} · ${b.player.name}`);
     this.set(
       'enemyName',
-      `${enemy.level ? `Lv.${enemy.level}` : '敵方'} · ${enemy.name}${b.enemies.length > 1 ? ' ▾' : ''}`,
+      `${enemy.level ? `Lv.${enemy.level}` : '敵方'} · ${opponentName(b.enemies, b.target)}${b.enemies.length > 1 ? ' ▾' : ''}`,
     );
     this.set('hp', `${b.player.hp} / ${b.stats.maxHp}`);
     this.set('enemyHp', `${enemy.hp} / ${enemy.stats.maxHp}`);
@@ -273,11 +328,14 @@ export class BattleHud extends Container {
       `${PART_NAMES[b.targetPart]} ${enemy.body[b.targetPart]}/${PART_CAPACITY[b.targetPart]}`,
     );
     const ownStatus = [
-      this.mobile
-        ? `出手 ${Math.round(b.playerProgress * 100)}%`
-        : `出手 ${Math.round(b.playerProgress * 100)}% · 滿了自動出招`,
-      b.defending ? '護體防守' : b.exhausted ? '腳力耗盡' : b.holdingPosition ? '停步回氣' : '',
-      `氣勢 ${'◆'.repeat(b.momentum)}${'◇'.repeat(3 - b.momentum)}${b.momentum === 3 ? ' 招式爆發' : ''}`,
+      `自動攻擊 ${Math.round(b.playerProgress * 100)}%`,
+      b.defending
+        ? '護體防守'
+        : b.exhausted
+          ? '腳力耗盡'
+          : b.holdingPosition
+            ? '停步回氣'
+            : `氣勢 ${'◆'.repeat(b.momentum)}${'◇'.repeat(3 - b.momentum)}${b.momentum === 3 ? ' 招式爆發' : ''}`,
     ]
       .filter(Boolean)
       .join('\n');
@@ -290,15 +348,18 @@ export class BattleHud extends Container {
           ? '破甲 · 防禦降低'
           : enemy.opening
             ? '破綻 · 趁隙追擊'
-            : this.mobile
-              ? `蓄勢 ${Math.round(enemy.progress * 100)}%`
-              : `${b.intent(b.target)}\n蓄勢 ${Math.round(enemy.progress * 100)}%`,
+            : b.intent(b.target),
     );
     this.set('title', b.encounter.name);
     const lastHit = [...b.events]
       .reverse()
       .find(
-        (e) => e.kind === 'damage' || e.kind === 'miss' || e.kind === 'guard' || e.kind === 'heal',
+        (e) =>
+          e.kind === 'damage' ||
+          e.kind === 'miss' ||
+          e.kind === 'guard' ||
+          e.kind === 'heal' ||
+          e.kind === 'talent',
       );
     if (lastHit) {
       const name = lastHit.skill
@@ -312,26 +373,36 @@ export class BattleHud extends Container {
           : '';
       this.set(
         'lastHit',
-        lastHit.kind === 'damage'
-          ? `${name} · ${lastHit.source === 'player' ? '命中' : '我方'}${PART_NAMES[lastHit.part!]} −${lastHit.amount}`
-          : lastHit.kind === 'miss'
-            ? '攻擊落空 · 對手已離開射程'
-            : lastHit.kind === 'guard'
-              ? `${name || '防禦'} · 護體生效`
-              : '使用藥品 · 已回復',
+        lastHit.kind === 'talent'
+          ? lastHit.text
+          : lastHit.kind === 'damage'
+            ? lastHit.blocked
+              ? `防禦成功 · 擋下 ${lastHit.blocked} 傷害 · 受到 ${lastHit.amount}`
+              : `${lastHit.opening ? '追擊破綻 · ' : ''}${name} · ${lastHit.source === 'player' ? '命中' : '我方'}${PART_NAMES[lastHit.part!]} −${lastHit.amount}`
+            : lastHit.kind === 'miss'
+              ? '攻擊落空 · 對手已離開射程'
+              : lastHit.kind === 'guard'
+                ? `${name || '防禦'} · 護體生效`
+                : '使用藥品 · 已回復',
       );
     }
-    this.set('phase', b.result ? '交鋒結束' : b.paused ? '戰術暫停' : '交鋒中');
+    const hasStarted = b.clock.elapsed > 0;
+    this.set(
+      'phase',
+      b.result ? '交鋒結束' : b.paused ? (hasStarted ? '已暫停' : '準備中') : '交鋒中',
+    );
     let advice = b.paused
-      ? '選好站位與攻擊部位，再開始交鋒'
-      : b.guarding
-        ? '收勢防守中 · 擋下攻擊後恢復普攻'
-        : b.strike
-          ? '正在出招 · 命中時仍需在射程內'
-          : b.exhausted
-            ? '腳力耗盡 · 等待回氣'
-            : enemy.strikeRange
-              ? `${enemy.name}正在${b.intent(b.target).includes('重擊') ? '重擊蓄力' : '出手'}！拉開或防禦`
+      ? hasStarted
+        ? '交鋒已暫停；按「繼續交鋒」或點招式恢復'
+        : '選好站位後按「開始交鋒」；點招式也會繼續交鋒'
+      : danger.warning
+        ? danger.warning
+        : b.guarding
+          ? '收勢防守中 · 擋下攻擊後恢復普攻'
+          : b.strike
+            ? '正在出招 · 命中時仍需在射程內'
+            : b.exhausted
+              ? '腳力耗盡 · 等待回氣'
               : !inRange
                 ? distance < range.min
                   ? '太近了 · 後退到射程內'
@@ -361,14 +432,19 @@ export class BattleHud extends Container {
               : '普通攻擊';
     // 距離戰最重要的兩件事：我打不打得到、敵人打不打得到我。
     const reach = inRange ? '我打得到 ✓' : distance < range.min ? '太近打不到' : '太遠打不到';
-    const threat = b.inRange(b.target, b.enemyRange(b.target)) ? '敵打得到我 ⚠' : '敵打不到我';
-    const move = b.holdingPosition ? '停步' : `走向 ${b.desiredDistance.toFixed(1)}`;
+    const threat = danger.count > 0 ? `${danger.count} 名敵人打得到我` : '敵人皆在射程外';
+    const move =
+      b.playerPosition <= BATTLE_LEFT + 0.01 && b.desiredDistance > distance + 0.1
+        ? '已到左側邊界'
+        : b.holdingPosition
+          ? '停步'
+          : `走向 ${b.desiredDistance.toFixed(1)}`;
     const stage = b.strike ? '起招' : waiting ? '等待射程' : b.recovery ? '收招' : '下次';
     this.set(
       'action',
       this.mobile
-        ? `距離 ${distance.toFixed(1)} → ${move}　${reach}　${threat}\n${stage}：${skillName}　腳力 ${Math.round(b.stamina)}`
-        : `距離 ${distance.toFixed(1)}（${move}）　｜　${reach}　｜　${threat}　｜　${stage}：${skillName}　｜　腳力 ${Math.round(b.stamina)}`,
+        ? `${reach} · ${threat} · ${move}\n${stage}：${skillName}　腳力 ${Math.round(b.stamina)}`
+        : `${reach}　｜　${threat}　｜　距離 ${distance.toFixed(1)} · ${move}　｜　${stage}：${skillName}　｜　腳力 ${Math.round(b.stamina)}`,
     );
     const cx = 24 + 78 * this.bodyScale,
       ex = this.w - this.cardWidth + 78 * this.bodyScale,
@@ -379,9 +455,9 @@ export class BattleHud extends Container {
       [ex, enemy.hp, enemy.stats.maxHp, RED],
     ]) {
       this.bars
-        .roundRect(x, 70, bw, 4, 2)
+        .rect(x, 70, bw, 5)
         .fill(0x2e4540)
-        .roundRect(x, 70, Math.max(0.1, (bw * value) / max), 4, 2)
+        .rect(x, 70, Math.max(0.1, (bw * value) / max), 5)
         .fill(color);
     }
     if (!this.compact) {
@@ -391,50 +467,40 @@ export class BattleHud extends Container {
         [ex, enemy.progress, RED],
       ]) {
         this.bars
-          .roundRect(x, 95, bw, 3, 1.5)
+          .rect(x, 95, bw, 4)
           .fill(0x2e4540)
-          .roundRect(x, 95, Math.max(0.1, bw * value), 3, 1.5)
+          .rect(x, 95, Math.max(0.1, bw * value), 4)
           .fill(color);
       }
     }
-    const px = (v: number) => 40 + Math.max(0, Math.min(1, (v - 1) / 9)) * (this.rulerWidth - 44);
-    const er = b.enemyRange(b.target);
-    this.ruler
-      .clear()
-      .roundRect(0, 0, this.rulerWidth, 40, 5)
-      .fill(0x1c3831)
-      .rect(px(range.min), 4, px(range.max) - px(range.min), 10)
-      .fill({ color: TEAL, alpha: 0.65 })
-      .rect(px(er.min), 20, px(er.max) - px(er.min), 6)
-      .fill({ color: RED, alpha: 0.65 });
-    for (let n = 1; n <= 10; n++) {
-      this.ruler.moveTo(px(n), 29).lineTo(px(n), 34).stroke({ color: 0x78988a, width: 1 });
-    }
-    this.ruler
-      .moveTo(px(b.desiredDistance), 0)
-      .lineTo(px(b.desiredDistance), 30)
-      .stroke({ color: GOLD, width: 2 })
-      .circle(px(distance), 15, 6)
-      .fill(0xf5f6ed)
-      .stroke({ color: 0x13221e, width: 2 });
     for (const [action, button] of this.buttons) {
       let title = button.text.text,
         active = false,
         enabled = !b.result;
       if (action === 'battle:pause') {
-        title = b.result ? '返回探索' : b.paused ? '▶ 開始交鋒' : 'Ⅱ 暫停';
+        title = b.result
+          ? '返回探索'
+          : b.paused
+            ? b.clock.elapsed > 0
+              ? '繼續交鋒'
+              : '開始交鋒'
+            : '暫停交鋒';
         enabled = true;
         active = b.paused;
       }
       const skill = SKILLS[b.player.route].find((s) => action === `battle:skill:${s.id}`);
       if (skill) {
-        const queuedSkill = queued?.type === 'skill' && queued.skill === skill.id;
-        active = queuedSkill;
-        enabled = enabled && b.player.mp >= skill.cost && b.skillPower(skill.id) > 0;
-        title = `${queuedSkill ? (b.strike ? '施展 ' : '已預約 ') : ''}${skill.name}\n${skill.effect === 'counter' ? '護體反擊' : skill.effect === 'break' ? '削弱防禦' : '強力攻擊'} · 氣 ${skill.cost}`;
+        const status = battleSkillStatus(b, skill);
+        active = status.active;
+        enabled = status.enabled;
+        title = status.title;
       }
       if (action === 'battle:defend') {
-        title = b.defending ? '防守中 · 減傷 60%' : '立即防禦\n腳力 20 · 減傷 60%';
+        title = b.defending
+          ? '防守中 · 減傷 60%'
+          : this.mobile
+            ? '立即防禦\n腳力 20'
+            : '立即防禦\n腳力 20 · 減傷 60%';
         enabled = enabled && b.stamina >= 20 && b.guardCooldown === 0;
         active = b.defending || queued?.type === 'defend';
       }
@@ -450,26 +516,30 @@ export class BattleHud extends Container {
       button.enabled = enabled;
       button.root.alpha = enabled ? 1 : 0.4;
       button.root.accessible = enabled;
-      button.root.accessibleTitle = title;
+      accessibleLabel(button.root, title);
       if (button.text.text !== title) {
         button.text.text = title;
       }
       if (button.active !== active) {
         button.active = active;
-        button.bg
-          .clear()
-          .roundRect(0, 0, button.width, button.height, 7)
-          .fill(active ? 0x385a48 : 0x203832)
-          .stroke({ color: active ? GOLD : 0x58746a, width: active ? 2 : 1 });
+        button.bg.clear();
+        drawGamePlate(button.bg, 0, 0, button.width, button.height, {
+          primary: action === 'battle:pause',
+          active,
+        });
+        button.text.style.fill = action === 'battle:pause' ? 0x13221e : 0xe8e9db;
       }
     }
-    this.banner.visible = b.paused && !b.result && b.clock.elapsed === 0;
-    this.set('bannerTitle', b.clock.elapsed > 0 ? '戰術暫停' : '準備交鋒');
-    this.set(
-      'bannerHelp',
-      b.clock.elapsed > 0
-        ? '可以調整站位與攻擊部位\n按「開始交鋒」或空白鍵繼續'
-        : '點此開始交鋒\n進入射程會自動普攻，點招式預約下一擊',
-    );
+    if (b.result) {
+      for (const child of this.children) {
+        if (child.y >= this.dockY) {
+          child.visible = false;
+        }
+      }
+      const outcomeHeight = battleDockHeight(this.w, this.h, true);
+      this.outcome = battleOutcomeSheet(b, this.w, outcomeHeight, this.press);
+      this.outcome.y = this.h - outcomeHeight;
+      this.addChild(this.outcome);
+    }
   }
 }

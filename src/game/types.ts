@@ -1,4 +1,5 @@
 import type { HairStyle } from './appearance';
+import type { TalentId } from './talents';
 import type { BodyState, LimbRequirement } from './body';
 
 export type Route = 'sword' | 'fist';
@@ -11,6 +12,12 @@ export type ItemId =
   | 'wraps'
   | 'robe'
   | 'armor'
+  | 'inkPants'
+  | 'guardPants'
+  | 'brownBoots'
+  | 'swiftBoots'
+  | 'strawHat'
+  | 'taoistCrown'
   | 'jade'
   | 'letter'
   | 'flower'
@@ -40,11 +47,15 @@ export interface GameState {
   hp: number;
   mp: number;
   level: number;
+  talents: TalentId[];
   xp: number;
   gold: number;
   inventory: Record<ItemId, number>;
   weapon: 'sword' | 'wraps' | null;
   armor: 'robe' | 'armor' | null;
+  pants: 'inkPants' | 'guardPants' | null;
+  boots: 'brownBoots' | 'swiftBoots' | null;
+  headwear: 'strawHat' | 'taoistCrown' | null;
   quest: QuestStage;
   flags: string[];
   defeated: string[];
@@ -60,6 +71,7 @@ export interface ItemDefinition {
   mp?: number;
   attack?: number;
   defense?: number;
+  speed?: number;
 }
 export type EntityKind = 'npc' | 'enemy' | 'portal' | 'chest' | 'herb' | 'clue';
 export interface MapEntity extends Point {
@@ -70,6 +82,7 @@ export interface MapEntity extends Point {
   to?: MapId;
   spawn?: Point;
   encounter?: string;
+  art?: string;
 }
 export interface MapDefinition {
   id: MapId;
@@ -84,6 +97,8 @@ export interface MapDefinition {
     h: number;
     kind: 'tree' | 'building' | 'rock' | 'water';
   }[];
+  /** Inclusive traversable x-ranges per row for painted maps with cliffs or water. */
+  walkableRows?: ReadonlyArray<ReadonlyArray<readonly [number, number]>>;
   entities: MapEntity[];
 }
 export interface EnemyDefinition extends Stats {

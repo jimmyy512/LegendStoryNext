@@ -1,5 +1,6 @@
 import type { Battle } from './battle';
 import { createGame, restore } from './state';
+import { EQUIPMENT_ITEMS } from './equipment';
 import type { Route } from './types';
 
 export const PREVIEW_LEVEL = 10;
@@ -9,6 +10,9 @@ export function createCombatPreview(route: Route) {
   state.level = PREVIEW_LEVEL;
   state.weapon = route === 'sword' ? 'sword' : 'wraps';
   state.armor = 'robe';
+  for (const id of Object.values(EQUIPMENT_ITEMS).flat()) {
+    state.inventory[id] = 1;
+  }
   restore(state);
   return state;
 }

@@ -1,0 +1,256 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-10-04T02:51:32.609508+00:00",
+  "title": "Design System: 口袋江湖 2",
+  "extensions": {
+    "colorMeta": {
+      "brass": {
+        "role": "primary",
+        "displayName": "Brass"
+      },
+      "health": {
+        "role": "secondary",
+        "displayName": "Health"
+      },
+      "threat": {
+        "role": "secondary",
+        "displayName": "Threat"
+      },
+      "plate": {
+        "role": "neutral",
+        "displayName": "Plate"
+      },
+      "paper": {
+        "role": "neutral",
+        "displayName": "Paper"
+      },
+      "body-intact": {
+        "role": "secondary",
+        "displayName": "Body intact"
+      },
+      "body-injured": {
+        "role": "secondary",
+        "displayName": "Body injured"
+      },
+      "body-depleted": {
+        "role": "secondary",
+        "displayName": "Body depleted"
+      }
+    },
+    "typographyMeta": {
+      "title": {
+        "displayName": "Panel title",
+        "purpose": "Pixi panel title, using Noto Serif TC."
+      },
+      "body": {
+        "displayName": "Body",
+        "purpose": "Wrapped paragraphs and standard controls."
+      },
+      "character-title": {
+        "displayName": "Character page title",
+        "purpose": "28px serif title on the full-screen character sheet."
+      },
+      "section-title": {
+        "displayName": "Character section heading",
+        "purpose": "24px sans-serif content heading on the character sheet."
+      },
+      "dialogue-body": {
+        "displayName": "Dialogue body",
+        "purpose": "19px Noto Sans TC body in character and object dialogue."
+      },
+      "dialogue-body-compact": {
+        "displayName": "Compact dialogue body",
+        "purpose": "16px when actual dialogue panel width is below 620px."
+      }
+    },
+    "motion": [
+      {
+        "name": "local-scroll",
+        "value": "disableEasing: true; globalScroll: false",
+        "purpose": "Local panel navigation and content scrolling, as implemented by PanelOverlay."
+      },
+      {
+        "name": "notification-duration",
+        "value": "4200ms",
+        "purpose": "Non-modal message replacement restarts the timer."
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "folio-dialogue-mobile",
+        "value": "panelWidth < 620px"
+      },
+      {
+        "name": "battle-mobile",
+        "value": "viewportWidth < 620px and viewportHeight >= 520px"
+      },
+      {
+        "name": "battle-compact",
+        "value": "viewportHeight < 520px"
+      },
+      {
+        "name": "character-compact",
+        "value": "viewportWidth < 850px"
+      },
+      {
+        "name": "title-compact",
+        "value": "viewportWidth < 760px"
+      },
+      {
+        "name": "creation-compact",
+        "value": "panelWidth < 680px"
+      },
+      {
+        "name": "toast-centered",
+        "value": "viewportWidth < 640px"
+      },
+      {
+        "name": "inventory-compact",
+        "value": "viewportWidth < 900px"
+      },
+      {
+        "name": "outcome-stacked",
+        "value": "dockWidth < 620px and dockHeight > 220px"
+      },
+      {
+        "name": "outcome-compact",
+        "value": "dockHeight < 200px"
+      }
+    ],
+    "interactionMeta": {
+      "sharedControlFocus": "Shared control displays a transparent-fill active brass plate on pointerover or mouseover and hides it on pointerout or mouseout. The latter pair handles installed Pixi accessibility focus dispatch. Disabled controls hide it; independent controls require their own verification.",
+      "dynamicAccessibleLabels": "accessibleLabel synchronizes accessibleTitle and the existing proxy title/aria-label.",
+      "objectDialogue": "Object portrait uses the existing item sprite; panel max width 700px, portrait column 116px desktop / 84px mobile; body minimum 100px.",
+      "rescue": "At movementRate zero, the body panel places a selected-style rescue action before the body diagram.",
+      "injuryMotion": "The existing pixel character rig follows actual left/right limb state, dragging disabled legs and using remaining hands for crawling.",
+      "characterSheet": "Full-screen canvas. Desktop keeps categories and character/equipment column visible while the detail column scrolls. Below 850px, one category row stays above vertical content; character appears within scrolling overview/appearance content only.",
+      "skillSelection": "Skill icons select a detail view. No talent tree or skill equip/unequip system is introduced.",
+      "equipmentNavigation": "Equipped item slots open the bag with that specific item selected; empty slots open the bag.",
+      "statSources": "Overview explains base, level growth and equipped item contributions.",
+      "titleScene": "Dedicated cover-scaled title-scene hides exploration objects, with a dark left gradient and continue/new/load menu.",
+      "creation": "Dedicated 1060px maximum panel; below 680px removes the landscape column. Route cards and name input scroll above a fixed begin action.",
+      "notifications": "Reward chest, blocked waypoint and journal/save icons. Max width 420px; desktop top-right at y=120px and 24px right inset, mobile centered at y=112px. Replaces previous message, lasts 4200ms, ignores pointer events.",
+      "inventorySheet": "Full-screen bag has worn character, grid and details columns on desktop; columns scroll independently. Compact layout puts all three in one vertical scroll region. Selecting an item scrolls toward detail, within scroll limits.",
+      "inventoryComparison": "Comparison copies state, applies equip(candidate,id), then uses getStats. Valid non-equipped candidates display before/after attack and defense. Wrong-route items explain the restriction.",
+      "inventoryUnequip": "Equipped items expose unequip, clearing the corresponding worn slot without altering inventory quantity.",
+      "npcEnsemble": "Five NPC identities share ensemble-v2.png/json, each with standing and gesture pose. Frames share source sizes and align foot baselines. World sprites use bottom-center anchor and 62 / stillTexture.height scaling; hero exploration scale is 0.5. This does not cover all battle enemy art or complete animation sets.",
+      "sparringLessons": "Two contextual notices during the trial encounter: heavy windup defense, then actual opening result. Pauses battle, shows step count, offers skip or continue. Uses the existing notice style and no close cross.",
+      "dialogueTypography": "Dialogue body is 19px desktop or 16px below 620px panel width. Buttons and generic notice body retain existing styles.",
+      "battleOutcome": "Replaces the ended combat dock with actual settlement preview on a cloned state, without awarding rewards during rendering. Arena and fighters remain visible. Desktop is two columns, narrow portrait dock stacks, short dock uses compact two columns. Primary return action is 46px high.",
+      "outcomeEvidenceLimit": "Portrait boss start, engagement and left boundary have been reviewed with full actor framing. These captures do not establish complete animation or chapter acceptance.",
+      "battleFraming": "Frame all visible actor silhouettes, retaining each actor's largest observed pose bounds. Uniform background scaling around the ground plane fills vertical coverage without stretching the illustration.",
+      "battleDock": "Below 520px screen height: 140px active dock with movement and skills side by side, 186px outcome dock. Otherwise 354px below 620px width, or 240px desktop."
+    }
+  },
+  "components": [
+    {
+      "name": "Standard action",
+      "kind": "button",
+      "refersTo": "button",
+      "description": "HTML appearance approximation of Pixi controls. Shared control hover and accessibility focus use an active brass outline; independent input and custom controls need separate verification.",
+      "html": "<button class=\"ds-plate \">Inventory</button>",
+      "css": ".ds-plate{font:14px/1.5 \"Noto Sans TC\",sans-serif;color:#eee4ca;background:rgba(20,43,39,.96);border:1px solid #789182;min-height:44px;padding:6px 12px;clip-path:polygon(6px 0,calc(100% - 6px) 0,100% 6px,100% calc(100% - 6px),calc(100% - 6px) 100%,6px 100%,0 calc(100% - 6px),0 6px)}.ds-plate:disabled{opacity:.4;cursor:default}.ds-plate:not(:disabled){cursor:pointer}button.ds-plate:hover:not(:disabled),button.ds-plate:focus-visible:not(:disabled){border:2px solid #e8c983}"
+    },
+    {
+      "name": "Primary action",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "HTML appearance approximation of Pixi controls. Shared control hover and accessibility focus use an active brass outline; independent input and custom controls need separate verification.",
+      "html": "<button class=\"ds-plate ds-primary\">Begin battle</button>",
+      "css": ".ds-plate{font:14px/1.5 \"Noto Sans TC\",sans-serif;color:#eee4ca;background:rgba(20,43,39,.96);border:1px solid #789182;min-height:44px;padding:6px 12px;clip-path:polygon(6px 0,calc(100% - 6px) 0,100% 6px,100% calc(100% - 6px),calc(100% - 6px) 100%,6px 100%,0 calc(100% - 6px),0 6px)}.ds-plate:disabled{opacity:.4;cursor:default}.ds-plate:not(:disabled){cursor:pointer}.ds-primary{background:#b99b60;color:#13221e;border:2px solid #e8c983;font-size:16px}button.ds-plate:hover:not(:disabled),button.ds-plate:focus-visible:not(:disabled){border:2px solid #e8c983}"
+    },
+    {
+      "name": "Selected action",
+      "kind": "button",
+      "refersTo": "button-selected",
+      "description": "HTML appearance approximation of Pixi controls. Shared control hover and accessibility focus use an active brass outline; independent input and custom controls need separate verification.",
+      "html": "<button class=\"ds-plate ds-selected\">Character</button>",
+      "css": ".ds-plate{font:14px/1.5 \"Noto Sans TC\",sans-serif;color:#eee4ca;background:rgba(20,43,39,.96);border:1px solid #789182;min-height:44px;padding:6px 12px;clip-path:polygon(6px 0,calc(100% - 6px) 0,100% 6px,100% calc(100% - 6px),calc(100% - 6px) 100%,6px 100%,0 calc(100% - 6px),0 6px)}.ds-plate:disabled{opacity:.4;cursor:default}.ds-plate:not(:disabled){cursor:pointer}.ds-selected{background:#315249;color:#ffd786;border:2px solid #e8c983}button.ds-plate:hover:not(:disabled),button.ds-plate:focus-visible:not(:disabled){border:2px solid #e8c983}"
+    },
+    {
+      "name": "Name input",
+      "kind": "input",
+      "refersTo": "name-input",
+      "description": "HTML appearance approximation of Pixi controls. Shared control hover and accessibility focus use an active brass outline; independent input and custom controls need separate verification.",
+      "html": "<input class=\"ds-plate ds-name\" aria-label=\"Hero name\" maxlength=\"12\" value=\"Hero name\">",
+      "css": ".ds-plate{font:14px/1.5 \"Noto Sans TC\",sans-serif;color:#eee4ca;background:rgba(20,43,39,.96);border:1px solid #789182;min-height:44px;padding:6px 12px;clip-path:polygon(6px 0,calc(100% - 6px) 0,100% 6px,100% calc(100% - 6px),calc(100% - 6px) 100%,6px 100%,0 calc(100% - 6px),0 6px)}.ds-plate:disabled{opacity:.4;cursor:default}.ds-plate:not(:disabled){cursor:pointer}.ds-name{height:48px;padding:12px;font:18px sans-serif;width:240px}"
+    },
+    {
+      "name": "Folio navigation",
+      "kind": "nav",
+      "refersTo": "folio-navigation",
+      "description": "HTML appearance approximation of Pixi controls. Shared control hover and accessibility focus use an active brass outline; independent input and custom controls need separate verification.",
+      "html": "<nav aria-label=\"Skills\"><button class=\"ds-plate ds-nav\">Skills<br>2 Skills</button></nav>",
+      "css": ".ds-plate{font:14px/1.5 \"Noto Sans TC\",sans-serif;color:#eee4ca;background:rgba(20,43,39,.96);border:1px solid #789182;min-height:44px;padding:6px 12px;clip-path:polygon(6px 0,calc(100% - 6px) 0,100% 6px,100% calc(100% - 6px),calc(100% - 6px) 100%,6px 100%,0 calc(100% - 6px),0 6px)}.ds-plate:disabled{opacity:.4;cursor:default}.ds-plate:not(:disabled){cursor:pointer}.ds-nav{height:61px;width:208px}button.ds-plate:hover:not(:disabled),button.ds-plate:focus-visible:not(:disabled){border:2px solid #e8c983}"
+    },
+    {
+      "name": "Folio surface",
+      "kind": "card",
+      "refersTo": "folio",
+      "description": "Opaque jade panel backing. Fine grain, dark title band and brass corner studs are drawn by Pixi panelBacking; this snippet approximates its material.",
+      "html": "<section class=\"ds-plate ds-folio\"><h2 class=\"ds-title\">Inventory</h2><p>Inventory</p></section>",
+      "css": ".ds-plate{font:14px/1.5 \"Noto Sans TC\",sans-serif;color:#eee4ca;background:rgba(20,43,39,.96);border:1px solid #789182;min-height:44px;padding:6px 12px;clip-path:polygon(6px 0,calc(100% - 6px) 0,100% 6px,100% calc(100% - 6px),calc(100% - 6px) 100%,6px 100%,0 calc(100% - 6px),0 6px)}.ds-plate:disabled{opacity:.4;cursor:default}.ds-plate:not(:disabled){cursor:pointer}.ds-folio{background:#142b27;padding:20px;width:280px}.ds-title{font:20px/1.5 \"Noto Serif TC\",\"PMingLiU\",serif;margin:0}.ds-folio{background-image:repeating-linear-gradient(0deg,transparent 0 5px,rgba(146,165,138,.015) 5px 6px)}"
+    },
+    {
+      "name": "Inventory grid",
+      "kind": "nav",
+      "refersTo": "inventory-cell",
+      "description": "Full-screen bag grid uses max(3, floor(gridWidth / 90)) columns and 100px cells, with 8px gaps. Items show image, name, quantity and worn state; empty slots are disabled. Text-only preview omits raster assets.",
+      "html": "<nav class=\"ds-inventory\"><button class=\"ds-plate ds-item\">Medicine<br>3</button><button class=\"ds-plate ds-item\">Sword<br>Equipped</button></nav>",
+      "css": ".ds-plate{font:14px/1.5 \"Noto Sans TC\",sans-serif;color:#eee4ca;background:rgba(20,43,39,.96);border:1px solid #789182;min-height:44px;padding:6px 12px;clip-path:polygon(6px 0,calc(100% - 6px) 0,100% 6px,100% calc(100% - 6px),calc(100% - 6px) 100%,6px 100%,0 calc(100% - 6px),0 6px)}.ds-plate:disabled{opacity:.4;cursor:default}.ds-plate:not(:disabled){cursor:pointer}.ds-inventory{display:grid;grid-template-columns:repeat(3,100px);gap:8px}.ds-item{height:100px}button.ds-plate:hover:not(:disabled),button.ds-plate:focus-visible:not(:disabled){border:2px solid #e8c983}"
+    },
+    {
+      "name": "Confirmation notice",
+      "kind": "custom",
+      "refersTo": "notice",
+      "description": "Centered panel up to 480px. Secondary action left and primary right; action band stays separate from scrolling body. Also reused for two skippable contextual sparring lessons.",
+      "html": "<section class=\"ds-plate ds-notice\"><h2 class=\"ds-notice-title\">Load this save?</h2><p>Unsaved progress will be replaced.</p><div class=\"ds-notice-actions\"><button class=\"ds-plate\">Cancel</button><button class=\"ds-plate ds-confirm\">Load</button></div></section>",
+      "css": ".ds-plate{font:14px/1.5 \"Noto Sans TC\",sans-serif;color:#eee4ca;background:rgba(20,43,39,.96);border:1px solid #789182;min-height:44px;padding:6px 12px;clip-path:polygon(6px 0,calc(100% - 6px) 0,100% 6px,100% calc(100% - 6px),calc(100% - 6px) 100%,6px 100%,0 calc(100% - 6px),0 6px)}.ds-plate:disabled{opacity:.4;cursor:default}.ds-plate:not(:disabled){cursor:pointer}.ds-notice{max-width:480px;background:#142b27;padding:16px 24px}.ds-notice-title{font:20px/1.5 \"Noto Serif TC\",serif;margin:0}.ds-notice-actions{display:flex;gap:12px;margin-top:24px;background:rgba(7,14,11,.35)}.ds-notice-actions button{flex:1}.ds-confirm{background:#b99b60;color:#13221e;border:2px solid #e8c983;font-size:16px}button.ds-plate:hover:not(:disabled),button.ds-plate:focus-visible:not(:disabled){border:2px solid #e8c983}"
+    },
+    {
+      "name": "Body durability card",
+      "kind": "custom",
+      "description": "One numeric card from the seven-part interactive body diagram; schematic information, not character art. Green means full durability, yellow partial, red depleted. Core parts depleted are severely injured; limbs depleted are disabled.",
+      "html": "<div class=\"ds-body-card\"><span>Left leg</span><span>Disabled</span><p>0 / 40</p><div class=\"ds-body-track\"></div></div>",
+      "css": ".ds-body-card{font:12px/1.5 \"Noto Sans TC\",sans-serif;width:124px;height:54px;padding:4px 7px;background:#334338;border:1px solid #e6ba70;color:#f1a18b}.ds-body-card span:first-child{font-size:13px;color:#eee4ca;margin-right:12px}.ds-body-card p{margin:2px 0}.ds-body-track{height:4px;background:#080f0d}"
+    },
+    {
+      "name": "Transient notification",
+      "kind": "custom",
+      "description": "Text-only preview of the notification material. The Pixi runtime adds the corresponding raster icon and controls lifetime and position.",
+      "html": "<aside class=\"ds-toast\"><strong>Journey record</strong><p>Your progress has been saved.</p></aside>",
+      "css": ".ds-toast{max-width:420px;min-height:84px;background:#142b27;border:1px solid #789182;color:#eee4ca;padding:10px 20px 10px 74px;font:14px/1.5 \"Noto Sans TC\",sans-serif;clip-path:polygon(7px 0,calc(100% - 7px) 0,100% 7px,100% calc(100% - 7px),calc(100% - 7px) 100%,7px 100%,0 calc(100% - 7px),0 7px)}.ds-toast strong{font-size:17px;font-weight:400}.ds-toast p{color:#d7dfcb;margin:8px 0 0}"
+    }
+  ],
+  "narrative": {
+    "northStar": "既有武俠像素世界的深玉綠銅邊木牌",
+    "overview": "延伸既有女主角的分層像素方向：深色輪廓、可辨識的色塊、青松與灰石場景，搭配深玉綠操作面板和暖白文字。銅色邊框標示主操作與選取狀態；人物、物品、場景承擔世界感，介面負責清楚呈現當下可做的事。\n\n這份紀錄依目前 Pixi source 抽取，範圍是探索、角色、行囊、手札、對話及共用戰鬥控件；不是第一章完整通關或可發布的驗收。方向出自 `.impeccable/direction.md` 的 incumbent extension，沒有新 comp 或隨機概念的批准紀錄。`src/style.css` 的舊 DOM 頁面樣式不作為正式遊戲面板的 token 來源。",
+    "keyCharacteristics": [
+      "Pixi 畫布內的切角木牌、銅邊選取與局部捲動。",
+      "像素人物和透明物品圖，保留可辨識的輪廓。",
+      "分類與內容分開，對話獨立固定於畫面下方。"
+    ],
+    "rules": [
+      {
+        "name": "The State-and-Words Rule",
+        "body": "選取、裝備、藥品可用性與任務進度同時呈現文字狀態；顏色不獨自承擔意義。",
+        "section": "colors"
+      },
+      {
+        "name": "The Local-Scroll Rule",
+        "body": "長清單只在所屬分類或內容區捲動，保留面板標題與關閉操作。",
+        "section": "layout"
+      }
+    ],
+    "dos": [
+      "**Do** 延伸既有像素女主角的輪廓與色塊關係，透明物品圖與場景保持一致。",
+      "**Do** 用狀態資料同時決定文字、選取與禁用行為。",
+      "**Do** 依實際面板寬度切換分類排版，長內容採局部捲動。"
+    ],
+    "donts": [
+      "**Don't** 將舊 DOM 頁面的視覺規則直接當作 Pixi 面板規則。",
+      "**Don't** 把三個可選髮型加上舊 alias 說成四個不同造型。",
+      "**Don't** 把 source extraction 或局部截圖視為全章完成與發布驗收。"
+    ]
+  }
+}

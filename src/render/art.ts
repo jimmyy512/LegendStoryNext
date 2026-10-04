@@ -49,18 +49,30 @@ export function tree(x: number, y: number, size: number, random: () => number): 
   node.position.set(x, y);
   const g = new Graphics();
   g.ellipse(12, 10, size * 0.8, size * 0.3).fill({ color: 0x132720, alpha: 0.3 });
-  g.poly([-5, 0, -3, -size, 5, -size, 8, 0]).fill(0x655c43);
-  const colors = [0x203e32, 0x2d5140, 0x3b6148, 0x507251];
-  for (let i = 0; i < 5; i++) {
-    const dx = (random() - 0.5) * size * 0.85;
-    const dy = -size * (0.6 + random() * 0.6);
-    const radius = size * (0.4 + random() * 0.15);
-    g.ellipse(dx + 3, dy + 5, radius, radius * 0.68).fill(colors[0]);
-    g.ellipse(dx, dy, radius, radius * 0.6).fill(colors[(i % 3) + 1]);
-    g.ellipse(dx - radius * 0.15, dy - 4, radius * 0.6, radius * 0.24).fill({
-      color: 0x83916a,
-      alpha: 0.12,
-    });
+  const pixel = 8;
+  g.rect(-pixel, -size * 0.72, pixel * 2, size * 0.72).fill(0x564b38);
+  g.rect(0, -size * 0.63, pixel, size * 0.63).fill(0x78644a);
+  const layers = [
+    { y: -size * 0.95, rx: size * 0.59, ry: size * 0.42 },
+    { y: -size * 1.28, rx: size * 0.44, ry: size * 0.34 },
+  ];
+  for (const layer of layers) {
+    for (let cy = -layer.ry; cy <= layer.ry; cy += pixel) {
+      for (let cx = -layer.rx; cx <= layer.rx; cx += pixel) {
+        const r = (cx / layer.rx) ** 2 + (cy / layer.ry) ** 2;
+        if (r > 1.04 || (r > 0.83 && random() < 0.22)) {
+          continue;
+        }
+        const upper = cy < -layer.ry * 0.15;
+        const color = r > 0.77 ? 0x203e32 : upper ? 0x507251 : 0x315640;
+        g.rect(
+          Math.round(cx / pixel) * pixel,
+          Math.round((layer.y + cy) / pixel) * pixel,
+          pixel,
+          pixel,
+        ).fill(color);
+      }
+    }
   }
   node.addChild(g);
   return node;

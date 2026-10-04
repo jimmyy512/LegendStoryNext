@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { ENCOUNTERS, ITEMS, SKILLS } from '../src/data/content';
 import { MAPS } from '../src/data/maps';
 import { Battle, type BattleAction } from '../src/game/battle';
-import { findPath, isWalkable } from '../src/game/pathfinding';
+import { findPath, isWalkable, nearestWalkable } from '../src/game/pathfinding';
 import { decodeSave, encodeSave } from '../src/game/save';
 import { buy, createGame, equip, getStats, restore, sell, useMedicine } from '../src/game/state';
 import { applyStoryAction, getDialogue, settleBattle } from '../src/game/story';
@@ -39,6 +39,81 @@ function playBattle(state: GameState, id: string): Battle {
 }
 
 describe('內容與地圖', () => {
+  it('洞穴回程沿西側土路下山，避開南段岩柱', () => {
+    const path = findPath(MAPS.cave, { x: 19, y: 4 }, { x: 2, y: 12 });
+    expect(path.length).toBeGreaterThan(0);
+    expect(path).toContainEqual({ x: 6, y: 9 });
+    expect(path).toContainEqual({ x: 4, y: 11 });
+    for (const rock of [
+      { x: 8, y: 8 },
+      { x: 8, y: 9 },
+      { x: 7, y: 11 },
+      { x: 5, y: 12 },
+    ]) {
+      expect(isWalkable(MAPS.cave, rock)).toBe(false);
+      const state = createGame('旅人', 'fist');
+      state.map = 'cave';
+      state.position = rock;
+      const restored = decodeSave(
+        JSON.stringify({ savedAt: new Date().toISOString(), state }),
+      ).state;
+      expect(isWalkable(MAPS.cave, restored.position)).toBe(true);
+      expect(findPath(MAPS.cave, restored.position, { x: 2, y: 12 }).length).toBeGreaterThan(0);
+    }
+  });
+  it('洞穴箱子往返走中央彎道，不穿右側岩壁或北側石柱', () => {
+    const from = { x: 7, y: 8 };
+    const to = { x: 19, y: 2 };
+    const rocks = [
+      { x: 18, y: 6 },
+      { x: 17, y: 5 },
+      { x: 17, y: 3 },
+      { x: 10, y: 8 },
+    ];
+    for (const path of [findPath(MAPS.cave, from, to), findPath(MAPS.cave, to, from)]) {
+      expect(path.length).toBeGreaterThan(0);
+      expect(path).toContainEqual({ x: 13, y: 6 });
+      expect(path).toContainEqual({ x: 19, y: 4 });
+      for (const rock of rocks) {
+        expect(isWalkable(MAPS.cave, rock)).toBe(false);
+        expect(path).not.toContainEqual(rock);
+      }
+    }
+  });
+  it('舊洞穴岩壁存檔移回道路且保留線索，原本非法水面仍拒絕', () => {
+    const state = createGame('旅人', 'fist');
+    state.map = 'cave';
+    state.quest = 'boss';
+    state.inventory.journal = 1;
+    state.opened = ['cave-chest'];
+    state.position = { x: 18, y: 6 };
+    const raw = JSON.stringify({ savedAt: new Date().toISOString(), state });
+    const restored = decodeSave(raw).state;
+    expect(isWalkable(MAPS.cave, restored.position)).toBe(true);
+    expect(findPath(MAPS.cave, restored.position, { x: 2, y: 12 }).length).toBeGreaterThan(0);
+    expect(restored).toMatchObject({
+      quest: 'boss',
+      inventory: { journal: 1 },
+      opened: ['cave-chest'],
+    });
+    state.position = { x: 2, y: 5 };
+    expect(() =>
+      decodeSave(JSON.stringify({ savedAt: new Date().toISOString(), state })),
+    ).toThrow();
+  });
+  it('後山寶箱返程走石徑轉彎，不穿過西側樹冠', () => {
+    const path = findPath(MAPS.mountain, { x: 13, y: 11 }, { x: 2, y: 4 });
+    expect(path.length).toBeGreaterThan(0);
+    expect(path).toContainEqual({ x: 10, y: 6 });
+    for (const point of [
+      { x: 4, y: 6 },
+      { x: 5, y: 7 },
+      { x: 9, y: 7 },
+    ]) {
+      expect(isWalkable(MAPS.mountain, point)).toBe(false);
+      expect(path).not.toContainEqual(point);
+    }
+  });
   it('所有互動點、傳送出生點可到達，路徑不穿越障礙', () => {
     for (const map of Object.values(MAPS)) {
       const from = map.entities.find((entity) => entity.kind === 'portal')!;
@@ -63,6 +138,34 @@ describe('內容與地圖', () => {
     expect(findPath(MAPS.temple, { x: 2, y: 11 }, { x: 10, y: 2 })).toEqual([]);
     expect(isWalkable(MAPS.forest, { x: 24, y: 7 })).toBe(false);
     expect(isWalkable(MAPS.forest, { x: 3.5, y: 7 })).toBe(false);
+    expect(isWalkable(MAPS.temple, { x: 2, y: 11 })).toBe(false); // 荷池
+    expect(isWalkable(MAPS.mountain, { x: 13, y: 8 })).toBe(false); // 山崖
+    expect(isWalkable(MAPS.cave, { x: 2, y: 5 })).toBe(false); // 地下水
+  });
+  it('舊存檔落在新畫面障礙時移到鄰近可走格', () => {
+    for (const map of [MAPS.temple, MAPS.mountain, MAPS.cave]) {
+      const safe = nearestWalkable(map, { x: 2, y: 11 });
+      expect(isWalkable(map, safe)).toBe(true);
+      const exit = map.entities[0];
+      expect((safe.x === exit.x && safe.y === exit.y) || findPath(map, safe, exit).length > 0).toBe(
+        true,
+      );
+    }
+  });
+  it('山門跨庭院找藥師時繞開矮牆，舊牆上存檔仍能脫困', () => {
+    for (const wall of [
+      { x: 4, y: 6 },
+      { x: 5, y: 8 },
+      { x: 17, y: 6 },
+    ]) {
+      expect(isWalkable(MAPS.temple, wall)).toBe(false);
+      const safe = nearestWalkable(MAPS.temple, wall);
+      expect(findPath(MAPS.temple, safe, { x: 12, y: 7 }).length).toBeGreaterThan(0);
+    }
+    const path = findPath(MAPS.temple, { x: 14, y: 8 }, { x: 4, y: 7 });
+    expect(path.length).toBeGreaterThan(0);
+    expect(path).not.toContainEqual({ x: 5, y: 8 });
+    expect(path).toContainEqual({ x: 5, y: 7 });
   });
 });
 
@@ -95,15 +198,18 @@ describe('半即時戰鬥', () => {
     ordinary.update(3.2);
     expect(guarded.player.hp).toBeGreaterThan(ordinary.player.hp);
     const before = guarded.player.hp;
+    // Compare the same normal strike; heavy attack cadence is tested separately.
+    guarded.enemies[0].actions = 0;
     guarded.act({ type: 'attack', target: 0 });
     guarded.update(3.2);
     expect(before - guarded.player.hp).toBe(100 - ordinary.player.hp);
   });
   it('反擊會傷害攻擊者，技能扣除內力', () => {
     const battle = new Battle(createGame('拳客', 'fist'), 'trial');
+    const initialEnemyHp = battle.enemies[0].hp;
     battle.act({ type: 'skill', skill: 'guard', target: 0 });
     battle.update(3.2);
-    expect(battle.enemies[0].hp).toBeLessThan(42);
+    expect(battle.enemies[0].hp).toBeLessThan(initialEnemyHp);
     expect(battle.player.mp).toBe(30);
     expect(battle.events.some((event) => event.text.includes('護體反擊'))).toBe(true);
   });
@@ -255,6 +361,32 @@ describe('背包與交易', () => {
 type InvalidSaveState = Record<string, unknown> & { inventory: Record<string, unknown> };
 
 describe('存檔驗證', () => {
+  it('舊後山樹冠位置可遷移，原本不合法的懸崖座標仍拒絕', () => {
+    const state = createGame('旅人', 'fist');
+    state.map = 'mountain';
+    state.quest = 'investigate';
+    state.position = { x: 4, y: 6 };
+    const raw = () => JSON.stringify({ savedAt: new Date().toISOString(), state });
+    const restored = decodeSave(raw()).state;
+    expect(isWalkable(MAPS.mountain, restored.position)).toBe(true);
+    expect({ ...restored, position: state.position }).toEqual(state);
+    expect(findPath(MAPS.mountain, restored.position, { x: 2, y: 4 }).length).toBeGreaterThan(0);
+    state.position = { x: 12, y: 6 };
+    expect(() => decodeSave(raw())).toThrow();
+  });
+  it('舊山門矮牆座標讀取時遷移到道路並保留角色進度', () => {
+    const state = createGame('旅人', 'fist');
+    state.map = 'temple';
+    state.position = { x: 5, y: 8 };
+    state.quest = 'report';
+    state.flags.push('wine-accepted');
+    const raw = JSON.stringify({ savedAt: new Date().toISOString(), state });
+    const restored = decodeSave(raw).state;
+    expect(isWalkable(MAPS.temple, restored.position)).toBe(true);
+    expect(restored.position).not.toEqual(state.position);
+    expect({ ...restored, position: state.position }).toEqual(state);
+    expect(decodeSave(encodeSave(restored)).state).toEqual(restored);
+  });
   it('保留選擇與完整資料，與原物件沒有共享參考', () => {
     const state = createGame('<旅人>', 'sword');
     state.flags.push('mercy');

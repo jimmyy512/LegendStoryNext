@@ -1,5 +1,6 @@
 import { ITEMS } from '../data/content';
 import { createBody } from './body';
+import { equippedItems, equipmentSlot, isEquipped } from './equipment';
 import type { GameState, ItemId, Route, Stats } from './types';
 
 export function createGame(name: string, route: Route): GameState {
@@ -14,6 +15,7 @@ export function createGame(name: string, route: Route): GameState {
     hp: 1,
     mp: 1,
     level: 1,
+    talents: [],
     xp: 0,
     gold: 35,
     inventory: Object.fromEntries(Object.keys(ITEMS).map((id) => [id, 0])) as Record<
@@ -22,6 +24,9 @@ export function createGame(name: string, route: Route): GameState {
     >,
     weapon: null,
     armor: null,
+    pants: 'inkPants',
+    boots: 'brownBoots',
+    headwear: null,
     quest: 'arrival',
     flags: [],
     defeated: [],
@@ -30,26 +35,23 @@ export function createGame(name: string, route: Route): GameState {
   };
   state.inventory.herb = 3;
   state.inventory.tonic = 2;
+  state.inventory.inkPants = 1;
+  state.inventory.brownBoots = 1;
   restore(state);
   return state;
 }
 
 export function getStats(state: GameState): Stats {
   const growth = state.level - 1;
+  const gear = equippedItems(state);
+  const bonus = (stat: 'attack' | 'defense' | 'speed') =>
+    gear.reduce((sum, id) => sum + (ITEMS[id][stat] ?? 0), 0);
   return {
     maxHp: 100 + growth * 20 + (state.route === 'fist' ? 15 : 0),
     maxMp: 35 + growth * 5,
-    attack:
-      17 +
-      growth * 3 +
-      (state.route === 'sword' ? 2 : 0) +
-      (state.weapon ? (ITEMS[state.weapon].attack ?? 0) : 0),
-    defense:
-      5 +
-      growth * 2 +
-      (state.route === 'fist' ? 2 : 0) +
-      (state.armor ? (ITEMS[state.armor].defense ?? 0) : 0),
-    speed: 8 + growth + (state.route === 'sword' ? 2 : 0),
+    attack: 17 + growth * 3 + (state.route === 'sword' ? 2 : 0) + bonus('attack'),
+    defense: 5 + growth * 2 + (state.route === 'fist' ? 2 : 0) + bonus('defense'),
+    speed: 8 + growth + (state.route === 'sword' ? 2 : 0) + bonus('speed'),
   };
 }
 
@@ -114,6 +116,27 @@ export function equip(state: GameState, id: ItemId): boolean {
     state.armor = id;
     return true;
   }
+  if (id === 'inkPants' || id === 'guardPants') {
+    state.pants = id;
+    return true;
+  }
+  if (id === 'brownBoots' || id === 'swiftBoots') {
+    state.boots = id;
+    return true;
+  }
+  if (id === 'strawHat' || id === 'taoistCrown') {
+    state.headwear = id;
+    return true;
+  }
+  return false;
+}
+
+export function unequip(state: GameState, id: ItemId): boolean {
+  const slot = equipmentSlot(id);
+  if (slot && state[slot] === id) {
+    state[slot] = null;
+    return true;
+  }
   return false;
 }
 
@@ -137,7 +160,7 @@ export function sell(state: GameState, id: ItemId): boolean {
   if (item.kind === 'quest' || state.inventory[id] <= 0) {
     return false;
   }
-  if ((state.weapon === id || state.armor === id) && state.inventory[id] <= 1) {
+  if (isEquipped(state, id) && state.inventory[id] <= 1) {
     return false;
   }
   state.inventory[id]--;

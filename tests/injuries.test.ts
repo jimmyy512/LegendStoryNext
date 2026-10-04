@@ -105,12 +105,17 @@ describe('半即時出手', () => {
 
   it('集中攻擊不同腿部可令對手坐地，但仍能使用手部招式', () => {
     const battle = new Battle(createGame('測試', 'sword'), 'trial', () => 0);
+    battle.enemies[0].hp = 500;
     battle.targetPart = 'rightLeg';
     battle.paused = false;
-    battle.update(3.2);
+    for (let step = 0; step < 200 && battle.enemies[0].body.rightLeg > 0; step++) {
+      battle.update(0.1);
+    }
     expect(battle.enemies[0].body.rightLeg).toBe(0);
     battle.targetPart = 'leftLeg';
-    battle.update(3.2);
+    for (let step = 0; step < 200 && battle.enemies[0].body.leftLeg > 0; step++) {
+      battle.update(0.1);
+    }
     expect(battle.enemies[0].body.leftLeg).toBe(0);
     expect(mobility(battle.enemies[0].body)).toBe('seated');
     expect(battle.enemies[0].hp).toBeGreaterThan(0);

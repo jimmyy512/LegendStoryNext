@@ -787,6 +787,13 @@ kbd {
   height: 100%;
   min-height: 380px;
 }
+.dialogue-portrait .character-portrait {
+  object-fit: contain;
+  object-position: center bottom;
+  padding: 18px 8px 0;
+  background: radial-gradient(circle at 50% 37%, #547263 0, #28443c 57%, #172e2a 100%);
+  image-rendering: pixelated;
+}
 .portrait-caption {
   position: absolute;
   bottom: 18px;

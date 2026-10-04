@@ -775,6 +775,22 @@ const punches = (both: boolean) => {
 const perHand = <T>(make: (side: 'L' | 'R') => T, prefix: string) =>
   Object.fromEntries(sides.map((side) => [`${prefix}${side}`, make(side)]));
 
+function swapArms(source: ReturnType<typeof animation>): ReturnType<typeof animation> {
+  return {
+    ...source,
+    bones: Object.fromEntries(
+      Object.entries(source.bones).map(([name, keys]) => [
+        name.endsWith('L')
+          ? `${name.slice(0, -1)}R`
+          : name.endsWith('R')
+            ? `${name.slice(0, -1)}L`
+            : name,
+        keys,
+      ]),
+    ),
+  };
+}
+
 const animations = {
   ...perHand((side) => breathing(spearGuard(side)), 'idleSpear'),
   ...movesPerHand(
@@ -791,10 +807,12 @@ const animations = {
   idleFist: breathing(fistGuard),
   punchBoth: punches(true),
   punchL: punches(false),
+  punchR: swapArms(punches(false)),
   idle,
   ...moves(''),
   palmBoth: animation(pushed(['L', 'R'])),
   palmL: animation(pushed(['L'])),
+  palmR: swapArms(animation(pushed(['L']))),
   idleArmedR: armedIdle('R'),
   idleArmedL: armedIdle('L'),
   ...movesPerHand('Armed', () => holdBlade),
@@ -802,6 +820,7 @@ const animations = {
   slashL: slash('L'),
   // 傷手覆蓋軌道：右臂自然下垂，只鍵右臂，疊在任何動作上。
   injuredR: animation([{ time: 0, pose: { R: [-96, -98, -98] } }]),
+  injuredL: animation([{ time: 0, pose: { L: [-94, -98, -98] } }]),
   hurt: animation([
     { time: 0, pose: { hip: [0, 0], torso: 0, head: 0, hair: 0 } },
     { time: 0.1, pose: { hip: [-4, 0], torso: 12, head: 6, hair: -10 }, ease: 'snap' },

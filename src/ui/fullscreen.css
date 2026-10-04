@@ -32,7 +32,15 @@ body.game-active {
   aspect-ratio: auto;
   padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom)
     env(safe-area-inset-left);
-  overflow: hidden;
+  /* Focus must never scroll the entire game canvas out of its viewport. */
+  overflow: clip;
+}
+.game-active .game-accessibility-layer {
+  /* Pixi's CanvasObserver can retain the old CSS/backing-store ratio during
+     ResizeObserver delivery. Our canvas always matches the renderer's logical
+     viewport, so this overlay shares its parent's origin with no extra scale. */
+  transform: none !important;
+  transform-origin: 0 0;
 }
 .game-active #canvas-host canvas {
   position: absolute;

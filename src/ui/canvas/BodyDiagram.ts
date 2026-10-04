@@ -6,7 +6,7 @@ import {
   type BodyPart,
   type BodyState,
 } from '../../game/body';
-import { label } from './widgets';
+import { accessibleLabel, label } from './widgets';
 
 /** 部位顏色只讀取傷勢；金框只表示攻擊目標，不覆蓋健康顏色。 */
 export class BodyDiagram extends Container {
@@ -68,7 +68,10 @@ export class BodyDiagram extends Container {
           .lineTo(3, h - 5)
           .stroke({ color: 0xb1a3a0, width: 1 });
       }
-      g.accessibleTitle = `${PART_NAMES[part]} ${body[part]}/${PART_CAPACITY[part]} ${body[part] <= 0 ? '損毀' : damaged ? '受傷' : '完好'}`;
+      accessibleLabel(
+        g,
+        `${PART_NAMES[part]} ${body[part]}/${PART_CAPACITY[part]} ${body[part] <= 0 ? '損毀' : damaged ? '受傷' : '完好'}`,
+      );
     }
   }
 }

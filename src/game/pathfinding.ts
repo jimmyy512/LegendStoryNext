@@ -2,17 +2,50 @@ import { COLS, ROWS } from '../data/maps';
 import type { MapDefinition, Point } from './types';
 
 export function isWalkable(map: MapDefinition, point: Point): boolean {
-  return (
+  const inBounds =
     Number.isInteger(point.x) &&
     Number.isInteger(point.y) &&
-    point.x > 0 &&
-    point.y > 0 &&
-    point.x < COLS - 1 &&
-    point.y < ROWS - 1 &&
-    !map.blocks.some(
-      (b) => point.x >= b.x && point.x < b.x + b.w && point.y >= b.y && point.y < b.y + b.h,
-    )
+    point.x >= (map.walkableRows ? 0 : 1) &&
+    point.y >= (map.walkableRows ? 0 : 1) &&
+    point.x < (map.walkableRows ? COLS : COLS - 1) &&
+    point.y < (map.walkableRows ? ROWS : ROWS - 1);
+  if (!inBounds) {
+    return false;
+  }
+  if (map.walkableRows) {
+    return (map.walkableRows[point.y] ?? []).some(
+      ([left, right]) => point.x >= left && point.x <= right,
+    );
+  }
+  return !map.blocks.some(
+    (b) => point.x >= b.x && point.x < b.x + b.w && point.y >= b.y && point.y < b.y + b.h,
   );
+}
+
+/** Old saves may point inside newly painted water or cliffs. Move to the closest safe tile. */
+export function nearestWalkable(map: MapDefinition, point: Point): Point {
+  if (isWalkable(map, point)) {
+    return point;
+  }
+  let nearest: Point | null = null;
+  let distance = Infinity;
+  for (let y = 1; y < ROWS - 1; y++) {
+    for (let x = 1; x < COLS - 1; x++) {
+      const candidate = { x, y };
+      if (!isWalkable(map, candidate)) {
+        continue;
+      }
+      const score = Math.abs(x - point.x) + Math.abs(y - point.y);
+      if (score < distance) {
+        nearest = candidate;
+        distance = score;
+      }
+    }
+  }
+  if (!nearest) {
+    throw new Error(`Map has no walkable tiles: ${map.id}`);
+  }
+  return nearest;
 }
 
 export function findPath(map: MapDefinition, from: Point, to: Point): Point[] {

@@ -1,7 +1,10 @@
-import { QUESTS } from '../data/content';
+import { CHAPTER_REWARD, ITEMS, QUESTS } from '../data/content';
 import type { Battle } from './battle';
 import { gainExperience, restore, setFlag } from './state';
-import type { GameState, MapEntity } from './types';
+import type { GameState, MapEntity, ItemId } from './types';
+import { canStudyMartialArt, studyMartialArt } from './martialTraining';
+import { encounterDialogue, resolveEncounter } from './chanceEncounters';
+import { chapterOneDialogue, type DialogueBeat } from './chapterOneDialogue';
 
 export interface Choice {
   label: string;
@@ -13,12 +16,16 @@ export interface Dialogue {
   role: string;
   lines: string[];
   choices: Choice[];
+  portrait?: string;
+  beats?: DialogueBeat[];
 }
 export interface StoryOutcome {
   message?: string;
   battle?: string;
   shop?: boolean;
   ending?: boolean;
+  equipmentReward?: ItemId;
+  martialTraining?: boolean;
 }
 const leave: Choice = { label: '告辭', action: 'close' };
 
@@ -41,10 +48,21 @@ export function isEntityVisible(state: GameState, entity: MapEntity): boolean {
   if (entity.id === 'wine') {
     return !state.flags.includes('wine-picked');
   }
+  if (entity.id === 'journal') {
+    return state.inventory.journal === 0;
+  }
   return true;
 }
 
 export function getDialogue(state: GameState, entity: MapEntity): Dialogue {
+  const chance = encounterDialogue(state, entity.id);
+  if (chance) {
+    return chance;
+  }
+  const scene = chapterOneDialogue(state, entity);
+  if (scene) {
+    return scene;
+  }
   const dialogue = (
     speaker: string,
     role: string,
@@ -68,10 +86,26 @@ export function getDialogue(state: GameState, entity: MapEntity): Dialogue {
         '徐長卿',
         '全真派 · 大師兄',
         [
-          QUESTS[state.quest].detail,
-          '若敵人準備重擊，便先防守。劍法重破綻，拳掌重反擊，別一味強攻。',
+          state.quest === 'complete'
+            ? '禁地的事辛苦你了。下山之前，有什麼想學的，儘管來找我。'
+            : QUESTS[state.quest].detail,
+          canStudyMartialArt(state)
+            ? '你已入門，也該試試另一門功夫了。劍法先破甲再追擊，拳掌則護身反擊。練習的兵器，我替你備好。'
+            : '若敵人準備重擊，便先防守。劍法重破綻，拳掌重反擊，別一味強攻。',
         ],
-        [{ label: '在此調息', action: 'rest', note: '恢復生命、內力與部位傷勢' }, leave],
+        [
+          ...(canStudyMartialArt(state)
+            ? [
+                {
+                  label: state.route === 'sword' ? '請師兄傳授拳掌' : '請師兄傳授劍法',
+                  action: 'study-martial',
+                  note: '學習另一門內功與兩式招式，備妥練習兵器',
+                },
+              ]
+            : []),
+          { label: '在此調息', action: 'rest', note: '恢復生命、內力與部位傷勢' },
+          leave,
+        ],
       );
     case 'master':
       if (state.quest === 'report') {
@@ -115,7 +149,7 @@ export function getDialogue(state: GameState, entity: MapEntity): Dialogue {
         return dialogue(
           '蘇長胤',
           '全真派 · 藥理',
-          ['你帶來的青蘭已製成藥。山路雖險，也藏著救人的東西。'],
+          ['你帶來的青蘭已製成藥。藥櫃左邊這幾瓶就是，出門前可以帶一瓶。'],
           [{ label: '看看藥品', action: 'shop' }, leave],
         );
       }
@@ -147,16 +181,20 @@ export function getDialogue(state: GameState, entity: MapEntity): Dialogue {
     case 'fong':
       if (state.flags.includes('wine-done')) {
         return dialogue('王長風', '全真派 · 灑脫師兄', [
-          '有酒有風，還有肯替人跑腿的小師弟。改日我教你一套醉拳！',
+          '酒壺總算找回來了，多謝師弟！快靴記得換上，山路走起來也輕快些。',
         ]);
       }
       if (state.inventory.wine > 0) {
         return dialogue(
           '王長風',
           '全真派 · 灑脫師兄',
-          ['哈！我的酒壺。原來落在松風林了。這瓶養氣散與盤纏便算謝禮。'],
+          ['哈！我的酒壺。說好的快靴拿去，再帶上兩包養氣散和二十兩銀子，路上用得著。'],
           [
-            { label: '歸還酒壺', action: 'deliver-wine', note: '養氣散 ×2、銀兩 +20、經驗 +20' },
+            {
+              label: '歸還酒壺',
+              action: 'deliver-wine',
+              note: '輕身快靴、養氣散 ×2、銀兩 +20、經驗 +20',
+            },
             leave,
           ],
         );
@@ -164,7 +202,9 @@ export function getDialogue(state: GameState, entity: MapEntity): Dialogue {
       return dialogue(
         '王長風',
         '全真派 · 灑脫師兄',
-        ['師弟可曾見到一只酒壺？昨日路過松風林，只顧看山色，竟把它忘了。'],
+        [
+          '見過我的酒壺嗎？昨日在松風林歇腳，回來才發現沒帶上。壺身刻著一個風字。幫我找回來，這雙快靴送你，別笑我拿鞋換酒就行。',
+        ],
         [{ label: '替師兄找找', action: 'accept-wine', note: '支線：松風尋酒' }, leave],
       );
     case 'wo':
@@ -172,7 +212,7 @@ export function getDialogue(state: GameState, entity: MapEntity): Dialogue {
         '陳長悟',
         '全真派 · 師叔',
         [
-          '嗯，很好，很好。出門在外，行囊裡多備些藥，身上少帶些傲氣。',
+          '又要下山？先看看行囊，藥別用光了才想起我。上回有個弟子扛著斷劍回來，硬說只是擦傷。',
           '需要什麼便看看。身上穿著的最後一件裝備，我可不收。',
         ],
         [{ label: '買賣物品', action: 'shop' }, { label: '坐下調息', action: 'rest' }, leave],
@@ -181,7 +221,7 @@ export function getDialogue(state: GameState, entity: MapEntity): Dialogue {
       if (state.flags.includes('mercy')) {
         return dialogue('受傷的山賊', '山下 · 傷者', [
           '那夜有人把失神的旅人帶往後山。他身穿全真道袍，我只記得袖口有一道暗紅色紋路。',
-          '你的救命之恩，我記下了。我會勸兄弟們離開這條山路。',
+          '藥我收下了。兄弟們我來勸，這條山路讓你們過；那輛藥車的事，我知道的都會說。',
         ]);
       }
       if (state.quest !== 'bandits') {
@@ -196,7 +236,7 @@ export function getDialogue(state: GameState, entity: MapEntity): Dialogue {
         ],
         [
           { label: '替他療傷', action: 'mercy', note: '金創藥 ×1，和平處理山賊事件' },
-          { label: '我會親自問清楚', action: 'close', note: '仍可前往挑戰山賊頭目' },
+          { label: '我會親自問清楚', action: 'seek-bandits', note: '仍可前往挑戰山賊頭目' },
         ],
       );
     case 'bandits':
@@ -213,7 +253,7 @@ export function getDialogue(state: GameState, entity: MapEntity): Dialogue {
       return dialogue(
         '試招弟子',
         '全真派 · 演武場',
-        ['點到為止，請！蓄勢滿後會自動普攻。你可預約招式或防禦，按空白鍵暫停查看傷勢。'],
+        ['長卿師兄讓你來的？我重擊出手時收不快，你擋下來，再找機會還手。點到為止，別往死裡打啊。'],
         [{ label: '開始切磋', action: 'battle:trial' }, leave],
       );
     case 'patrol':
@@ -234,6 +274,20 @@ export function getDialogue(state: GameState, entity: MapEntity): Dialogue {
         ],
       );
     case 'boss':
+      if (state.defeated.includes('boss')) {
+        return dialogue(
+          '洪長恨',
+          '藏霧洞 · 戰後',
+          [
+            '我不再出手了。手札上的名字，是被我帶進洞裡的旅人。這些事，我得向他們的家人交代。',
+            state.flags.includes('mercy')
+              ? '你救了山下那個人，他才肯開口。我卻拿別人的命，賭她能不能回來。'
+              : '收手吧。禁術救不回靈姍，我卻還逼著那些旅人替我試。',
+            '帶上手札，回山吧。我會親口向師父交代，把我做過的事說清楚。',
+          ],
+          [{ label: '帶手札回山覆命', action: 'close' }],
+        );
+      }
       if (!state.defeated.includes('undead')) {
         return dialogue('洪長恨', '全真派 · 二師兄', [
           '傀儡仍守著通道。先處理身後的威脅，才能安心與他對質。',
@@ -295,11 +349,20 @@ export function getDialogue(state: GameState, entity: MapEntity): Dialogue {
             : [{ label: '打開木箱', action: `chest:${entity.id}` }, leave],
         );
       }
-      return dialogue(entity.name, '江湖', ['風過山林，且行且看。']);
+      return dialogue(entity.name, '江湖', ['這裡暫時沒有別的發現。']);
   }
 }
 
 export function applyStoryAction(state: GameState, action: string): StoryOutcome {
+  if (action.startsWith('chance:')) {
+    return resolveEncounter(state, action) ?? {};
+  }
+  if (action === 'study-martial' && studyMartialArt(state)) {
+    return {
+      martialTraining: true,
+      message: '師兄已傳授另一門武學。可在角色的武學頁切換，練習兵器已備入行囊。',
+    };
+  }
   if (action === 'close') {
     return {};
   }
@@ -313,7 +376,13 @@ export function applyStoryAction(state: GameState, action: string): StoryOutcome
   if (action.startsWith('battle:')) {
     return { battle: action.slice(7) };
   }
-  if (action === 'accept-trial' && state.quest === 'arrival') {
+  if (
+    (action === 'accept-trial' || action === 'accept-trial-revenge') &&
+    state.quest === 'arrival'
+  ) {
+    if (action === 'accept-trial-revenge') {
+      setFlag(state, 'revenge-vowed');
+    }
     state.quest = 'trial';
     return { message: '前往演武場，與試招弟子切磋。' };
   }
@@ -327,6 +396,10 @@ export function applyStoryAction(state: GameState, action: string): StoryOutcome
     state.inventory.tonic++;
     restore(state);
     return { message: '拜入全真，已穿戴門派裝備並獲得補給。' };
+  }
+  if (action === 'seek-bandits' && state.quest === 'bandits') {
+    setFlag(state, 'seek-bandits');
+    return {};
   }
   if (action === 'mercy' && state.quest === 'bandits') {
     if (!state.inventory.herb) {
@@ -347,9 +420,9 @@ export function applyStoryAction(state: GameState, action: string): StoryOutcome
   }
   if (action === 'finish' && state.quest === 'return') {
     state.quest = 'complete';
-    state.inventory.jade++;
-    state.gold += 50;
-    gainExperience(state, 60);
+    state.inventory.jade += CHAPTER_REWARD.jade;
+    state.gold += CHAPTER_REWARD.gold;
+    gainExperience(state, CHAPTER_REWARD.xp);
     restore(state);
     return { ending: true };
   }
@@ -379,9 +452,13 @@ export function applyStoryAction(state: GameState, action: string): StoryOutcome
   if (action === 'deliver-wine' && state.inventory.wine > 0 && setFlag(state, 'wine-done')) {
     state.inventory.wine--;
     state.inventory.tonic += 2;
+    state.inventory.swiftBoots++;
     state.gold += 20;
     gainExperience(state, 20);
-    return { message: '松風尋酒完成：養氣散 ×2、銀兩 +20、經驗 +20。' };
+    return {
+      message: '松風尋酒完成：輕身快靴 ×1、養氣散 ×2、銀兩 +20、經驗 +20。',
+      equipmentReward: 'swiftBoots',
+    };
   }
   if (action.startsWith('chest:')) {
     const id = action.slice(6);
@@ -395,7 +472,18 @@ export function applyStoryAction(state: GameState, action: string): StoryOutcome
     state.gold += 20;
     state.inventory.herb++;
     state.inventory.tonic++;
-    return { message: '木箱中找到 20 銀兩、金創藥 ×1、養氣散 ×1。' };
+    const equipmentReward = (
+      {
+        'forest-chest': 'strawHat',
+        'mountain-chest': 'guardPants',
+        'cave-chest': 'taoistCrown',
+      } as const
+    )[id as 'forest-chest' | 'mountain-chest' | 'cave-chest'];
+    state.inventory[equipmentReward]++;
+    return {
+      message: `木箱中找到${ITEMS[equipmentReward].name} ×1、20 銀兩、金創藥 ×1、養氣散 ×1。`,
+      equipmentReward,
+    };
   }
   return {};
 }

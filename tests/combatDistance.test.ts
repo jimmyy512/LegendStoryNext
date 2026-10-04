@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { Battle } from '../src/game/battle';
+import { BATTLE_LEFT, BATTLE_RIGHT, Battle } from '../src/game/battle';
 import { createGame } from '../src/game/state';
 
 function duel(): Battle {
@@ -10,6 +10,51 @@ function duel(): Battle {
 }
 
 describe('距離交鋒', () => {
+  it('持劍貼近牆邊雙敵時仍留出揮劍空間並能繼續交鋒', () => {
+    const battle = new Battle(createGame('演武', 'sword'), 'bandits', () => 0);
+    battle.playerPosition = BATTLE_RIGHT - 2;
+    battle.enemies[0].position = BATTLE_RIGHT - 1;
+    battle.enemies[1].position = BATTLE_RIGHT;
+    const hp = battle.enemies[0].hp;
+    battle.setDistance(1);
+    battle.paused = false;
+    for (let i = 0; i < 120 && !battle.result; i++) {
+      battle.update(0.05);
+    }
+    expect(battle.enemies[0].hp).toBeLessThan(hp);
+    expect(battle.player.hp).toBeLessThan(battle.stats.maxHp);
+  });
+
+  it('拳掌與雙手失能的腿法仍可貼近到一格', () => {
+    const fist = new Battle(createGame('演武', 'fist'), 'boss', () => 0);
+    fist.setDistance(1);
+    expect(fist.desiredDistance).toBe(1);
+    const sword = duel();
+    sword.player.body.leftArm = sword.player.body.rightArm = 0;
+    sword.setDistance(1);
+    expect(sword.desiredDistance).toBe(1);
+  });
+
+  it('玩家與敵人都停在戰場邊界內，持續拉開也不會走出美術範圍', () => {
+    const battle = duel();
+    battle.enemies[0].body.leftLeg = battle.enemies[0].body.rightLeg = 0;
+    battle.setDistance(10);
+    for (let i = 0; i < 40; i++) {
+      battle.update(0.5);
+    }
+    expect(battle.playerPosition).toBe(BATTLE_LEFT);
+    expect(battle.enemies[0].position).toBeLessThanOrEqual(BATTLE_RIGHT);
+
+    const retreatingEnemy = duel();
+    retreatingEnemy.holdingPosition = true;
+    retreatingEnemy.playerPosition = 18.1;
+    retreatingEnemy.enemies[0].position = 19.1;
+    for (let i = 0; i < 10; i++) {
+      retreatingEnemy.update(0.2);
+    }
+    expect(retreatingEnemy.enemies[0].position).toBe(BATTLE_RIGHT);
+  });
+
   it('雙方實際移動，選目標不重設任何人的位置', () => {
     const battle = new Battle(createGame('演武', 'fist'), 'bandits', () => 0);
     battle.paused = false;

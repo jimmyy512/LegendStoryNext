@@ -1,0 +1,212 @@
+{
+  "frames": {
+    "npc:master": {
+      "frame": {
+        "x": 112,
+        "y": 84,
+        "w": 193,
+        "h": 321
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 26,
+        "y": 0,
+        "w": 193,
+        "h": 321
+      },
+      "sourceSize": {
+        "w": 234,
+        "h": 321
+      }
+    },
+    "npc:master:gesture": {
+      "frame": {
+        "x": 86,
+        "y": 459,
+        "w": 234,
+        "h": 302
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 19,
+        "w": 234,
+        "h": 302
+      },
+      "sourceSize": {
+        "w": 234,
+        "h": 321
+      }
+    },
+    "npc:qing": {
+      "frame": {
+        "x": 498,
+        "y": 81,
+        "w": 215,
+        "h": 324
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 32,
+        "y": 0,
+        "w": 215,
+        "h": 324
+      },
+      "sourceSize": {
+        "w": 247,
+        "h": 324
+      }
+    },
+    "npc:qing:gesture": {
+      "frame": {
+        "x": 466,
+        "y": 459,
+        "w": 246,
+        "h": 302
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 22,
+        "w": 246,
+        "h": 302
+      },
+      "sourceSize": {
+        "w": 247,
+        "h": 324
+      }
+    },
+    "npc:yin": {
+      "frame": {
+        "x": 871,
+        "y": 100,
+        "w": 224,
+        "h": 305
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 12,
+        "y": 0,
+        "w": 224,
+        "h": 305
+      },
+      "sourceSize": {
+        "w": 263,
+        "h": 305
+      }
+    },
+    "npc:yin:gesture": {
+      "frame": {
+        "x": 859,
+        "y": 471,
+        "w": 263,
+        "h": 290
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 15,
+        "w": 263,
+        "h": 290
+      },
+      "sourceSize": {
+        "w": 263,
+        "h": 305
+      }
+    },
+    "npc:fong": {
+      "frame": {
+        "x": 1251,
+        "y": 81,
+        "w": 279,
+        "h": 324
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 11,
+        "y": 0,
+        "w": 279,
+        "h": 324
+      },
+      "sourceSize": {
+        "w": 290,
+        "h": 324
+      }
+    },
+    "npc:fong:gesture": {
+      "frame": {
+        "x": 1240,
+        "y": 453,
+        "w": 287,
+        "h": 308
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 16,
+        "w": 287,
+        "h": 308
+      },
+      "sourceSize": {
+        "w": 290,
+        "h": 324
+      }
+    },
+    "npc:wo": {
+      "frame": {
+        "x": 1696,
+        "y": 83,
+        "w": 198,
+        "h": 322
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 198,
+        "h": 322
+      },
+      "sourceSize": {
+        "w": 215,
+        "h": 322
+      }
+    },
+    "npc:wo:gesture": {
+      "frame": {
+        "x": 1697,
+        "y": 459,
+        "w": 214,
+        "h": 302
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 1,
+        "y": 20,
+        "w": 214,
+        "h": 302
+      },
+      "sourceSize": {
+        "w": 215,
+        "h": 322
+      }
+    }
+  },
+  "meta": {
+    "image": "ensemble-v2.png",
+    "scale": "1",
+    "size": {
+      "w": 1983,
+      "h": 793
+    }
+  }
+}

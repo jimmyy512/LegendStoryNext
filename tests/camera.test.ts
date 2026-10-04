@@ -1,8 +1,18 @@
 import { describe, expect, it } from 'vitest';
-import { cameraFrame } from '../src/render/camera';
+import { battleCameraY, cameraFrame } from '../src/render/camera';
 
 const scene = { width: 1152, height: 720 };
 describe('滿版取景', () => {
+  it.each([
+    [158, 332, 358 / 674],
+    [185, 524, 1.4],
+    [106, 100, 0.3],
+  ])('戰鬥縮放後美術覆蓋可玩區域：top=%i height=%i', (top, height, scale) => {
+    const art = { top: -130, bottom: 630 };
+    const y = battleCameraY(top, height, 385, scale, art);
+    expect(y + art.bottom * scale).toBeGreaterThanOrEqual(top + height - 0.001);
+    expect(y + art.top * scale).toBeLessThanOrEqual(top + 0.001);
+  });
   it.each([
     [844, 390],
     [568, 260],

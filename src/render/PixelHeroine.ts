@@ -1,5 +1,6 @@
 import { Physics, Spine, Skin, Vector2, type Bone } from '@esotericsoftware/spine-pixi-v8';
 import { Container } from 'pixi.js';
+import { createBody, PART_CAPACITY, type BodyPart, type BodyState } from '../game/body';
 
 export type PixelMotion = 'idle' | 'walk' | 'run' | 'jump' | 'down' | 'attack' | 'hurt';
 export type PixelWeapon = 'none' | 'sword' | 'saber' | 'spear' | 'fan' | 'darts' | 'knuckles';
@@ -51,6 +52,7 @@ interface WeaponProfile {
   duration: number;
   /** 右手失能時的攻擊，未指定則為 attack + L。 */
   leftAttack?: string;
+  rightAttack?: string;
   /** 長槍：左手以 IK 扶在槍桿上。 */
   twoHanded?: boolean;
 }
@@ -62,6 +64,7 @@ export const WEAPONS: Record<PixelWeapon, WeaponProfile> = {
     walk: 'walk',
     attack: 'palmBoth',
     leftAttack: 'palmL',
+    rightAttack: 'palmR',
     sided: false,
     duration: 1.6,
   },
@@ -117,6 +120,7 @@ export const WEAPONS: Record<PixelWeapon, WeaponProfile> = {
     walk: 'walk',
     attack: 'punchBoth',
     leftAttack: 'punchL',
+    rightAttack: 'punchR',
     sided: false,
     duration: 1.3,
   },
@@ -164,15 +168,31 @@ type Chain = {
 
 /** 分層素材、Skin 換裝、腳掌反解與獨立傷手覆蓋，不修改戰鬥規則。 */
 export class PixelHeroine extends Container {
+  /** Equipment previews keep material colors while retaining the actual injured pose. */
+  showInjuryTint = true;
   readonly actor: Spine;
   private currentAnimation = '';
   private injury: PixelInjury = 'healthy';
+  private body: BodyState = createBody();
   private look: PixelLook = { ...DEFAULT_LOOK };
   private motion: PixelMotion = 'idle';
+  private attackPart: BodyPart = 'chest';
+
+  setAttackPart(part: BodyPart): void {
+    this.attackPart = part;
+  }
   private poseTime = 0;
+  private footwork: { phase: number; strength: number; direction: number } | null = null;
+
+  /** Battle translation drives only the legs; weapon and torso keep their authored pose. */
+  setFootwork(phase: number, strength: number, direction: number): void {
+    this.footwork =
+      strength > 0.001 ? { phase, strength: Math.min(1, Math.max(0, strength)), direction } : null;
+  }
   private readonly legs: Record<'L' | 'R', Chain>;
   private readonly ankleHeight: number;
   private readonly braceArm: Chain;
+  private readonly rightArm: Chain;
 
   constructor(base: string) {
     super();
@@ -203,6 +223,7 @@ export class PixelHeroine extends Container {
       R: chain('thighR', 'calfR', 'footR'),
     };
     this.braceArm = chain('upperL', 'foreL', 'handL');
+    this.rightArm = chain('upperR', 'foreR', 'handR');
 
     // 靴底與腳踝的高度差：從靴子附件的底邊算出，讓鞋底剛好貼在原點。
     const boot = skeleton.data
@@ -247,9 +268,12 @@ export class PixelHeroine extends Container {
       .map((name) => name.slice(prefix.length));
   }
 
-  equip(look: PixelLook, injury: PixelInjury): void {
+  equip(look: PixelLook, injury: PixelInjury, body?: BodyState): void {
     this.look = { ...look, gear: { ...look.gear } };
     this.injury = injury;
+    this.body = body
+      ? { ...body }
+      : { ...createBody(), rightArm: injury === 'disabled' ? 0 : injury === 'hurt' ? 16 : 32 };
     const profile = WEAPONS[look.weapon];
     const hand = injury === 'disabled' ? 'L' : 'R';
     const names = [
@@ -260,7 +284,7 @@ export class PixelHeroine extends Container {
       `head/${look.hairColor}/${look.face}`,
       `hands/${profile.hands}`,
     ];
-    if (profile.item) {
+    if (profile.item && (this.body.leftArm > 0 || this.body.rightArm > 0)) {
       names.push(`weapon/${profile.item}/${hand}`);
     }
     for (const slot of GEAR_SLOTS) {
@@ -284,6 +308,7 @@ export class PixelHeroine extends Container {
   pose(motion: PixelMotion, time: number): void {
     this.motion = motion;
     const disabled = this.injury === 'disabled';
+    const leftDisabled = this.body.leftArm === 0;
     const profile = WEAPONS[this.look.weapon];
     const hand = disabled ? 'L' : 'R';
     const named = (name: string) => (profile.sided ? `${name}${hand}` : name);
@@ -293,7 +318,9 @@ export class PixelHeroine extends Container {
       motion === 'attack'
         ? disabled && profile.leftAttack
           ? profile.leftAttack
-          : named(profile.attack)
+          : leftDisabled && profile.rightAttack
+            ? profile.rightAttack
+            : named(profile.attack)
         : moving
           ? named(profile.walk.replace(/^walk/, motion))
           : named(profile.idle);
@@ -310,6 +337,9 @@ export class PixelHeroine extends Container {
       if (disabled) {
         this.actor.state.setAnimation(2, 'injuredR', false);
       }
+      if (leftDisabled) {
+        this.actor.state.setAnimation(3, 'injuredL', false);
+      }
       this.currentAnimation = key;
     }
     this.actor.skeleton.setupPoseBones();
@@ -321,29 +351,85 @@ export class PixelHeroine extends Container {
       hurt.trackTime = this.poseTime;
     }
     this.actor.update(0);
+    if (
+      motion === 'attack' &&
+      (this.look.weapon === 'sword' ||
+        this.look.weapon === 'knuckles' ||
+        this.look.weapon === 'none')
+    ) {
+      const contact =
+        this.look.weapon === 'sword' ? 0.59 : this.look.weapon === 'knuckles' ? 0.46 : 0.63;
+      const rise = Math.max(0, Math.min(1, this.poseTime / contact));
+      const recover = Math.max(0, Math.min(1, (this.poseTime - contact) / 0.45));
+      const weight = rise * rise * (3 - 2 * rise) * (1 - recover * recover * (3 - 2 * recover));
+      const angle = {
+        head: 35,
+        chest: 0,
+        abdomen: -16,
+        leftArm: -8,
+        rightArm: -8,
+        leftLeg: -48,
+        rightLeg: -48,
+      }[this.attackPart];
+      const side = profile.sided ? hand : leftDisabled ? 'R' : 'L';
+      if (this.body[side === 'L' ? 'leftArm' : 'rightArm'] > 0) {
+        this.actor.skeleton.findBone(`upper${side}`)!.pose.rotation += angle * weight;
+        this.actor.skeleton.updateWorldTransform(Physics.none);
+      }
+    }
+    if (this.crawling) {
+      this.crawlSupport();
+      this.actor.skeleton.updateWorldTransform(Physics.none);
+    }
     // 雙手持槍時左手扶在槍桿上；右手失能則單手持槍，不扶。
-    if (profile.twoHanded && !disabled) {
+    if (profile.twoHanded && !disabled && !leftDisabled) {
       this.brace();
       this.actor.skeleton.updateWorldTransform(Physics.none);
     }
     this.actor.y = 0;
-    for (const name of ['upperR', 'foreR', 'handR']) {
-      const slot = this.actor.skeleton.findSlot(name)!;
-      if (this.injury === 'hurt') {
-        slot.pose.color.set(1, 0.55, 0.5, 1);
-      } else if (disabled) {
-        slot.pose.color.set(0.55, 0.57, 0.62, 1);
-      } else {
-        slot.pose.color.set(1, 1, 1, 1);
+    const slots: [keyof BodyState, string[]][] = [
+      ['rightArm', ['upperR', 'foreR', 'handR']],
+      ['leftArm', ['upperL', 'foreL', 'handL']],
+      ['rightLeg', ['thighR', 'shinR', 'bootR']],
+      ['leftLeg', ['thighL', 'shinL', 'bootL']],
+    ];
+    for (const [part, names] of slots) {
+      for (const name of names) {
+        const slot = this.actor.skeleton.findSlot(name)!;
+        if (!this.showInjuryTint) {
+          slot.pose.color.set(1, 1, 1, 1);
+        } else if (this.body[part] > 0 && this.body[part] < PART_CAPACITY[part]) {
+          slot.pose.color.set(1, 0.55, 0.5, 1);
+        } else if (this.body[part] === 0) {
+          slot.pose.color.set(0.55, 0.57, 0.62, 1);
+        } else {
+          slot.pose.color.set(1, 1, 1, 1);
+        }
       }
     }
+  }
+
+  /** 受擊部位取目前姿態的骨架座標。 */
+  impactPoint(part: BodyPart): { x: number; y: number } {
+    const bones = {
+      head: ['head', 'head'],
+      chest: ['torso', 'head'],
+      abdomen: ['hip', 'torso'],
+      leftArm: ['foreL', 'handL'],
+      rightArm: ['foreR', 'handR'],
+      leftLeg: ['calfL', 'footL'],
+      rightLeg: ['calfR', 'footR'],
+    } as const;
+    const [a, b] = bones[part].map((name) => this.actor.skeleton.findBone(name)!.appliedPose);
+    return this.toLocal({ x: (a.worldX + b.worldX) / 2, y: (a.worldY + b.worldY) / 2 }, this.actor);
   }
 
   /** 出招特效起點：長槍取槍尖，其餘取持物手或出掌的掌心。 */
   actionOrigin(): { x: number; y: number } {
     const weapon = this.look.weapon;
     const side =
-      this.injury === 'disabled' || (this.motion === 'attack' && !WEAPONS[weapon].sided)
+      this.injury === 'disabled' ||
+      (this.body.leftArm > 0 && this.motion === 'attack' && !WEAPONS[weapon].sided)
         ? 'L'
         : 'R';
     const bone = weapon === 'spear' ? `tip${side}` : `palm${side}`;
@@ -359,7 +445,18 @@ export class PixelHeroine extends Container {
     hair.pose.y = hat ? y + UNDER_HAT.y : y;
     const hip = this.actor.skeleton.findBone('hip')!.pose;
     const t = this.poseTime;
-    const gait = this.motion === 'walk' ? WALK : this.motion === 'run' ? RUN : null;
+    const legCount = Number(this.body.leftLeg > 0) + Number(this.body.rightLeg > 0);
+    const injuredGait: Gait = { home: { L: 5, R: -5 }, stride: 7, lift: 3, contact: 0.75 };
+    const gait =
+      this.motion === 'walk' || this.motion === 'run'
+        ? legCount === 2
+          ? this.motion === 'walk'
+            ? WALK
+            : RUN
+          : legCount === 1
+            ? injuredGait
+            : null
+        : null;
     let phase = 0;
     let height = 0;
     let air = 0;
@@ -396,6 +493,14 @@ export class PixelHeroine extends Container {
     } else {
       hip.y -= CROUCH;
     }
+    const seated = legCount === 0 && this.motion !== 'down';
+    if (seated) {
+      hip.y = hip.y - 26;
+      hip.x = 0;
+      this.actor.skeleton.findBone('torso')!.pose.rotation -= this.crawling ? 32 : 12;
+    } else if (legCount === 1 && this.motion !== 'down') {
+      hip.y -= 5;
+    }
     // 披風隨步伐與呼吸輕擺，往後飄。
     const cape = this.actor.skeleton.findBone('cape')!.pose;
     cape.rotation =
@@ -430,6 +535,28 @@ export class PixelHeroine extends Container {
         x = STANCE[side] * 0.5 + (side === 'L' ? 3 : -1);
         y += height + JUMP.tuck * air;
       }
+      if (this.footwork && this.motion !== 'down' && this.motion !== 'jump' && legCount > 0) {
+        const { phase: travelPhase, strength, direction } = this.footwork;
+        const p = (travelPhase + (side === 'L' ? 0 : 0.5)) % 1;
+        const support = 0.6;
+        const stride = legCount === 2 ? 18 : 7;
+        let stepX: number;
+        let lift = 0;
+        if (p < support) {
+          stepX = stride * (1 - (2 * p) / support);
+        } else {
+          const swing = (p - support) / (1 - support);
+          stepX = -stride + 2 * stride * swing * swing * (3 - 2 * swing);
+          lift = Math.sin(swing * Math.PI) * (legCount === 2 ? 8 : 3);
+        }
+        x = lerp(x, STANCE[side] * 0.35 + stepX * direction, strength);
+        y = lerp(y, this.ankleHeight + lift, strength);
+      }
+      if (this.motion !== 'down' && this.body[side === 'L' ? 'leftLeg' : 'rightLeg'] === 0) {
+        // 傷腿拖在身後，不再執行蹬地／騰空循環。
+        x = seated ? (this.crawling ? (side === 'L' ? -27 : -16) : side === 'L' ? 39 : 25) : -13;
+        y = this.ankleHeight;
+      }
       const leg = this.legs[side];
       this.reach(leg, hip.x, hip.y, x, y);
       if (fall > 0) {
@@ -440,6 +567,34 @@ export class PixelHeroine extends Container {
         leg.calf.pose.rotation = calf;
         leg.foot.pose.rotation = -thigh - calf;
       }
+    }
+  }
+
+  private get crawling(): boolean {
+    return (
+      this.body.leftLeg === 0 &&
+      this.body.rightLeg === 0 &&
+      (this.body.leftArm > 0 || this.body.rightArm > 0) &&
+      (this.motion === 'run' || this.motion === 'walk')
+    );
+  }
+
+  private crawlSupport(): void {
+    const skeleton = this.actor.skeleton;
+    for (const side of ['L', 'R'] as const) {
+      const slot = skeleton.findSlot(`weapon${side}`)!;
+      slot.pose.attachment = null;
+      if (this.body[side === 'L' ? 'leftArm' : 'rightArm'] === 0) {
+        continue;
+      }
+      const chain = side === 'L' ? this.braceArm : this.rightArm;
+      const wave = Math.sin(this.poseTime * Math.PI * 2 + (side === 'L' ? 0 : Math.PI));
+      const point = skeleton
+        .findBone('torso')!
+        .appliedPose.worldToLocal(new Vector2(26 + wave * 5, -4));
+      const [a, b] = solve(chain, chain.thigh.pose.x, chain.thigh.pose.y, point.x, point.y, 'down');
+      chain.thigh.pose.rotation = ((a - chain.a1) * 180) / Math.PI;
+      chain.calf.pose.rotation = ((b - chain.a2) * 180) / Math.PI - chain.thigh.pose.rotation;
     }
   }
 
