@@ -374,6 +374,10 @@ export class BattleScene extends PixiScene {
           this.impactShake = Math.min(0.22, this.impactShake + 0.14);
         }
       }
+      if (e.kind === 'injury' && e.part === 'head' && typeof e.target === 'number') {
+        // Keep the authored recoil visible for the same duration as the head-wound stagger.
+        (this.fighters.get(e.target)?.node as PixelEnemy | undefined)?.playHurt(1);
+      }
       this.effects.show(e);
     }
   }

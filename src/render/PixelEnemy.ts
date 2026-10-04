@@ -201,9 +201,9 @@ export class PixelEnemy extends Container {
     }
   }
 
-  playHurt(): void {
+  playHurt(duration = 0.38): void {
     if (!this.defeated) {
-      this.start('hurt', 0.38);
+      this.start('hurt', duration);
     }
   }
 
