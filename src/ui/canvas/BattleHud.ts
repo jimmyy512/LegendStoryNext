@@ -413,7 +413,11 @@ export class BattleHud extends Container {
         ? '交鋒結束'
         : b.paused
           ? danger.warning
-            ? '先防禦，或拉開距離後再繼續'
+            ? danger.canRetreat
+              ? '先防禦，或拉開距離後再繼續'
+              : b.stamina >= 20 && b.guardCooldown === 0
+                ? '退不出射程，先防禦再繼續'
+                : '退不出射程，注意敵方出手'
             : hasStarted
               ? '已暫停'
               : '準備中'
@@ -421,7 +425,13 @@ export class BattleHud extends Container {
     );
     let advice = danger.warning
       ? b.paused
-        ? `${danger.warning.replace(/！拉開或防禦$/, '')}！點「立即防禦」減傷，或先「拉開距離」再繼續`
+        ? danger.canRetreat
+          ? b.stamina >= 20 && b.guardCooldown === 0
+            ? '敵方即將命中！點「立即防禦」減傷，或先「拉開距離」再繼續'
+            : '敵方即將命中！腳力不足以防禦，先「拉開距離」再繼續'
+          : b.stamina >= 20 && b.guardCooldown === 0
+            ? '敵方即將命中！退不出射程，點「立即防禦」減傷'
+            : '敵方即將命中！退不出射程，腳力不足以防禦'
         : danger.warning
       : b.paused
         ? hasStarted
