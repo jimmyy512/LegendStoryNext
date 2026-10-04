@@ -7,8 +7,8 @@ export class NotificationQueue {
   readonly exit = 0.25;
   hold = 3.2;
 
-  enqueue(message: string): void {
-    if (message === this.current || message === this.pending.at(-1)) {
+  enqueue(message: string, coalesce = false): void {
+    if (coalesce && (message === this.current || message === this.pending.at(-1))) {
       return;
     }
     this.pending.push(message);

@@ -4,6 +4,7 @@ import { createGame } from '../src/game/state';
 import { getDialogue, isEntityVisible } from '../src/game/story';
 import { decodeSave, encodeSave } from '../src/game/save';
 import { GameSession } from '../src/game/GameSession';
+import { entityPresentation } from '../src/game/entityPresentation';
 
 describe('路線對話', () => {
   it('復仇之誓沿用入門流程，讀檔保留選擇並改變師父的囑咐', () => {
@@ -57,6 +58,9 @@ describe('路線對話', () => {
     const entity = MAPS.cave.entities.find((entry) => entry.id === 'boss')!;
     const dialogue = getDialogue(state, entity);
     expect(dialogue.role).toBe('藏霧洞 · 戰後');
+    expect(isEntityVisible(state, entity)).toBe(true);
+    expect(entityPresentation(state, entity).action).toBe('交談');
+    expect(isEntityVisible({ ...state, quest: 'complete' }, entity)).toBe(false);
     expect(dialogue.lines).toHaveLength(3);
     expect(dialogue.choices).toEqual([{ label: '帶手札回山覆命', action: 'close' }]);
     const snapshot = structuredClone(state);

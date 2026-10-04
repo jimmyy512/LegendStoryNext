@@ -19,13 +19,15 @@ describe('消息提示佇列', () => {
   });
   it('重複的不可通行提示不延長停留，也不塞滿等待佇列', () => {
     const queue = new NotificationQueue();
-    queue.enqueue('前路不通');
+    queue.enqueue('前路不通', true);
     queue.update(1);
-    queue.enqueue('前路不通');
+    queue.enqueue('前路不通', true);
     expect(queue.elapsed).toBe(1);
     queue.enqueue('獲得銀兩');
     queue.enqueue('獲得銀兩');
     queue.update(3);
+    expect(queue.current).toBe('獲得銀兩');
+    queue.update(4);
     expect(queue.current).toBe('獲得銀兩');
     queue.update(4);
     expect(queue.current).toBeNull();

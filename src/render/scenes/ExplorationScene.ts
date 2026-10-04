@@ -140,7 +140,12 @@ export class ExplorationScene extends PixiScene {
     node.zIndex = node.y;
     if (entity.kind === 'enemy' && entity.encounter) {
       const id = ENCOUNTERS[entity.encounter].enemies[0];
-      const actor = new PixelWorldActor('enemy', id, id === 'boss' ? 0.065 : 0.05);
+      const actor = new PixelWorldActor(
+        'enemy',
+        id,
+        id === 'boss' ? 0.065 : 0.05,
+        entity.id === 'boss' && state.defeated.includes('boss'),
+      );
       this.worldActors.push(actor);
       node.addChild(actor);
     } else if (entity.kind === 'npc') {

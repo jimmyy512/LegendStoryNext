@@ -113,11 +113,13 @@ async function boot(): Promise<void> {
       : worldPreview
         ? 'forest'
         : undefined,
-    worldPreview && params.get('condition') === 'immobile'
-      ? 'immobile'
-      : worldPreview && params.get('condition') === 'injured'
-        ? 'injured'
-        : undefined,
+    worldPreview && params.get('condition') === 'aftermath'
+      ? 'aftermath'
+      : worldPreview && params.get('condition') === 'immobile'
+        ? 'immobile'
+        : worldPreview && params.get('condition') === 'injured'
+          ? 'injured'
+          : undefined,
     worldPreview && params.get('kit') === 'equipment',
   );
   import.meta.hot?.dispose(() => game.dispose());

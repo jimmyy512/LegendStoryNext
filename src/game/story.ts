@@ -30,6 +30,9 @@ export interface StoryOutcome {
 const leave: Choice = { label: '告辭', action: 'close' };
 
 export function isEntityVisible(state: GameState, entity: MapEntity): boolean {
+  if (entity.id === 'boss') {
+    return state.quest === 'boss' || (state.quest === 'return' && state.defeated.includes('boss'));
+  }
   if (entity.kind === 'enemy' && state.defeated.includes(entity.encounter!)) {
     return false;
   }
@@ -38,9 +41,6 @@ export function isEntityVisible(state: GameState, entity: MapEntity): boolean {
   }
   if (entity.id === 'bandits') {
     return state.quest === 'bandits';
-  }
-  if (entity.id === 'boss') {
-    return state.quest === 'boss';
   }
   if (entity.id === 'flower') {
     return !state.flags.includes('flower-picked');

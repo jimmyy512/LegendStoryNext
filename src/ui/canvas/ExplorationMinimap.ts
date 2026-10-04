@@ -58,7 +58,8 @@ export class ExplorationMinimap extends Container {
       } else if (exit) {
         g.rect(-5, -5, 10, 10).fill(0xe8c983).stroke({ color: 0x182b26, width: 2 });
       } else {
-        g.circle(0, 0, 2.5).fill(entity.kind === 'enemy' ? 0xe9967e : 0xc7d3bd);
+        const hostile = entity.kind === 'enemy' && !state.defeated.includes(entity.encounter!);
+        g.circle(0, 0, 2.5).fill(hostile ? 0xe9967e : 0xc7d3bd);
       }
       pin.addChild(g);
       if (exit || tracked || chance) {

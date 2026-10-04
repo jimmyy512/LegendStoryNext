@@ -135,7 +135,7 @@ export class GameApplication {
   async init(
     preview?: { route: Route; encounter: string; map: GameState['map']; injured?: boolean },
     worldPreview?: GameState['map'],
-    previewCondition?: 'injured' | 'immobile',
+    previewCondition?: 'injured' | 'immobile' | 'aftermath',
     previewEquipment = false,
   ): Promise<void> {
     this.combatPreview = !!preview || !!worldPreview;
@@ -156,7 +156,7 @@ export class GameApplication {
     } else if (worldPreview) {
       const state = previewEquipment ? createCombatPreview('sword') : createGame('無名', 'sword');
       state.map = worldPreview;
-      if (previewCondition) {
+      if (previewCondition === 'injured' || previewCondition === 'immobile') {
         state.body.head = 33;
         state.body.leftLeg = 0;
         state.body.rightArm = 0;
@@ -174,6 +174,14 @@ export class GameApplication {
             : worldPreview === 'cave'
               ? { x: 3, y: 12 }
               : state.position;
+      if (previewCondition === 'aftermath') {
+        // Isolated world preview fixture; its saves remain in temporary storage.
+        state.quest = 'return';
+        state.defeated = ['trial', 'undead', 'boss'];
+        state.flags.push('mercy', 'revenge-vowed');
+        state.inventory.journal = 1;
+        state.position = { x: 13, y: 5 };
+      }
       await this.start(state);
     } else {
       await this.start(createGame('無名', 'sword'), true);
@@ -308,6 +316,8 @@ export class GameApplication {
     if (outcome.message) {
       this.notice = outcome.message;
       this.toast(outcome.message);
+    } else if (outcome.ending) {
+      this.notice = '第一章已完成。可繼續探索全真派、後山與松風林。';
     }
     this.world.showMap(this.state);
     this.world.setEnabled(true);

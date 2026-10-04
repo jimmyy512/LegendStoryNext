@@ -53,10 +53,14 @@ export class GameView {
   private messageWidth = 0;
   private messageHeight = 0;
   private reducedMotion = false;
+  private dialogueOpen = false;
 
   updateNotifications(seconds: number, reducedMotion: boolean): void {
     this.reducedMotion = reducedMotion;
-    this.notifications.update(seconds);
+    this.messages.visible = !this.dialogueOpen;
+    if (!this.dialogueOpen) {
+      this.notifications.update(seconds);
+    }
     if (this.notificationDrawn !== this.notifications.current) {
       this.notificationDrawn = this.notifications.current;
       clear(this.messages);
@@ -99,11 +103,15 @@ export class GameView {
     return this.panels.dialogueStageHeight;
   }
   openPanel(panel: GamePanel): void {
+    this.dialogueOpen = panel.layout === 'dialogue';
+    this.messages.visible = !this.dialogueOpen;
     this.hud.accessibleChildren = false;
     this.hud.visible = panel.layout !== 'dialogue';
     this.panels.show(panel);
   }
   closePanel(): void {
+    this.dialogueOpen = false;
+    this.messages.visible = true;
     this.panels.hide();
     this.hud.visible = true;
     this.hud.accessibleChildren = true;
@@ -520,7 +528,8 @@ export class GameView {
   }
 
   toast(message: string): void {
-    this.notifications.enqueue(message);
+    const repeatedNavigationWarning = /無法通行|無法抵達/.test(message);
+    this.notifications.enqueue(message, repeatedNavigationWarning);
     this.updateNotifications(0, this.reducedMotion);
   }
 
