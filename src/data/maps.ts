@@ -47,6 +47,7 @@ export const MAPS: Record<MapId, MapDefinition> = {
         spawn: { x: 2, y: 7 },
       },
       { id: 'wounded', name: '受傷的山賊', kind: 'npc', x: 9, y: 6, color: 0xb8886b },
+      { id: 'wild-forest', name: '林間遊匪', kind: 'enemy', x: 19, y: 8, encounter: 'wild-forest' },
       {
         id: 'bandits',
         name: '山賊頭目',
@@ -84,6 +85,7 @@ export const MAPS: Record<MapId, MapDefinition> = {
     ],
   },
   temple: {
+    settlement: true,
     id: 'temple',
     name: '全真派',
     subtitle: '青瓦藏雲 · 問道修心',
@@ -159,7 +161,15 @@ export const MAPS: Record<MapId, MapDefinition> = {
       { id: 'master', name: '上真道長', kind: 'npc', x: 12, y: 6, color: 0xc4b996 },
       { id: 'yin', name: '蘇長胤', kind: 'npc', x: 4, y: 7, color: 0x809a7c },
       { id: 'fong', name: '王長風', kind: 'npc', x: 14, y: 8, color: 0xc08b60 },
-      { id: 'wo', name: '陳長悟', kind: 'npc', x: 16, y: 7, color: 0x8e859d },
+      {
+        id: 'wo',
+        name: '陳長悟 · 雜貨商',
+        kind: 'npc',
+        x: 16,
+        y: 7,
+        color: 0x8e859d,
+        merchant: true,
+      },
       {
         id: 'trial',
         name: '試招弟子',
@@ -244,6 +254,14 @@ export const MAPS: Record<MapId, MapDefinition> = {
       { id: 'flower', name: '山間青蘭', kind: 'herb', x: 4, y: 4 },
       { id: 'mountain-chest', name: '石旁木箱', kind: 'chest', x: 14, y: 11 },
       { id: 'chance-suyin', name: '石徑樂師', kind: 'npc', x: 10, y: 9 },
+      {
+        id: 'wild-mountain',
+        name: '山道遊匪',
+        kind: 'enemy',
+        x: 15,
+        y: 9,
+        encounter: 'wild-mountain',
+      },
     ],
   },
   cave: {
@@ -307,6 +325,7 @@ export const MAPS: Record<MapId, MapDefinition> = {
         spawn: { x: 20, y: 4 },
       },
       { id: 'journal', name: '殘缺手札', kind: 'clue', x: 7, y: 7 },
+      { id: 'wild-cave', name: '洞中遊魂', kind: 'enemy', x: 6, y: 8, encounter: 'wild-cave' },
       {
         id: 'undead',
         name: '失心傀儡',

@@ -56,6 +56,12 @@ const schema = z
     defeated: z.array(z.enum(['trial', 'bandits', 'patrol', 'undead', 'boss'])).max(5),
     opened: z.array(z.enum(['forest-chest', 'mountain-chest', 'cave-chest'])).max(3),
     playSeconds: integer,
+    wildlife: z
+      .partialRecord(
+        z.enum(['wild-forest', 'wild-mountain', 'wild-cave']),
+        z.object({ readyAt: integer, cycle: integer }).strict(),
+      )
+      .optional(),
   })
   .strict();
 

@@ -21,7 +21,7 @@ export class ExplorationMinimap extends Container {
     this.cell = (width - 20) / COLS;
     const height = this.cell * ROWS;
     const inset = showTitle ? 30 : 8;
-    this.addChild(surface(width, height + inset + 33));
+    this.addChild(surface(width, height + inset + 46));
     const title = label(MAPS[state.map].name, { size: 14, color: 0xe8c983 });
     title.position.set(10, 5);
     if (showTitle) {
@@ -55,6 +55,8 @@ export class ExplorationMinimap extends Container {
       const g = new Graphics();
       if (tracked) {
         g.poly([0, -8, 8, 0, 0, 8, -8, 0]).fill(0xffd879).stroke({ color: 0x1a251e, width: 2 });
+      } else if (entity.merchant) {
+        g.circle(0, 0, 5).fill(0xe8c983).rect(-1.5, -1.5, 3, 3).fill(0x182b26);
       } else if (exit) {
         g.rect(-5, -5, 10, 10).fill(0xe8c983).stroke({ color: 0x182b26, width: 2 });
       } else {
@@ -62,12 +64,12 @@ export class ExplorationMinimap extends Container {
         g.circle(0, 0, 2.5).fill(hostile ? 0xe9967e : 0xc7d3bd);
       }
       pin.addChild(g);
-      if (exit || tracked || chance) {
+      if (exit || tracked || chance || entity.merchant || entity.encounter?.startsWith('wild-')) {
         pin.eventMode = 'static';
         pin.cursor = 'pointer';
         pin.hitArea = new Rectangle(-12, -12, 24, 24);
         pin.accessible = true;
-        pin.accessibleTitle = `小地圖：${tracked ? '任務目標，' : chance ? '奇遇，' : '出口，'}${entityPresentation(state, entity).name}`;
+        pin.accessibleTitle = `小地圖：${tracked ? '任務目標，' : entity.merchant ? '商人，' : entity.kind === 'enemy' ? '野怪，' : chance ? '奇遇，' : '出口，'}${entityPresentation(state, entity).name}`;
         pin.on('pointertap', (event) => {
           event.stopPropagation();
           press(`entity:${entity.id}`);
@@ -79,7 +81,7 @@ export class ExplorationMinimap extends Container {
     this.player.eventMode = 'none';
     map.addChild(this.player);
     this.setPosition(state.position);
-    const legend = label('青點：你　金菱：任務　金方：出口', {
+    const legend = label('青點 你　金菱 任務　金方 出口\n金錢 商人　紅點 敵人', {
       size: 11,
       width: width - 16,
       color: 0xd2d9c4,

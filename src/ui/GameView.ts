@@ -21,6 +21,7 @@ import { nextObjective, objectiveLabel, type ObjectiveKind } from '../game/objec
 import type { GameState } from '../game/types';
 import type { GamePanel } from './canvas/model';
 import { BattleHud } from './canvas/BattleHud';
+import { defeatScreen } from './canvas/DefeatScreen';
 import { ExplorationMinimap } from './canvas/ExplorationMinimap';
 import type { Point } from '../game/types';
 import { CanvasLoading } from './canvas/CanvasLoading';
@@ -54,9 +55,46 @@ export class GameView {
   private messageHeight = 0;
   private reducedMotion = false;
   private dialogueOpen = false;
+  private defeat = new Container();
+  private defeatModel: { checkpoint: string; available: boolean } | null = null;
+  private defeatElapsed = 0;
+
+  showDefeat(checkpoint: string, available: boolean): void {
+    this.defeatModel = { checkpoint, available };
+    this.defeatElapsed = 0;
+    this.drawDefeat();
+    this.hud.accessibleChildren = false;
+  }
+
+  clearDefeat(): void {
+    this.defeatModel = null;
+    clear(this.defeat);
+    this.hud.accessibleChildren = true;
+  }
+
+  private drawDefeat(): void {
+    clear(this.defeat);
+    if (!this.defeatModel) {
+      return;
+    }
+    this.defeat.addChild(
+      defeatScreen(
+        this.width,
+        this.height,
+        this.defeatModel.checkpoint,
+        this.defeatModel.available,
+        this.press,
+      ),
+    );
+    this.defeat.alpha = this.reducedMotion ? 1 : Math.min(1, this.defeatElapsed / 0.55);
+  }
 
   updateNotifications(seconds: number, reducedMotion: boolean): void {
     this.reducedMotion = reducedMotion;
+    if (this.defeatModel) {
+      this.defeatElapsed += seconds;
+      this.defeat.alpha = reducedMotion ? 1 : Math.min(1, this.defeatElapsed / 0.55);
+    }
     this.messages.visible = !this.dialogueOpen;
     if (!this.dialogueOpen) {
       this.notifications.update(seconds);
@@ -92,7 +130,7 @@ export class GameView {
     private readonly press: (action: string) => void,
   ) {
     this.panels = new PanelOverlay(press);
-    root.addChild(this.hud, this.panels.root, this.messages);
+    root.addChild(this.hud, this.panels.root, this.messages, this.defeat);
     this.loading = new CanvasLoading(root);
   }
 
@@ -123,6 +161,7 @@ export class GameView {
     this.draw();
     this.panels.resize(width, height);
     this.loading.resize(width, height);
+    this.drawDefeat();
     clear(this.messages);
     this.notificationDrawn = null;
   }

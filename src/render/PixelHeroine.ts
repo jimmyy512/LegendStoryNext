@@ -153,7 +153,7 @@ const RUN: Gait = { home: { L: 1, R: -5 }, stride: 18, lift: 13, contact: 0.34 }
 // 跳躍：蹲低到 JUMP.takeoff 起跳，JUMP.land 落地，最高 JUMP.height 像素；空中雙腳往上收 JUMP.tuck 像素。
 const JUMP = { takeoff: 0.18, land: 0.72, height: 38, tuck: 12, settle: 0.18 };
 // 倒地：向後轉倒躺平，身體往右挪讓整個人留在原位附近，並抬高到背貼地。
-const DOWN = { start: 0.12, fall: 0.45, angle: 90, shift: 55, lift: 22 };
+const DOWN = { start: 0.28, fall: 0.5, angle: 90, shift: 55, lift: 16 };
 
 /** 雙骨鏈：上段、下段與末端骨，以及兩段在設定姿勢下的長度與方向。 */
 type Chain = {
@@ -182,6 +182,7 @@ export class PixelHeroine extends Container {
     this.attackPart = part;
   }
   private poseTime = 0;
+  private downFrom = new Map<string, number>();
   private footwork: { phase: number; strength: number; direction: number } | null = null;
 
   /** Battle translation drives only the legs; weapon and torso keep their authored pose. */
@@ -233,7 +234,17 @@ export class PixelHeroine extends Container {
       height: number;
     } | null;
     this.ankleHeight = boot ? boot.height / 2 - boot.y : 13;
-    this.actor.beforeUpdateWorldTransforms = () => this.plantLegs();
+    this.actor.beforeUpdateWorldTransforms = () => {
+      this.plantLegs();
+      if (this.motion === 'down' && this.poseTime < 0.12) {
+        const blend = Math.min(1, this.poseTime / 0.12);
+        for (const [name, rotation] of this.downFrom) {
+          const pose = this.actor.skeleton.findBone(name)!.pose;
+          const delta = ((pose.rotation - rotation + 540) % 360) - 180;
+          pose.rotation = rotation + delta * blend;
+        }
+      }
+    };
     this.equip(DEFAULT_LOOK, 'healthy');
   }
 
@@ -306,6 +317,21 @@ export class PixelHeroine extends Container {
   }
 
   pose(motion: PixelMotion, time: number): void {
+    if (motion === 'down' && this.motion !== 'down') {
+      this.downFrom.clear();
+      for (const name of [
+        'torso',
+        'head',
+        'upperL',
+        'foreL',
+        'handL',
+        'upperR',
+        'foreR',
+        'handR',
+      ]) {
+        this.downFrom.set(name, this.actor.skeleton.findBone(name)!.pose.rotation);
+      }
+    }
     this.motion = motion;
     const disabled = this.injury === 'disabled';
     const leftDisabled = this.body.leftArm === 0;
@@ -382,7 +408,7 @@ export class PixelHeroine extends Container {
       this.actor.skeleton.updateWorldTransform(Physics.none);
     }
     // 雙手持槍時左手扶在槍桿上；右手失能則單手持槍，不扶。
-    if (profile.twoHanded && !disabled && !leftDisabled) {
+    if (profile.twoHanded && !disabled && !leftDisabled && motion !== 'down') {
       this.brace();
       this.actor.skeleton.updateWorldTransform(Physics.none);
     }
@@ -482,12 +508,11 @@ export class PixelHeroine extends Container {
       const s = Math.min(1, Math.max(0, (t - DOWN.start) / DOWN.fall));
       fall = s * s * (3 - 2 * s);
       // 中招先往後退半步，倒下後在地上彈一下。
-      hip.x -= 3 * Math.min(1, t / DOWN.start);
-      hip.y -= CROUCH * (1 - fall);
-      const land = DOWN.start + DOWN.fall;
-      const bounce = t > land && t < land + 0.2 ? Math.sin(((t - land) / 0.2) * Math.PI) * 4 : 0;
+      const buckle = Math.min(1, t / DOWN.start);
+      hip.x -= 6 * buckle;
+      hip.y -= CROUCH + 23 * buckle * (1 - fall);
       const root = this.actor.skeleton.getRootBone()!.pose;
-      root.rotation = DOWN.angle * fall - bounce;
+      root.rotation = DOWN.angle * fall;
       root.x = DOWN.shift * fall;
       root.y = DOWN.lift * fall;
     } else {
@@ -558,14 +583,17 @@ export class PixelHeroine extends Container {
         y = this.ankleHeight;
       }
       const leg = this.legs[side];
+      if (fall > 0) {
+        const root = this.actor.skeleton.getRootBone()!.pose;
+        const angle = (root.rotation * Math.PI) / 180;
+        const floorX = lerp(STANCE[side], side === 'L' ? 78 : 87, fall);
+        const floorY = this.ankleHeight;
+        x = (floorX - root.x) * Math.cos(angle) + (floorY - root.y) * Math.sin(angle);
+        y = -(floorX - root.x) * Math.sin(angle) + (floorY - root.y) * Math.cos(angle);
+      }
       this.reach(leg, hip.x, hip.y, x, y);
       if (fall > 0) {
-        // 倒地後雙腿不再貼地，逐漸彎成仰躺時膝蓋朝上的姿勢，靴子跟著身體方向。
-        const thigh = lerp(leg.thigh.pose.rotation, side === 'L' ? 38 : 22, fall);
-        const calf = lerp(leg.calf.pose.rotation, side === 'L' ? -70 : -40, fall);
-        leg.thigh.pose.rotation = thigh;
-        leg.calf.pose.rotation = calf;
-        leg.foot.pose.rotation = -thigh - calf;
+        leg.foot.pose.rotation -= this.actor.skeleton.getRootBone()!.pose.rotation;
       }
     }
   }

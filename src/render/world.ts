@@ -97,8 +97,8 @@ export class World {
     this.exploration?.setDialogueActive(false);
   }
 
-  setHeroState(state: GameState): void {
-    this.exploration?.setHeroState(state);
+  setHeroState(state: GameState): boolean {
+    return this.exploration?.setHeroState(state) ?? false;
   }
 
   navigate(entity: MapEntity): void {

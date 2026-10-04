@@ -55,7 +55,7 @@ export class PixelBattleHero extends Container {
     this.heroine.showInjuryTint = options.showInjuryTint ?? true;
     this.addChild(this.heroine);
     this.setState(state);
-    this.heroine.pose('idle', 0);
+    this.heroine.pose(this.motion, 0);
   }
 
   setState(state: GameState): void {
@@ -92,6 +92,8 @@ export class PixelBattleHero extends Container {
     }
     if (state.hp <= 0 && !this.defeated) {
       this.defeated = true;
+      this.preparing = false;
+      this.moving = false;
       this.start('down', motionDuration('down', this.look.weapon));
     }
   }
@@ -136,6 +138,9 @@ export class PixelBattleHero extends Container {
   }
 
   playGuard(): void {
+    if (this.defeated) {
+      return;
+    }
     this.preparing = false;
     this.actionRemaining = 0;
     this.motion = 'idle';

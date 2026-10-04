@@ -61,6 +61,7 @@ export interface GameState {
   defeated: string[];
   opened: string[];
   playSeconds: number;
+  wildlife?: Record<string, { readyAt: number; cycle: number }>;
 }
 export interface ItemDefinition {
   name: string;
@@ -83,8 +84,10 @@ export interface MapEntity extends Point {
   spawn?: Point;
   encounter?: string;
   art?: string;
+  merchant?: boolean;
 }
 export interface MapDefinition {
+  settlement?: boolean;
   id: MapId;
   name: string;
   subtitle: string;

@@ -5,6 +5,8 @@ import type { GameState, MapEntity, ItemId } from './types';
 import { canStudyMartialArt, studyMartialArt } from './martialTraining';
 import { encounterDialogue, resolveEncounter } from './chanceEncounters';
 import { chapterOneDialogue, type DialogueBeat } from './chapterOneDialogue';
+import { WILDLIFE, wildlifeReady, wildlifeCycle } from './wildlife';
+import { canReceiveItem } from './inventory';
 
 export interface Choice {
   label: string;
@@ -30,6 +32,9 @@ export interface StoryOutcome {
 const leave: Choice = { label: '告辭', action: 'close' };
 
 export function isEntityVisible(state: GameState, entity: MapEntity): boolean {
+  if (entity.encounter && WILDLIFE[entity.encounter]) {
+    return wildlifeReady(state, entity.encounter);
+  }
   if (entity.id === 'boss') {
     return state.quest === 'boss' || (state.quest === 'return' && state.defeated.includes('boss'));
   }
@@ -55,6 +60,38 @@ export function isEntityVisible(state: GameState, entity: MapEntity): boolean {
 }
 
 export function getDialogue(state: GameState, entity: MapEntity): Dialogue {
+  if (entity.encounter && WILDLIFE[entity.encounter]) {
+    const wild = WILDLIFE[entity.encounter];
+    return {
+      speaker: entity.name,
+      role: '野外練功',
+      lines: [
+        entity.encounter === 'wild-cave'
+          ? '洞裡又傳來拖行的腳步聲。要過去查探嗎？'
+          : '前方有人攔路。要過去練練身手嗎？',
+        `勝利可得修為，有機會拾得銀兩或裝備。此處每 ${wild.seconds / 60} 分鐘重新出現敵人。`,
+        '行囊裝滿時，拾得裝備會按店鋪收購價折成銀兩。',
+      ],
+      choices: wildlifeReady(state, entity.encounter)
+        ? [{ label: '上前迎戰', action: `battle:${entity.encounter}` }, leave]
+        : [leave],
+    };
+  }
+  if (entity.merchant) {
+    return {
+      speaker: entity.name,
+      role: '雜貨商 · 買賣與補給',
+      lines: [
+        '藥品、兵器和衣物都在這兒。用不上的裝備也可以賣給我。',
+        '你身上穿的最後一件，我不收。要換裝，先把替換的穿好。',
+      ],
+      choices: [
+        { label: '買賣物品', action: 'shop' },
+        { label: '坐下調息', action: 'rest' },
+        leave,
+      ],
+    };
+  }
   const chance = encounterDialogue(state, entity.id);
   if (chance) {
     return chance;
@@ -496,7 +533,13 @@ export function settleBattle(state: GameState, battle: Battle): string {
     restore(state);
     return '你退回安全處調息。此次戰鬥的消耗已復原，可重新挑戰或回門派整備。';
   }
-  if (battle.result === 'victory' && state.defeated.includes(battle.encounterId)) {
+  const wild = WILDLIFE[battle.encounterId];
+  if (
+    battle.result === 'victory' &&
+    (wild
+      ? wildlifeCycle(state, battle.encounterId) !== battle.wildCycle
+      : state.defeated.includes(battle.encounterId))
+  ) {
     return '這場戰鬥的獎勵已領取。';
   }
   state.hp = battle.player.hp;
@@ -506,7 +549,27 @@ export function settleBattle(state: GameState, battle: Battle): string {
   if (battle.result === 'escaped') {
     return '已撤離戰鬥，保留目前生命、內力與道具消耗。';
   }
-  state.defeated.push(battle.encounterId);
+  if (wild) {
+    state.wildlife ??= {};
+    state.wildlife[battle.encounterId] = {
+      readyAt: Math.min(999999, state.playSeconds + wild.seconds),
+      cycle: battle.wildCycle + 1,
+    };
+  } else {
+    state.defeated.push(battle.encounterId);
+  }
+  let dropMessage = '';
+  if (battle.equipmentDrop) {
+    const id = battle.equipmentDrop;
+    if (canReceiveItem(state, id)) {
+      state.inventory[id]++;
+      dropMessage = `拾得${ITEMS[id].name} ×1。`;
+    } else {
+      const value = Math.floor(ITEMS[id].price / 2);
+      state.gold += value;
+      dropMessage = `行囊已滿，${ITEMS[id].name}折為 ${value} 銀兩。`;
+    }
+  }
   state.gold += battle.reward.gold;
   const levels = gainExperience(state, battle.reward.xp);
   if (battle.encounterId === 'trial' && state.quest === 'trial') {
@@ -520,5 +583,5 @@ export function settleBattle(state: GameState, battle: Battle): string {
   if (battle.encounterId === 'boss' && state.quest === 'boss') {
     state.quest = 'return';
   }
-  return `獲得 ${battle.reward.gold} 銀兩、${battle.reward.xp} 經驗。${levels ? `提升 ${levels} 級，生命與內力已恢復。` : ''}${battle.encounterId === 'boss' ? '長恨放下雙手，答應回山面對往事。' : ''}`;
+  return `獲得 ${battle.reward.gold} 銀兩、${battle.reward.xp} 經驗。${dropMessage}${levels ? `提升 ${levels} 級，生命與內力已恢復。` : ''}${battle.encounterId === 'boss' ? '長恨放下雙手，答應回山面對往事。' : ''}`;
 }

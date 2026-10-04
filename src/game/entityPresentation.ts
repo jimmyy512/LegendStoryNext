@@ -3,6 +3,9 @@ import { FIRST_COMPANIONS, companionMeeting, companionProgress } from './chanceE
 
 /** 地圖名稱與附近清單共用已探索狀態，避免把空箱當作新獎勵。 */
 export function entityPresentation(state: GameState, entity: MapEntity) {
+  if (entity.merchant) {
+    return { name: entity.name, spent: false, action: '買賣／調息' };
+  }
   if (entity.id === 'boss' && state.defeated.includes('boss')) {
     return { name: `${entity.name} · 戰後`, spent: false, action: '交談' };
   }

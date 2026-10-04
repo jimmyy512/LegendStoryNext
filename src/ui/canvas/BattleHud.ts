@@ -313,6 +313,11 @@ export class BattleHud extends Container {
   }
 
   update(b: Battle): void {
+    if (b.result === 'defeat') {
+      this.visible = false;
+      this.accessibleChildren = false;
+      return;
+    }
     if (this.outcome) {
       return;
     }
@@ -454,9 +459,7 @@ export class BattleHud extends Container {
       advice =
         b.result === 'victory'
           ? `獲勝 · 銀兩 +${b.reward.gold} · 修為 +${b.reward.xp}`
-          : b.result === 'defeat'
-            ? '已無法再戰 · 回安全處療傷'
-            : '成功撤退';
+          : '成功撤退';
     }
     this.set('advice', advice);
     this.texts.get('advice')!.style.fill = danger.warning && !b.result ? RED : GOLD;

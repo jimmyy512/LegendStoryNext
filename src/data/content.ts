@@ -221,6 +221,9 @@ export const ENEMIES: Record<string, EnemyDefinition> = {
 };
 
 export const ENCOUNTERS: Record<string, EncounterDefinition> = {
+  'wild-forest': { name: '林間遊匪', enemies: ['bandit'], escapable: true },
+  'wild-mountain': { name: '山道遊匪', enemies: ['bandit', 'bandit'], escapable: true },
+  'wild-cave': { name: '洞中遊魂', enemies: ['zombie'], escapable: true },
   trial: { name: '門前試招', enemies: ['disciple'], escapable: false },
   bandits: { name: '林間刀影', enemies: ['bandit', 'bandit'], escapable: false },
   patrol: { name: '迷途刀客', enemies: ['bandit'], escapable: true },

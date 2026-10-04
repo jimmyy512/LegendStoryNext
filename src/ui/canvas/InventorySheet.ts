@@ -1,6 +1,7 @@
 import { ScrollBox } from '@pixi/ui';
-import { Container, Graphics } from 'pixi.js';
+import { Container, Graphics, Rectangle } from 'pixi.js';
 import { ITEMS } from '../../data/content';
+import { BAG_CAPACITY, STACK_SIZE, bagQuantity, usedBagSlots } from '../../game/inventory';
 import { equip, getStats } from '../../game/state';
 import {
   EQUIPMENT_SLOTS,
@@ -25,6 +26,9 @@ export function inventorySheet(
   renderRow: (row: PanelRow, width: number) => Container,
 ): Container {
   const state = model.inventoryState!;
+  const pageMode = selectedId.startsWith('bagpage:');
+  const requestedPage = pageMode ? Number(selectedId.split(':')[1]) || 0 : 0;
+  const selectedItemId = pageMode ? selectedId.split(':')[2] : selectedId;
   const stats = getStats(state);
   const [, requestedSlot, requestedItem] = selectedId.split(':');
   const activeSlot =
@@ -35,10 +39,13 @@ export function inventorySheet(
     (item) => !activeSlot || equipmentSlot(item.id as ItemId) === activeSlot,
   );
   const selected =
-    sections.find(
-      (item) => item.id === (activeSlot ? requestedItem || state[activeSlot] : selectedId),
-    ) ?? sections[0];
-  const selectItem = (id: string) => select(activeSlot ? `slot:${activeSlot}:${id}` : id);
+    pageMode && !selectedItemId
+      ? undefined
+      : (sections.find(
+          (item) => item.id === (activeSlot ? requestedItem || state[activeSlot] : selectedItemId),
+        ) ?? sections[0]);
+  const selectItem = (id: string) =>
+    select(activeSlot ? `slot:${activeSlot}:${id}` : `bagpage:${requestedPage}:${id}`);
   const compact = width < 900;
   const margin = compact ? 16 : 32;
   const root = new Container();
@@ -117,7 +124,11 @@ export function inventorySheet(
 
   const grid = new Container();
   grid.addChild(
-    text(`${activeSlot ? SLOT_NAMES[activeSlot] : '攜帶物品'} · ${sections.length} 種`, gridW, 20),
+    text(
+      `${activeSlot ? SLOT_NAMES[activeSlot] : '攜帶物品'} · ${usedBagSlots(state)} / ${BAG_CAPACITY} 格`,
+      gridW,
+      18,
+    ),
   );
   if (activeSlot) {
     const all = control({ label: '全部物品', action: '', width: 92, height: 32, press: select });
@@ -126,9 +137,51 @@ export function inventorySheet(
   }
   const cols = Math.max(3, Math.floor(gridW / 90));
   const cell = (gridW - (cols - 1) * 8) / cols;
-  const count = Math.max(activeSlot ? cols : cols * 3, Math.ceil(sections.length / cols) * cols);
+  const slots = sections.flatMap((item) => {
+    const id = item.id as ItemId;
+    if (ITEMS[id].kind === 'quest') {
+      return [];
+    }
+    const quantity = bagQuantity(state, id);
+    const stack = ITEMS[id].kind === 'medicine' ? STACK_SIZE : 1;
+    return Array.from({ length: Math.ceil(quantity / stack) }, (_, index) => ({
+      ...item,
+      quantity: Math.min(stack, quantity - index * stack),
+      equipped: false,
+    }));
+  });
+  const pageSize = 20;
+  const pageCount = Math.ceil(Math.max(BAG_CAPACITY, slots.length) / pageSize);
+  const page = Math.min(pageCount - 1, Math.max(0, requestedPage));
+  const visibleSlots = activeSlot ? sections : slots.slice(page * pageSize, (page + 1) * pageSize);
+  const count = activeSlot ? Math.max(cols, visibleSlots.length) : pageSize;
+  if (!activeSlot) {
+    const pageLabel = text(
+      `第 ${page + 1} / ${pageCount} 頁 · 藥品每格 ${STACK_SIZE} 份`,
+      gridW,
+      12,
+      0xb9c6af,
+    );
+    pageLabel.y = 32;
+    grid.addChild(pageLabel);
+    for (const [direction, caption, x] of [
+      [-1, '上一頁', 0],
+      [1, '下一頁', gridW - 96],
+    ] as const) {
+      const button = control({
+        label: caption,
+        action: `bagpage:${page + direction}:`,
+        width: 96,
+        height: 34,
+        disabled: page + direction < 0 || page + direction >= pageCount,
+        press: select,
+      });
+      button.position.set(x, 56);
+      grid.addChild(button);
+    }
+  }
   for (let i = 0; i < count; i++) {
-    const item = sections[i];
+    const item = visibleSlots[i];
     const tile = control({
       label: '',
       action: item?.id ?? '',
@@ -138,7 +191,10 @@ export function inventorySheet(
       disabled: !item,
       press: selectItem,
     });
-    tile.position.set((i % cols) * (cell + 8), 40 + Math.floor(i / cols) * 108);
+    tile.position.set(
+      (i % cols) * (cell + 8),
+      (activeSlot ? 40 : 100) + Math.floor(i / cols) * 108,
+    );
     if (item) {
       tile.accessibleTitle = `${item.title}${item.equipped ? '，身上裝備' : ''}`;
       artIcon(tile, item.icon!, cell / 2, 32, 48);
@@ -154,6 +210,26 @@ export function inventorySheet(
       }
     }
     grid.addChild(tile);
+  }
+  if (!activeSlot) {
+    const quests = sections.filter((section) => ITEMS[section.id as ItemId].kind === 'quest');
+    const questY = 112 + Math.ceil(count / cols) * 108;
+    if (quests.length) {
+      const caption = text('任務物品 · 不占行囊格數', gridW, 14, 0xb9c6af);
+      caption.y = questY;
+      grid.addChild(caption);
+      quests.forEach((item, index) => {
+        const button = control({
+          label: item.title,
+          action: item.id,
+          width: gridW,
+          height: 42,
+          press: selectItem,
+        });
+        button.y = questY + 30 + index * 48;
+        grid.addChild(button);
+      });
+    }
   }
   const details: Container[] = [];
   if (selected) {
@@ -193,7 +269,9 @@ export function inventorySheet(
       text(
         activeSlot
           ? `尚無可替換的${SLOT_NAMES[activeSlot]}。\n可向門派的陳長悟購買。`
-          : '行囊暫時空著。\n沿途取得的物品會收在這裡。',
+          : slots.length
+            ? '選取物品查看詳情。\n本頁空格可收納沿途拾得的裝備與藥品。'
+            : '行囊暫時空著。\n沿途取得的物品會收在這裡。',
         detailW,
       ),
     );
@@ -208,10 +286,13 @@ export function inventorySheet(
       disableEasing: true,
     });
     scroll.position.set(x, 100);
+    scroll.hitArea = new Rectangle(0, 0, w, Math.max(100, areaH));
     scroll.addItems(elements);
     root.addChild(scroll);
     if (compact && selectedId) {
-      scroll.scrollToPosition({ y: elements[activeSlot && !requestedItem ? 1 : 2].y });
+      scroll.scrollToPosition({
+        y: elements[(activeSlot && !requestedItem) || (pageMode && !selectedItemId) ? 1 : 2].y,
+      });
     }
   };
   if (compact) {
@@ -221,5 +302,6 @@ export function inventorySheet(
     addScroll([grid], margin + wornW + 20, gridW);
     addScroll(details, margin + wornW + gridW + 40, detailW);
   }
+  root.addChild(close);
   return root;
 }

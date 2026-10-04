@@ -119,6 +119,12 @@ export class GameApplication {
     this.playTimer = window.setInterval(() => {
       if (this.state && !this.transitions.busy && document.visibilityState === 'visible') {
         this.session.advanceTime();
+        if (!this.battle && !this.view.modalVisible) {
+          const state = this.state!;
+          if (this.world.setHeroState(state)) {
+            this.renderExploration();
+          }
+        }
       }
     }, 1000);
     document.addEventListener(
@@ -139,6 +145,7 @@ export class GameApplication {
       encounter: string;
       map: GameState['map'];
       injured?: boolean;
+      defeat?: boolean;
       chapterBoss?: boolean;
     },
     worldPreview?: GameState['map'],
@@ -155,10 +162,16 @@ export class GameApplication {
       }
       state.map = preview.map;
       await this.start(state);
+      if (preview.defeat) {
+        this.saves.writeSave(state, 'auto');
+      }
       this.startBattle(preview.encounter);
       if (this.battle) {
         if (!preview.chapterBoss) {
           prepareCombatPreview(this.battle);
+        }
+        if (preview.defeat) {
+          this.battle.player.hp = 1;
         }
         this.renderBattle();
       }
@@ -223,6 +236,7 @@ export class GameApplication {
       label: `正在前往${MAPS[state.map].name}`,
       prepare: (progress) => this.assets.prepare(state.map, progress),
       commit: () => {
+        this.view.clearDefeat();
         this.guidedObjective = objective;
         this.world.showMap(state);
         if (home) {
@@ -397,8 +411,33 @@ export class GameApplication {
     this.renderBattle();
   }
 
+  private defeatElapsed = 0;
+  private defeatPresented = false;
+
   private updateBattle(seconds: number): void {
     const battle = this.battle;
+    if (battle?.result === 'defeat') {
+      if (document.visibilityState === 'visible' && !this.view.modalVisible) {
+        this.defeatElapsed += seconds;
+      }
+      if (this.defeatElapsed >= 1.4 && !this.defeatPresented) {
+        this.defeatPresented = true;
+        try {
+          const record = this.saves.newestSave();
+          this.view.showDefeat(
+            record
+              ? `${MAPS[record.state.map].name} · 第 ${record.state.level} 重\n${new Date(record.savedAt).toLocaleString('zh-TW')}`
+              : '尚無可讀取的存檔。',
+            !!record,
+          );
+        } catch {
+          this.view.showDefeat('存檔無法讀取，請回主選單匯入備份。', false);
+        }
+      }
+    } else {
+      this.defeatElapsed = 0;
+      this.defeatPresented = false;
+    }
     this.world.setBattleRunning(
       Boolean(
         battle &&
@@ -451,6 +490,9 @@ export class GameApplication {
 
   private finishBattle(): void {
     if (!this.state || !this.battle?.result) {
+      return;
+    }
+    if (this.battle.result === 'defeat') {
       return;
     }
     const bossVictory = this.battle.encounterId === 'boss' && this.battle.result === 'victory';
@@ -667,6 +709,26 @@ ${new Date(record.savedAt).toLocaleString('zh-TW')}`),
     }
     if (action === 'create') {
       await this.start(createGame(this.draft.name, this.draft.route));
+      return;
+    }
+    if (action === 'defeat-home' && this.battle?.result === 'defeat') {
+      await this.start(createGame('無名', 'sword'), true);
+      return;
+    }
+    if (action === 'defeat-load') {
+      if (this.battle?.result !== 'defeat' || !this.defeatPresented) {
+        return;
+      }
+      try {
+        const record = this.saves.newestSave();
+        if (record) {
+          await this.start(record.state);
+        } else {
+          this.view.showDefeat('尚無可讀取的存檔。', false);
+        }
+      } catch {
+        this.view.showDefeat('存檔無法讀取，請回主選單匯入備份。', false);
+      }
       return;
     }
     if (action === 'continue') {

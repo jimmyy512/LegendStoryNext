@@ -1,4 +1,5 @@
 import { ENCOUNTERS, ENEMIES, ITEMS, SKILLS } from '../data/content';
+import { WILDLIFE, wildlifeCycle } from './wildlife';
 import { CombatClock } from './CombatClock';
 import {
   createBody,
@@ -100,6 +101,10 @@ export class Battle {
   /** Separate group tells without shortening any opponent's readable windup. */
   private enemyTellDelay = 0;
 
+  readonly wildCycle: number;
+  readonly equipmentDrop: import('./types').ItemId | null;
+  private readonly wildGoldRate: number;
+
   constructor(
     state: GameState,
     readonly encounterId: string,
@@ -110,6 +115,15 @@ export class Battle {
       throw new Error('找不到戰鬥資料');
     }
     this.encounter = encounter;
+    this.wildCycle = wildlifeCycle(state, encounterId);
+    const wildlife = WILDLIFE[encounterId];
+    this.wildGoldRate = wildlife ? (random() < 0.8 ? 0.6 + random() * 0.8 : 0) : 1;
+    this.equipmentDrop =
+      wildlife && random() < 0.25
+        ? wildlife.drops[
+            Math.min(wildlife.drops.length - 1, Math.floor(random() * wildlife.drops.length))
+          ]
+        : null;
     this.player = structuredClone(state);
     this.stats = getStats(this.player);
     this.desiredDistance = state.route === 'sword' ? 3.6 : 2.2;
@@ -146,7 +160,7 @@ export class Battle {
     return this.enemies.reduce(
       (sum, enemy) => ({
         xp: sum.xp + ENEMIES[enemy.id].xp,
-        gold: sum.gold + ENEMIES[enemy.id].gold,
+        gold: sum.gold + Math.floor(ENEMIES[enemy.id].gold * this.wildGoldRate),
       }),
       { xp: 0, gold: 0 },
     );
@@ -678,9 +692,10 @@ export class Battle {
         enemy.opening = true;
       }
       events.push({
-        text: part === 'head'
-          ? `${enemy.name}頭部重傷，攻勢中斷，露出破綻。`
-          : `${enemy.name}的${PART_NAMES[part]}已重傷。`,
+        text:
+          part === 'head'
+            ? `${enemy.name}頭部重傷，攻勢中斷，露出破綻。`
+            : `${enemy.name}的${PART_NAMES[part]}已重傷。`,
         target: index,
         part: part,
         kind: 'injury',
@@ -763,9 +778,10 @@ export class Battle {
         this.counter = false;
       }
       events.push({
-        text: part === 'head'
-          ? '你的頭部重傷，起招中斷且攻擊力降低。'
-          : `你的${PART_NAMES[part]}已重傷，請留意可用招式與移動姿態。`,
+        text:
+          part === 'head'
+            ? '你的頭部重傷，起招中斷且攻擊力降低。'
+            : `你的${PART_NAMES[part]}已重傷，請留意可用招式與移動姿態。`,
         target: 'player',
         part,
         kind: 'injury',

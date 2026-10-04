@@ -8,6 +8,7 @@ import { learnTalent, resetTalents } from './talents';
 import { changeMartialArt } from './martialTraining';
 import { applyStoryAction, getDialogue, settleBattle } from './story';
 import type { GameState, ItemId, MapEntity, Point } from './types';
+import { WILDLIFE, wildlifeReady } from './wildlife';
 
 /** 一次旅程的唯一寫入入口。畫面拿到副本，不能直接改任務、物品或位置。 */
 export class GameSession {
@@ -92,6 +93,12 @@ export class GameSession {
 
   startBattle(id: string): void {
     if (!this.current || this.encounter) {
+      return;
+    }
+    if (
+      WILDLIFE[id] &&
+      (WILDLIFE[id].map !== this.current.map || !wildlifeReady(this.current, id))
+    ) {
       return;
     }
     this.encounter = new Battle(this.current, id);

@@ -186,6 +186,39 @@ describe('session encapsulation', () => {
 });
 
 describe('save storage adapter', () => {
+  it('restores the newest timestamp across automatic and manual saves', () => {
+    const data = new Map([
+      [
+        'legend-story-next:v1:manual',
+        JSON.stringify({
+          savedAt: '2026-10-05T02:00:00.000Z',
+          state: createGame('手動進度', 'sword'),
+        }),
+      ],
+      [
+        'legend-story-next:v1:auto',
+        JSON.stringify({
+          savedAt: '2026-10-05T01:00:00.000Z',
+          state: createGame('自動進度', 'fist'),
+        }),
+      ],
+    ]);
+    const saves = new SaveRepository({
+      getItem: (key) => data.get(key) ?? null,
+      setItem: (key, value) => {
+        data.set(key, value);
+      },
+    });
+    expect(saves.newestSave()!.state.name).toBe('手動進度');
+    data.set(
+      'legend-story-next:v1:auto',
+      JSON.stringify({
+        savedAt: '2026-10-05T03:00:00.000Z',
+        state: createGame('較新進度', 'fist'),
+      }),
+    );
+    expect(saves.newestSave()!.state.name).toBe('較新進度');
+  });
   it('falls back to a valid slot when another is corrupted', () => {
     const data = new Map([
       ['legend-story-next:v1:manual', '{broken'],

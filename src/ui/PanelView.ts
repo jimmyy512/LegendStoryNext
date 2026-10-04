@@ -15,6 +15,8 @@ import {
 import type { GameState, ItemId } from '../game/types';
 import { action, heading, paragraph, type GamePanel, type PanelRow } from './canvas/model';
 
+import { canReceiveItem, usedBagSlots, BAG_CAPACITY } from '../game/inventory';
+
 export type Panel = 'character' | 'bag' | 'journal' | 'save' | 'shop' | 'settings';
 export interface PanelOptions {
   saveSlots: PanelRow[];
@@ -38,7 +40,11 @@ export class PanelView {
       case 'bag':
         return this.bag(state);
       case 'shop':
-        return { title: '山門小鋪', rows: this.inventory(state, 'shop') };
+        return {
+          title: '雜貨鋪 · 買賣物品',
+          subtitle: `行囊 ${usedBagSlots(state)} / ${BAG_CAPACITY} 格`,
+          rows: this.inventory(state, 'shop'),
+        };
       case 'journal':
         return this.journal(state);
       case 'save':
@@ -202,7 +208,15 @@ export class PanelView {
       ([id, item]) => (mode === 'shop' ? item.kind !== 'quest' : state.inventory[id] > 0),
     );
     for (const [id, item] of entries) {
-      rows.push(heading(`${item.name} ×${state.inventory[id]}`), paragraph(item.description));
+      rows.push(
+        {
+          kind: 'text',
+          emphasis: 'heading',
+          text: `${item.name} ×${state.inventory[id]}`,
+          icon: `item-icon:${id}`,
+        },
+        paragraph(item.description),
+      );
       rows.push(...(mode === 'shop' ? this.shopActions(state, id) : this.itemActions(state, id)));
     }
     if (!entries.length) {
@@ -217,7 +231,7 @@ export class PanelView {
     return [
       {
         ...action(`買 ${item.price} 兩`, `buy:${id}`),
-        disabled: state.gold < item.price || state.inventory[id] >= 99,
+        disabled: state.gold < item.price || !canReceiveItem(state, id),
       },
       {
         ...action(`賣 ${Math.floor(item.price / 2)} 兩`, `sell:${id}`),

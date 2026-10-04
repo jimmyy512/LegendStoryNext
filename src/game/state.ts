@@ -1,6 +1,7 @@
 import { ITEMS } from '../data/content';
 import { createBody } from './body';
 import { equippedItems, equipmentSlot, isEquipped } from './equipment';
+import { canReceiveItem, usedBagSlots, BAG_CAPACITY } from './inventory';
 import type { GameState, ItemId, Route, Stats } from './types';
 
 export function createGame(name: string, route: Route): GameState {
@@ -134,6 +135,10 @@ export function equip(state: GameState, id: ItemId): boolean {
 export function unequip(state: GameState, id: ItemId): boolean {
   const slot = equipmentSlot(id);
   if (slot && state[slot] === id) {
+    const candidate = { ...state, [slot]: null };
+    if (usedBagSlots(candidate) > BAG_CAPACITY) {
+      return false;
+    }
     state[slot] = null;
     return true;
   }
@@ -146,7 +151,7 @@ export function buy(state: GameState, id: ItemId): boolean {
     item.price <= 0 ||
     item.kind === 'quest' ||
     state.gold < item.price ||
-    state.inventory[id] >= 99
+    !canReceiveItem(state, id)
   ) {
     return false;
   }

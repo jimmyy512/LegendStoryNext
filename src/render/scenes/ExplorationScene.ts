@@ -32,6 +32,7 @@ export class ExplorationScene extends PixiScene {
   private path: Point[] = [];
   private pending: MapEntity | null = null;
   private enabled = false;
+  private drawnEntities = new Set<string>();
   setEnabled(enabled: boolean): void {
     this.enabled = enabled;
     if (!enabled) {
@@ -103,9 +104,17 @@ export class ExplorationScene extends PixiScene {
     this.walkTo(entity, entity);
   }
 
-  setHeroState(state: GameState): void {
+  setHeroState(state: GameState): boolean {
     this.state = state;
     this.hero.setState(state);
+    let added = false;
+    for (const entity of MAPS[state.map].entities) {
+      if (!this.drawnEntities.has(entity.id) && isEntityVisible(state, entity)) {
+        this.drawEntity(entity, state);
+        added = true;
+      }
+    }
+    return added;
   }
 
   setObjective(entity: MapEntity | null): void {
@@ -135,6 +144,7 @@ export class ExplorationScene extends PixiScene {
   }
 
   private drawEntity(entity: MapEntity, state: GameState): void {
+    this.drawnEntities.add(entity.id);
     const node = new Container();
     node.position.set((entity.x + 0.5) * TILE, (entity.y + 0.7) * TILE);
     node.zIndex = node.y;

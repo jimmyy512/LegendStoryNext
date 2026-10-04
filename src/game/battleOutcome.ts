@@ -28,7 +28,7 @@ export function battleOutcome(battle: Battle) {
         ? '已脫離交鋒'
         : '此戰敗退',
     rewards: rewarded
-      ? `銀兩 +${battle.reward.gold}　修為 +${battle.reward.xp}`
+      ? `銀兩 +${after.gold - before.gold}　修為 +${battle.reward.xp}`
       : won
         ? '本場獎勵已領取'
         : '本場未獲得獎勵',

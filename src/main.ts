@@ -93,6 +93,7 @@ async function boot(): Promise<void> {
       ? {
           route: params.get('route') === 'fist' ? 'fist' : 'sword',
           injured: params.get('condition') === 'injured',
+          defeat: params.get('condition') === 'defeat',
           chapterBoss: params.get('chapter') === '1' && params.get('enemies') === 'boss',
           encounter:
             params.get('enemies') === 'two'
