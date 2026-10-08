@@ -1,6 +1,6 @@
 {
   "frames": {
-    "npc:qing:idle:0": {
+    "npc:master:gesture:0": {
       "frame": {
         "x": 0,
         "y": 0,
@@ -20,7 +20,7 @@
         "h": 160
       }
     },
-    "npc:qing:idle:1": {
+    "npc:master:gesture:1": {
       "frame": {
         "x": 115,
         "y": 0,
@@ -40,7 +40,7 @@
         "h": 160
       }
     },
-    "npc:qing:idle:2": {
+    "npc:master:gesture:2": {
       "frame": {
         "x": 230,
         "y": 0,
@@ -60,7 +60,7 @@
         "h": 160
       }
     },
-    "npc:qing:idle:3": {
+    "npc:master:gesture:3": {
       "frame": {
         "x": 345,
         "y": 0,
@@ -82,8 +82,8 @@
     }
   },
   "meta": {
-    "image": "qing-idle-v1.webp",
-    "scale": "0.484848",
+    "image": "master-gesture-v1.webp",
+    "scale": "0.493827",
     "size": {
       "w": 460,
       "h": 160

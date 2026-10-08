@@ -22,7 +22,7 @@ export class AssetService {
       ...Object.fromEntries(
         Object.entries(NPC_FRAMES).flatMap(([id, actions]) =>
           Object.keys(actions).map((action) => [
-            `npc:${id}:${action}`,
+            `npc-frames:${id}:${action}`,
             `${baseUrl}assets/characters/npcs/${id}-${action}-v1.json`,
           ]),
         ),

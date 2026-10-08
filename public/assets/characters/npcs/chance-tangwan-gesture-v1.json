@@ -1,10 +1,10 @@
 {
   "frames": {
-    "npc:qing:idle:0": {
+    "npc:chance-tangwan:gesture:0": {
       "frame": {
         "x": 0,
         "y": 0,
-        "w": 115,
+        "w": 108,
         "h": 160
       },
       "rotated": false,
@@ -12,19 +12,19 @@
       "spriteSourceSize": {
         "x": 0,
         "y": 0,
-        "w": 115,
+        "w": 108,
         "h": 160
       },
       "sourceSize": {
-        "w": 115,
+        "w": 108,
         "h": 160
       }
     },
-    "npc:qing:idle:1": {
+    "npc:chance-tangwan:gesture:1": {
       "frame": {
-        "x": 115,
+        "x": 108,
         "y": 0,
-        "w": 115,
+        "w": 108,
         "h": 160
       },
       "rotated": false,
@@ -32,19 +32,19 @@
       "spriteSourceSize": {
         "x": 0,
         "y": 0,
-        "w": 115,
+        "w": 108,
         "h": 160
       },
       "sourceSize": {
-        "w": 115,
+        "w": 108,
         "h": 160
       }
     },
-    "npc:qing:idle:2": {
+    "npc:chance-tangwan:gesture:2": {
       "frame": {
-        "x": 230,
+        "x": 216,
         "y": 0,
-        "w": 115,
+        "w": 108,
         "h": 160
       },
       "rotated": false,
@@ -52,19 +52,19 @@
       "spriteSourceSize": {
         "x": 0,
         "y": 0,
-        "w": 115,
+        "w": 108,
         "h": 160
       },
       "sourceSize": {
-        "w": 115,
+        "w": 108,
         "h": 160
       }
     },
-    "npc:qing:idle:3": {
+    "npc:chance-tangwan:gesture:3": {
       "frame": {
-        "x": 345,
+        "x": 324,
         "y": 0,
-        "w": 115,
+        "w": 108,
         "h": 160
       },
       "rotated": false,
@@ -72,20 +72,20 @@
       "spriteSourceSize": {
         "x": 0,
         "y": 0,
-        "w": 115,
+        "w": 108,
         "h": 160
       },
       "sourceSize": {
-        "w": 115,
+        "w": 108,
         "h": 160
       }
     }
   },
   "meta": {
-    "image": "qing-idle-v1.webp",
-    "scale": "0.484848",
+    "image": "chance-tangwan-gesture-v1.webp",
+    "scale": "0.311284",
     "size": {
-      "w": 460,
+      "w": 432,
       "h": 160
     }
   }

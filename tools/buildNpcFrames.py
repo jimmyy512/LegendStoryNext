@@ -15,6 +15,7 @@ from PIL import Image, ImageDraw
 root = Path(__file__).resolve().parents[1]
 target = root / 'public/assets/characters/npcs'
 art = root / 'art/characters/npcs/idle'
+RUNTIME_H = 160  # about 2.5x the 62 px map height
 ATLASES = [target / 'ensemble-v2.json', root / 'public/assets/characters/companions/world-v2.json']
 
 
@@ -71,6 +72,40 @@ def key(im: Image.Image) -> Image.Image:
     return im
 
 
+def largest_component(cell: Image.Image, step: int = 4) -> Image.Image:
+    """Keep the biggest 8-connected figure (on a 1/step grid) and clear slivers of neighbours."""
+    w, h = cell.width // step, cell.height // step
+    small = cell.getchannel('A').resize((w, h), Image.BOX).load()
+    seen = [[False] * w for _ in range(h)]
+    best: list[tuple[int, int]] = []
+    for sy in range(h):
+        for sx in range(w):
+            if seen[sy][sx] or small[sx, sy] < 32:
+                continue
+            seen[sy][sx] = True
+            stack, comp = [(sx, sy)], []
+            while stack:
+                x, y = stack.pop()
+                comp.append((x, y))
+                for nx in (x - 1, x, x + 1):
+                    for ny in (y - 1, y, y + 1):
+                        if 0 <= nx < w and 0 <= ny < h and not seen[ny][nx] and small[nx, ny] >= 32:
+                            seen[ny][nx] = True
+                            stack.append((nx, ny))
+            if len(comp) > len(best):
+                best = comp
+    keep = Image.new('L', (w, h), 0)
+    px = keep.load()
+    for x, y in best:
+        px[x, y] = 255
+    keep = keep.resize((w * step, h * step), Image.NEAREST)
+    mask = Image.new('L', cell.size, 0)
+    mask.paste(keep, (0, 0))
+    out = cell.copy()
+    out.putalpha(Image.composite(cell.getchannel('A'), Image.new('L', cell.size, 0), mask))
+    return out
+
+
 def build(npc: str, action: str, sheet_path: str, cols: int) -> None:
     _, still = atlas_frame(f'npc:{npc}')
     figure_h, source_h = still['frame']['h'], still['sourceSize']['h']
@@ -78,7 +113,7 @@ def build(npc: str, action: str, sheet_path: str, cols: int) -> None:
     cell_w = sheet.width // cols
     crops = []
     for c in range(cols):
-        cell = sheet.crop((c * cell_w, 0, (c + 1) * cell_w, sheet.height))
+        cell = largest_component(sheet.crop((c * cell_w, 0, (c + 1) * cell_w, sheet.height)))
         box = cell.getchannel('A').point(lambda p: 255 if p > 128 else 0).getbbox()
         if box is None:
             raise SystemExit(f'error: column {c} is empty')
@@ -97,20 +132,26 @@ def build(npc: str, action: str, sheet_path: str, cols: int) -> None:
     half = max(max(fx, im.width - fx) for im, fx in frames)
     out_w = int(half * 2) + 4
     out_h = max(source_h, max(im.height for im, _ in frames) + 2)
-    strip = Image.new('RGBA', (out_w * len(frames), out_h), (0, 0, 0, 0))
+    # Store at RUNTIME_H px tall; meta.scale tells Pixi the texture keeps the still's units.
+    f = min(1.0, RUNTIME_H / out_h)
+    cw, ch = round(out_w * f), round(out_h * f)
+    strip = Image.new('RGBA', (cw * len(frames), ch), (0, 0, 0, 0))
     for i, (im, fx) in enumerate(frames):
-        im.putalpha(im.getchannel('A').point(lambda p: 255 if p > 110 else 0))
-        strip.alpha_composite(im, (i * out_w + round(out_w / 2 - fx), out_h - im.height))
+        cell = Image.new('RGBA', (out_w, out_h), (0, 0, 0, 0))
+        cell.alpha_composite(im, (round(out_w / 2 - fx), out_h - im.height))
+        cell = cell.resize((cw, ch), Image.LANCZOS)
+        cell.putalpha(cell.getchannel('A').point(lambda p: 255 if p > 110 else 0))
+        strip.alpha_composite(cell, (i * cw, 0))
 
     name = f'{npc}-{action}-v1'
-    strip.save(target / f'{name}.png', optimize=True)
+    strip.save(target / f'{name}.webp', lossless=True, quality=100, method=6)
     (target / f'{name}.json').write_text(json.dumps({'frames': {
         f'npc:{npc}:{action}:{i}': {
-            'frame': dict(x=i * out_w, y=0, w=out_w, h=out_h), 'rotated': False, 'trimmed': False,
-            'spriteSourceSize': dict(x=0, y=0, w=out_w, h=out_h), 'sourceSize': dict(w=out_w, h=out_h),
+            'frame': dict(x=i * cw, y=0, w=cw, h=ch), 'rotated': False, 'trimmed': False,
+            'spriteSourceSize': dict(x=0, y=0, w=cw, h=ch), 'sourceSize': dict(w=cw, h=ch),
         } for i in range(len(frames))
-    }, 'meta': {'image': f'{name}.png', 'scale': '1', 'size': {'w': strip.width, 'h': strip.height}}},
-        indent=2) + '\n', encoding='utf-8')
+    }, 'meta': {'image': f'{name}.webp', 'scale': f'{ch / out_h:.6f}',
+                'size': {'w': strip.width, 'h': strip.height}}}, indent=2) + '\n', encoding='utf-8')
     print(json.dumps({'id': npc, 'action': action, 'frames': len(frames), 'cell': [out_w, out_h],
                       'scale': round(scale, 4)}))
 
