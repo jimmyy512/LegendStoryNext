@@ -1,0 +1,7 @@
+Use your image_gen tool exactly once, with ALL attached images as references, size 1536x1024. Then copy the generated PNG to ./yin-idle-sheet.png in the current directory.
+
+Image prompt:
+A 2D game sprite sheet: 4 animation frames in one horizontal row, of the SAME character shown in the first reference image (a young herbalist sect disciple: dark hair in a low ponytail with a green ribbon, green and cream robe, herb basket with leaves in one hand, small cloth pouch at the belt). Copy identity, outfit colours, proportions, facing direction, pixel-art style and dark outline exactly from the reference.
+Layout follows the last reference (guide): four equal columns 384 px wide; one full-body character centred in each column; every character the same size (about 560 px tall), feet standing on the cyan line; nothing crosses a column border. Do NOT draw the guide lines, grid, numbers or any text.
+Background: flat solid magenta #FF00FF everywhere, no shadow, no floor, no glow.
+Animation: a subtle relaxed idle breathing loop, frame 1 -> 4: (1) neutral stance exactly like the reference, (2) shoulders rise slightly, hair and ribbons sway, (3) peak of breath, hair, ribbons, sleeves and hanging cloth swing furthest, (4) settling back toward frame 1. Feet stay planted in the same spot in all frames; only small upper-body, head, hair, ribbon and sleeve motion. Held props stay in the same hand.

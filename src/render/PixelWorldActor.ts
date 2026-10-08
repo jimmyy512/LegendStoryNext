@@ -1,5 +1,5 @@
 import { Assets, Container, Graphics, Sprite, Texture } from 'pixi.js';
-import { NPC_IDLE_FRAMES } from '../data/npcIdle';
+import { NPC_FRAMES, type NpcAction } from '../data/npcFrames';
 import { ENEMY_FRAME_BASELINES } from './EnemyFrameRegistration';
 
 const INTERVAL: Record<string, number> = {
@@ -15,8 +15,10 @@ const INTERVAL: Record<string, number> = {
 };
 
 const IDLE_FPS = 5;
+/** 四格手勢：起手、半途、完整手勢停留、收回。 */
+const GESTURE_TIMING = [0.1, 0.12, 0.55, 0.15];
+const STILL_GESTURE_TIME = 0.7;
 
-/** 地圖上的角色使用獨立姿勢影格，並按角色個性錯開動作。 */
 interface Pose {
   root: Container;
   lower: Sprite;
@@ -25,10 +27,13 @@ interface Pose {
   waist: number;
 }
 
+/** 地圖上的角色使用獨立姿勢影格，並按角色個性錯開動作。 */
 export class PixelWorldActor extends Container {
   private readonly still: Pose;
   private readonly gesture: Pose;
   private readonly idleFrames: Texture[];
+  private readonly gestureFrames: Texture[];
+  private readonly gestureTiming: number[];
   private readonly interval: number;
   private time: number;
   private gestureTime = 0;
@@ -48,15 +53,20 @@ export class PixelWorldActor extends Container {
     stillTexture.source.scaleMode = 'nearest';
     gestureTexture.source.scaleMode = 'nearest';
     const base = kind === 'npc' ? 62 / stillTexture.height : scale;
-    this.idleFrames =
+    const frames = (action: NpcAction) =>
       kind === 'npc' && !wounded
-        ? Array.from({ length: NPC_IDLE_FRAMES[id] ?? 0 }, (_, i) =>
-            Assets.get<Texture>(`npc:${id}:idle:${i}`),
-          )
+        ? Array.from({ length: NPC_FRAMES[id]?.[action] ?? 0 }, (_, i) => {
+            const frame = Assets.get<Texture>(`npc:${id}:${action}:${i}`);
+            frame.source.scaleMode = 'nearest';
+            return frame;
+          })
         : [];
-    for (const frame of this.idleFrames) {
-      frame.source.scaleMode = 'nearest';
-    }
+    this.idleFrames = frames('idle');
+    this.gestureFrames = frames('gesture');
+    this.gestureTiming =
+      this.gestureFrames.length === GESTURE_TIMING.length
+        ? GESTURE_TIMING
+        : this.gestureFrames.map(() => STILL_GESTURE_TIME / this.gestureFrames.length);
     const pose = (texture: Texture, name: string, key: string, extra: Texture[] = []) => {
       const root = new Container();
       root.label = name;
@@ -93,6 +103,7 @@ export class PixelWorldActor extends Container {
       gestureTexture,
       'gesture-pose',
       `${kind}:${id}:${kind === 'npc' ? 'gesture' : 'attack'}`,
+      this.gestureFrames,
     );
     this.gesture.root.visible = false;
     this.interval = wounded ? Infinity : (INTERVAL[id] ?? 4);
@@ -101,7 +112,9 @@ export class PixelWorldActor extends Container {
   }
 
   playGesture(): void {
-    this.gestureTime = 0.7;
+    this.gestureTime = this.gestureFrames.length
+      ? this.gestureTiming.reduce((sum, t) => sum + t, 0)
+      : STILL_GESTURE_TIME;
   }
 
   update(dt: number): void {
@@ -109,12 +122,23 @@ export class PixelWorldActor extends Container {
     this.breathTime += dt;
     if (this.time >= this.interval) {
       this.time %= this.interval;
-      this.playGesture();
+      if (this.gestureTime <= 0) {
+        this.playGesture();
+      }
     }
     this.gestureTime = Math.max(0, this.gestureTime - dt);
     const active = this.gestureTime > 0;
     this.still.root.visible = !active;
     this.gesture.root.visible = active;
+    if (active && this.gestureFrames.length > 0) {
+      let left = this.gestureTiming.reduce((sum, t) => sum + t, 0) - this.gestureTime;
+      let index = 0;
+      while (index < this.gestureFrames.length - 1 && left >= this.gestureTiming[index]) {
+        left -= this.gestureTiming[index++];
+      }
+      this.gesture.lower.texture = this.gestureFrames[index];
+      this.gesture.upper.texture = this.gestureFrames[index];
+    }
     if (this.idleFrames.length > 0) {
       // 有逐格待機時，呼吸與髮帶擺動由影格本身表現，不再疊加縮放。
       const frame =

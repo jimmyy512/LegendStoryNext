@@ -2,6 +2,10 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { Assets, Sprite, Texture } from 'pixi.js';
 import { PixelWorldActor } from '../src/render/PixelWorldActor';
 
+vi.mock('../src/data/npcFrames', () => ({
+  NPC_FRAMES: { qing: { idle: 4 }, master: { gesture: 4 } },
+}));
+
 afterEach(() => vi.restoreAllMocks());
 describe('大地圖 NPC 待機', () => {
   it('跨呼吸週期與姿勢切換時，腳底與腰線保持固定', () => {
@@ -40,6 +44,27 @@ describe('大地圖 NPC 待機', () => {
       expect(upper.y).toBe(0);
     }
     expect(seen.size).toBe(4);
+    actor.destroy({ children: true });
+  });
+  it('逐格手勢依起手、半途、停留、收回的順序播放後回到待機', () => {
+    const frames = [0, 1, 2, 3].map(() => new Texture());
+    vi.spyOn(Assets, 'get').mockImplementation(((key: string) => {
+      const match = /^npc:master:gesture:(\d)$/.exec(key);
+      return match ? frames[Number(match[1])] : Texture.EMPTY;
+    }) as typeof Assets.get);
+    const actor = new PixelWorldActor('npc', 'master', 0.052);
+    const gesture = actor.getChildByLabel('gesture-pose')!;
+    const upper = gesture.getChildByLabel('breathing-upper-body') as Sprite;
+    actor.playGesture();
+    const order: Texture[] = [];
+    for (let frame = 0; frame < 60; frame++) {
+      actor.update(1 / 60);
+      if (gesture.visible && order.at(-1) !== upper.texture) {
+        order.push(upper.texture);
+      }
+    }
+    expect(order).toEqual(frames);
+    expect(gesture.visible).toBe(false);
     actor.destroy({ children: true });
   });
   it('倒地傷者沒有站立呼吸的上下位移', () => {

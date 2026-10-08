@@ -1,6 +1,6 @@
 import { Assets } from 'pixi.js';
 import type { MapId } from '../game/types';
-import { NPC_IDLE_FRAMES } from '../data/npcIdle';
+import { NPC_FRAMES } from '../data/npcFrames';
 
 export interface AssetBackend {
   loadBundle(name: string, progress: (value: number) => void): Promise<unknown>;
@@ -20,10 +20,12 @@ export class AssetService {
     Assets.addBundle('common', {
       'npc:ensemble': `${baseUrl}assets/characters/npcs/ensemble-v2.json`,
       ...Object.fromEntries(
-        Object.keys(NPC_IDLE_FRAMES).map((id) => [
-          `npc:${id}:idle`,
-          `${baseUrl}assets/characters/npcs/${id}-idle-v1.json`,
-        ]),
+        Object.entries(NPC_FRAMES).flatMap(([id, actions]) =>
+          Object.keys(actions).map((action) => [
+            `npc:${id}:${action}`,
+            `${baseUrl}assets/characters/npcs/${id}-${action}-v1.json`,
+          ]),
+        ),
       ),
       'portrait:companions': `${baseUrl}assets/characters/companions/portraits-v1.json`,
       'npc:companions': `${baseUrl}assets/characters/companions/world-v2.json`,
