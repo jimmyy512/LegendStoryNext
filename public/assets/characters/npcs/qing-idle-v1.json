@@ -1,0 +1,92 @@
+{
+  "frames": {
+    "npc:qing:idle:0": {
+      "frame": {
+        "x": 0,
+        "y": 0,
+        "w": 238,
+        "h": 330
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 238,
+        "h": 330
+      },
+      "sourceSize": {
+        "w": 238,
+        "h": 330
+      }
+    },
+    "npc:qing:idle:1": {
+      "frame": {
+        "x": 238,
+        "y": 0,
+        "w": 238,
+        "h": 330
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 238,
+        "h": 330
+      },
+      "sourceSize": {
+        "w": 238,
+        "h": 330
+      }
+    },
+    "npc:qing:idle:2": {
+      "frame": {
+        "x": 476,
+        "y": 0,
+        "w": 238,
+        "h": 330
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 238,
+        "h": 330
+      },
+      "sourceSize": {
+        "w": 238,
+        "h": 330
+      }
+    },
+    "npc:qing:idle:3": {
+      "frame": {
+        "x": 714,
+        "y": 0,
+        "w": 238,
+        "h": 330
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 238,
+        "h": 330
+      },
+      "sourceSize": {
+        "w": 238,
+        "h": 330
+      }
+    }
+  },
+  "meta": {
+    "image": "qing-idle-v1.png",
+    "scale": "1",
+    "size": {
+      "w": 952,
+      "h": 330
+    }
+  }
+}

@@ -1,4 +1,5 @@
 import { Assets, Container, Graphics, Sprite, Texture } from 'pixi.js';
+import { NPC_IDLE_FRAMES } from '../data/npcIdle';
 import { ENEMY_FRAME_BASELINES } from './EnemyFrameRegistration';
 
 const INTERVAL: Record<string, number> = {
@@ -13,10 +14,21 @@ const INTERVAL: Record<string, number> = {
   boss: 3.6,
 };
 
+const IDLE_FPS = 5;
+
 /** 地圖上的角色使用獨立姿勢影格，並按角色個性錯開動作。 */
+interface Pose {
+  root: Container;
+  lower: Sprite;
+  upper: Sprite;
+  scale: number;
+  waist: number;
+}
+
 export class PixelWorldActor extends Container {
-  private readonly still: { root: Container; upper: Sprite; scale: number; waist: number };
-  private readonly gesture: { root: Container; upper: Sprite; scale: number; waist: number };
+  private readonly still: Pose;
+  private readonly gesture: Pose;
+  private readonly idleFrames: Texture[];
   private readonly interval: number;
   private time: number;
   private gestureTime = 0;
@@ -36,11 +48,21 @@ export class PixelWorldActor extends Container {
     stillTexture.source.scaleMode = 'nearest';
     gestureTexture.source.scaleMode = 'nearest';
     const base = kind === 'npc' ? 62 / stillTexture.height : scale;
-    const pose = (texture: Texture, name: string, key: string) => {
+    this.idleFrames =
+      kind === 'npc' && !wounded
+        ? Array.from({ length: NPC_IDLE_FRAMES[id] ?? 0 }, (_, i) =>
+            Assets.get<Texture>(`npc:${id}:idle:${i}`),
+          )
+        : [];
+    for (const frame of this.idleFrames) {
+      frame.source.scaleMode = 'nearest';
+    }
+    const pose = (texture: Texture, name: string, key: string, extra: Texture[] = []) => {
       const root = new Container();
       root.label = name;
-      const w = texture.width * base,
-        h = texture.height * base;
+      // 遮罩須涵蓋同一姿勢所有影格中最寬、最高者，避免髮梢被切。
+      const w = Math.max(texture.width, ...extra.map((t) => t.width)) * base,
+        h = Math.max(texture.height, ...extra.map((t) => t.height)) * base;
       const baseline = ENEMY_FRAME_BASELINES[key] ?? 1;
       const waist = -h * baseline * 0.38;
       const lower = new Sprite(texture),
@@ -59,9 +81,14 @@ export class PixelWorldActor extends Container {
       lower.mask = lowerMask;
       upper.mask = upperMask;
       this.addChild(root);
-      return { root, upper, scale: base, waist };
+      return { root, lower, upper, scale: base, waist };
     };
-    this.still = pose(stillTexture, 'still-pose', `${kind}:${id}${wounded ? ':down' : ''}`);
+    this.still = pose(
+      stillTexture,
+      'still-pose',
+      `${kind}:${id}${wounded ? ':down' : ''}`,
+      this.idleFrames,
+    );
     this.gesture = pose(
       gestureTexture,
       'gesture-pose',
@@ -88,6 +115,14 @@ export class PixelWorldActor extends Container {
     const active = this.gestureTime > 0;
     this.still.root.visible = !active;
     this.gesture.root.visible = active;
+    if (this.idleFrames.length > 0) {
+      // 有逐格待機時，呼吸與髮帶擺動由影格本身表現，不再疊加縮放。
+      const frame =
+        this.idleFrames[Math.floor(this.breathTime * IDLE_FPS) % this.idleFrames.length];
+      this.still.lower.texture = frame;
+      this.still.upper.texture = frame;
+      return;
+    }
     // 腳、腿與腰線不移動。只有腰線上方微幅呼吸，動作計時不重設呼吸相位。
     const expansion = this.wounded ? 1 : 1 + Math.sin(this.breathTime * 1.65) * 0.004;
     for (const pose of [this.still, this.gesture]) {

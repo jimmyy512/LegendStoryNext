@@ -22,6 +22,26 @@ describe('大地圖 NPC 待機', () => {
     }
     actor.destroy({ children: true });
   });
+  it('有逐格待機的 NPC 依序播放影格，不疊加呼吸縮放', () => {
+    const frames = [0, 1, 2, 3].map(() => new Texture());
+    vi.spyOn(Assets, 'get').mockImplementation(((key: string) => {
+      const match = /^npc:qing:idle:(\d)$/.exec(key);
+      return match ? frames[Number(match[1])] : Texture.EMPTY;
+    }) as typeof Assets.get);
+    const actor = new PixelWorldActor('npc', 'qing', 0.052);
+    const still = actor.getChildByLabel('still-pose')!;
+    const upper = still.getChildByLabel('breathing-upper-body') as Sprite;
+    const seen = new Set<Texture>();
+    for (let frame = 0; frame < 120; frame++) {
+      actor.update(1 / 60);
+      if (still.visible) {
+        seen.add(upper.texture);
+      }
+      expect(upper.y).toBe(0);
+    }
+    expect(seen.size).toBe(4);
+    actor.destroy({ children: true });
+  });
   it('倒地傷者沒有站立呼吸的上下位移', () => {
     vi.spyOn(Assets, 'get').mockImplementation((() => Texture.EMPTY) as typeof Assets.get);
     const actor = new PixelWorldActor('enemy', 'bandit', 0.05, true);
