@@ -1,0 +1,7 @@
+Use your image_gen tool exactly once, with BOTH attached images as references, size 1536x1024. Then copy the generated PNG to ./qing-idle-sheet.png in the current directory.
+
+Image prompt:
+A 2D game sprite sheet: 4 animation frames in one horizontal row, of the SAME character shown in the first reference image (a young wuxia sect disciple: long dark ponytail tied with a pale blue ribbon, white and light-blue hanfu robe, navy sash with jade pendant, navy trousers, sword with tassel on her back, chibi proportions, 3/4 view facing left). Copy her identity, outfit colours, proportions, pixel-art style and black outline exactly from the reference.
+Layout follows the second reference (guide): four equal columns 384 px wide; one full-body character centred in each column; every character the same size (about 560 px tall), feet standing on the cyan line; nothing crosses a column border. Do NOT draw the guide lines, grid, numbers or any text.
+Background: flat solid magenta #FF00FF everywhere, no shadow, no floor.
+Animation: a subtle relaxed idle breathing loop, frame 1 -> 4: (1) neutral stance like the reference, (2) shoulders rise slightly and the ponytail sways back, (3) peak of breath, ribbon and ponytail swing furthest, hands relax, (4) settling back toward frame 1. Feet stay planted in the same spot in all frames; only small upper-body, hair, ribbon and sleeve motion.

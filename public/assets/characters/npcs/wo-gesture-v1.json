@@ -1,0 +1,92 @@
+{
+  "frames": {
+    "npc:wo:gesture:0": {
+      "frame": {
+        "x": 0,
+        "y": 0,
+        "w": 101,
+        "h": 160
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 101,
+        "h": 160
+      },
+      "sourceSize": {
+        "w": 101,
+        "h": 160
+      }
+    },
+    "npc:wo:gesture:1": {
+      "frame": {
+        "x": 101,
+        "y": 0,
+        "w": 101,
+        "h": 160
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 101,
+        "h": 160
+      },
+      "sourceSize": {
+        "w": 101,
+        "h": 160
+      }
+    },
+    "npc:wo:gesture:2": {
+      "frame": {
+        "x": 202,
+        "y": 0,
+        "w": 101,
+        "h": 160
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 101,
+        "h": 160
+      },
+      "sourceSize": {
+        "w": 101,
+        "h": 160
+      }
+    },
+    "npc:wo:gesture:3": {
+      "frame": {
+        "x": 303,
+        "y": 0,
+        "w": 101,
+        "h": 160
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 101,
+        "h": 160
+      },
+      "sourceSize": {
+        "w": 101,
+        "h": 160
+      }
+    }
+  },
+  "meta": {
+    "image": "wo-gesture-v1.webp",
+    "scale": "0.492308",
+    "size": {
+      "w": 404,
+      "h": 160
+    }
+  }
+}

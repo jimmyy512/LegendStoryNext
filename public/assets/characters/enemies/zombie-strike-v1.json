@@ -1,0 +1,132 @@
+{
+  "frames": {
+    "enemy:zombie:strike:0": {
+      "frame": {
+        "x": 0,
+        "y": 0,
+        "w": 662,
+        "h": 420
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 662,
+        "h": 420
+      },
+      "sourceSize": {
+        "w": 662,
+        "h": 420
+      }
+    },
+    "enemy:zombie:strike:1": {
+      "frame": {
+        "x": 662,
+        "y": 0,
+        "w": 662,
+        "h": 420
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 662,
+        "h": 420
+      },
+      "sourceSize": {
+        "w": 662,
+        "h": 420
+      }
+    },
+    "enemy:zombie:strike:2": {
+      "frame": {
+        "x": 1324,
+        "y": 0,
+        "w": 662,
+        "h": 420
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 662,
+        "h": 420
+      },
+      "sourceSize": {
+        "w": 662,
+        "h": 420
+      }
+    },
+    "enemy:zombie:strike:3": {
+      "frame": {
+        "x": 1986,
+        "y": 0,
+        "w": 662,
+        "h": 420
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 662,
+        "h": 420
+      },
+      "sourceSize": {
+        "w": 662,
+        "h": 420
+      }
+    },
+    "enemy:zombie:strike:4": {
+      "frame": {
+        "x": 2648,
+        "y": 0,
+        "w": 662,
+        "h": 420
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 662,
+        "h": 420
+      },
+      "sourceSize": {
+        "w": 662,
+        "h": 420
+      }
+    },
+    "enemy:zombie:strike:5": {
+      "frame": {
+        "x": 3310,
+        "y": 0,
+        "w": 662,
+        "h": 420
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 662,
+        "h": 420
+      },
+      "sourceSize": {
+        "w": 662,
+        "h": 420
+      }
+    }
+  },
+  "meta": {
+    "image": "zombie-strike-v1.webp",
+    "scale": "0.313433",
+    "size": {
+      "w": 3972,
+      "h": 420
+    }
+  }
+}

@@ -1,0 +1,92 @@
+{
+  "frames": {
+    "npc:chance-suyin:idle:0": {
+      "frame": {
+        "x": 0,
+        "y": 0,
+        "w": 90,
+        "h": 160
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 90,
+        "h": 160
+      },
+      "sourceSize": {
+        "w": 90,
+        "h": 160
+      }
+    },
+    "npc:chance-suyin:idle:1": {
+      "frame": {
+        "x": 90,
+        "y": 0,
+        "w": 90,
+        "h": 160
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 90,
+        "h": 160
+      },
+      "sourceSize": {
+        "w": 90,
+        "h": 160
+      }
+    },
+    "npc:chance-suyin:idle:2": {
+      "frame": {
+        "x": 180,
+        "y": 0,
+        "w": 90,
+        "h": 160
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 90,
+        "h": 160
+      },
+      "sourceSize": {
+        "w": 90,
+        "h": 160
+      }
+    },
+    "npc:chance-suyin:idle:3": {
+      "frame": {
+        "x": 270,
+        "y": 0,
+        "w": 90,
+        "h": 160
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 90,
+        "h": 160
+      },
+      "sourceSize": {
+        "w": 90,
+        "h": 160
+      }
+    }
+  },
+  "meta": {
+    "image": "chance-suyin-idle-v1.webp",
+    "scale": "0.312500",
+    "size": {
+      "w": 360,
+      "h": 160
+    }
+  }
+}

@@ -1,0 +1,92 @@
+{
+  "frames": {
+    "npc:chance-tangwan:gesture:0": {
+      "frame": {
+        "x": 0,
+        "y": 0,
+        "w": 108,
+        "h": 160
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 108,
+        "h": 160
+      },
+      "sourceSize": {
+        "w": 108,
+        "h": 160
+      }
+    },
+    "npc:chance-tangwan:gesture:1": {
+      "frame": {
+        "x": 108,
+        "y": 0,
+        "w": 108,
+        "h": 160
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 108,
+        "h": 160
+      },
+      "sourceSize": {
+        "w": 108,
+        "h": 160
+      }
+    },
+    "npc:chance-tangwan:gesture:2": {
+      "frame": {
+        "x": 216,
+        "y": 0,
+        "w": 108,
+        "h": 160
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 108,
+        "h": 160
+      },
+      "sourceSize": {
+        "w": 108,
+        "h": 160
+      }
+    },
+    "npc:chance-tangwan:gesture:3": {
+      "frame": {
+        "x": 324,
+        "y": 0,
+        "w": 108,
+        "h": 160
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 108,
+        "h": 160
+      },
+      "sourceSize": {
+        "w": 108,
+        "h": 160
+      }
+    }
+  },
+  "meta": {
+    "image": "chance-tangwan-gesture-v1.webp",
+    "scale": "0.311284",
+    "size": {
+      "w": 432,
+      "h": 160
+    }
+  }
+}

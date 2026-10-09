@@ -1,0 +1,92 @@
+{
+  "frames": {
+    "npc:fong:gesture:0": {
+      "frame": {
+        "x": 0,
+        "y": 0,
+        "w": 135,
+        "h": 160
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 135,
+        "h": 160
+      },
+      "sourceSize": {
+        "w": 135,
+        "h": 160
+      }
+    },
+    "npc:fong:gesture:1": {
+      "frame": {
+        "x": 135,
+        "y": 0,
+        "w": 135,
+        "h": 160
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 135,
+        "h": 160
+      },
+      "sourceSize": {
+        "w": 135,
+        "h": 160
+      }
+    },
+    "npc:fong:gesture:2": {
+      "frame": {
+        "x": 270,
+        "y": 0,
+        "w": 135,
+        "h": 160
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 135,
+        "h": 160
+      },
+      "sourceSize": {
+        "w": 135,
+        "h": 160
+      }
+    },
+    "npc:fong:gesture:3": {
+      "frame": {
+        "x": 405,
+        "y": 0,
+        "w": 135,
+        "h": 160
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 135,
+        "h": 160
+      },
+      "sourceSize": {
+        "w": 135,
+        "h": 160
+      }
+    }
+  },
+  "meta": {
+    "image": "fong-gesture-v1.webp",
+    "scale": "0.489297",
+    "size": {
+      "w": 540,
+      "h": 160
+    }
+  }
+}

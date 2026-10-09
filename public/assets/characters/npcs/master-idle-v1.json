@@ -1,0 +1,92 @@
+{
+  "frames": {
+    "npc:master:idle:0": {
+      "frame": {
+        "x": 0,
+        "y": 0,
+        "w": 118,
+        "h": 160
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 118,
+        "h": 160
+      },
+      "sourceSize": {
+        "w": 118,
+        "h": 160
+      }
+    },
+    "npc:master:idle:1": {
+      "frame": {
+        "x": 118,
+        "y": 0,
+        "w": 118,
+        "h": 160
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 118,
+        "h": 160
+      },
+      "sourceSize": {
+        "w": 118,
+        "h": 160
+      }
+    },
+    "npc:master:idle:2": {
+      "frame": {
+        "x": 236,
+        "y": 0,
+        "w": 118,
+        "h": 160
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 118,
+        "h": 160
+      },
+      "sourceSize": {
+        "w": 118,
+        "h": 160
+      }
+    },
+    "npc:master:idle:3": {
+      "frame": {
+        "x": 354,
+        "y": 0,
+        "w": 118,
+        "h": 160
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 118,
+        "h": 160
+      },
+      "sourceSize": {
+        "w": 118,
+        "h": 160
+      }
+    }
+  },
+  "meta": {
+    "image": "master-idle-v1.webp",
+    "scale": "0.492308",
+    "size": {
+      "w": 472,
+      "h": 160
+    }
+  }
+}

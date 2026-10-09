@@ -1,0 +1,7 @@
+Use your image_gen tool exactly once, with ALL attached images as references, size 1536x1024. Then copy the generated PNG to ./disciple-hurt-sheet.png in the current directory.
+
+Image prompt:
+A 2D game battle sprite sheet: 4 animation frames in one horizontal row of the SAME character shown in the first reference image (a young martial-arts sect disciple: black hair in a top bun with a teal ribbon, cream wrap shirt with teal trim, teal sash, baggy dark teal trousers, bandaged shins, black shoes, wrist wraps, wooden sword strapped on the back; unarmed palm-strike fighter). Copy identity, outfit colours, proportions, pixel-art style and dark outline exactly from the references. The character faces LEFT in every frame.
+Layout follows the last reference (guide): four equal columns 384 px wide; one full-body character centred in each column, all the same size (about 520 px tall), feet on the cyan line; nothing crosses a column border. Do NOT draw the guide lines, grid, numbers or any text.
+Background: flat solid magenta #FF00FF everywhere, no shadow, no floor, no effects.
+Animation, getting hit from the left: (1) the moment of impact, head snaps back and body flinches exactly like the second reference, (2) maximum recoil, torso bent back and arms flung, (3) catching balance, (4) almost back to the ready stance of the first reference. Feet stay planted.

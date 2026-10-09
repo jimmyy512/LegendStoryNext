@@ -1,0 +1,92 @@
+{
+  "frames": {
+    "npc:yin:gesture:0": {
+      "frame": {
+        "x": 0,
+        "y": 0,
+        "w": 124,
+        "h": 160
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 124,
+        "h": 160
+      },
+      "sourceSize": {
+        "w": 124,
+        "h": 160
+      }
+    },
+    "npc:yin:gesture:1": {
+      "frame": {
+        "x": 124,
+        "y": 0,
+        "w": 124,
+        "h": 160
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 124,
+        "h": 160
+      },
+      "sourceSize": {
+        "w": 124,
+        "h": 160
+      }
+    },
+    "npc:yin:gesture:2": {
+      "frame": {
+        "x": 248,
+        "y": 0,
+        "w": 124,
+        "h": 160
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 124,
+        "h": 160
+      },
+      "sourceSize": {
+        "w": 124,
+        "h": 160
+      }
+    },
+    "npc:yin:gesture:3": {
+      "frame": {
+        "x": 372,
+        "y": 0,
+        "w": 124,
+        "h": 160
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 124,
+        "h": 160
+      },
+      "sourceSize": {
+        "w": 124,
+        "h": 160
+      }
+    }
+  },
+  "meta": {
+    "image": "yin-gesture-v1.webp",
+    "scale": "0.519481",
+    "size": {
+      "w": 496,
+      "h": 160
+    }
+  }
+}

@@ -1,11 +1,21 @@
 import { Assets, Container, Rectangle, Sprite, Texture } from 'pixi.js';
 import type { BodyPart, BodyState } from '../game/body';
 import { HumanoidEnemyRig } from './HumanoidEnemyRig';
+import { ENEMY_SEQUENCES } from '../data/enemyFrames';
 import { ENEMY_FRAME_BASELINES } from './EnemyFrameRegistration';
 
 type Motion = 'idle' | 'walk' | 'windup' | 'attack' | 'hurt' | 'guard' | 'down';
 type Frame =
-  'idle' | 'step' | 'attack' | 'hurt' | 'down' | 'prepare' | 'lift' | 'follow' | 'recover';
+  | 'idle'
+  | 'step'
+  | 'attack'
+  | 'hurt'
+  | 'down'
+  | 'prepare'
+  | 'lift'
+  | 'follow'
+  | 'recover'
+  | `hurt:${number}`;
 type Profile = { scale: number; pace: number; attackTime: number; lunge: number; fallTime: number };
 
 const PROFILES: Record<string, Profile> = {
@@ -38,6 +48,8 @@ const FRAME_REGISTRATION: Record<string, { scale: number; baseline: number }> = 
   'enemy:bandit:down': { scale: 0.157, baseline: 473 / 481 },
 };
 
+const HURT_STEPS = [0.2, 0.45, 0.7, 0.9];
+
 const clamp = (value: number): number => Math.max(0, Math.min(1, value));
 const easeOut = (value: number): number => 1 - Math.pow(1 - clamp(value), 3);
 
@@ -64,6 +76,7 @@ export class PixelEnemy extends Container {
   private travelDirection = 1;
   private readonly frames: Partial<Record<Frame, Sprite>>;
   private readonly hasSlashSequence: boolean;
+  private readonly hurtFrames: number = 0;
   private readonly isBoss: boolean;
   private readonly profile: Profile;
   private motion: Motion = 'idle';
@@ -94,7 +107,9 @@ export class PixelEnemy extends Container {
       return;
     }
     const sheet = SLASH_SHEETS[id];
-    this.hasSlashSequence = !!sheet;
+    const sequence = ENEMY_SEQUENCES[id];
+    this.hasSlashSequence = !!sheet || !!sequence;
+    this.hurtFrames = sequence?.hurt ?? 0;
     const frame = (key: string): Sprite => {
       const texture = Assets.get<Texture>(key);
       texture.source.scaleMode = 'nearest';
@@ -122,6 +137,18 @@ export class PixelEnemy extends Container {
       this.addChild(sprite);
       return sprite;
     };
+    const sequenceFrame = (key: string): Sprite => {
+      const texture = Assets.get<Texture>(key);
+      texture.source.scaleMode = 'nearest';
+      const sprite = new Sprite(texture);
+      sprite.label = key;
+      sprite.anchor.set(0.5, 1);
+      sprite.scale.set(profile.scale);
+      sprite.visible = false;
+      this.addChild(sprite);
+      return sprite;
+    };
+    const strike = (index: number) => sequenceFrame(`enemy:${id}:strike:${index}`);
     this.frames = {
       idle: sheet ? slashFrame(0) : frame(`enemy:${id}`),
       step: frame(`enemy:${id}:step`),
@@ -134,6 +161,21 @@ export class PixelEnemy extends Container {
             lift: slashFrame(2),
             follow: slashFrame(4),
             recover: slashFrame(5),
+          }
+        : {}),
+      ...(sequence
+        ? {
+            prepare: strike(1),
+            lift: strike(2),
+            attack: strike(3),
+            follow: strike(4),
+            recover: strike(5),
+            ...Object.fromEntries(
+              Array.from({ length: sequence.hurt }, (_, i) => [
+                `hurt:${i}`,
+                sequenceFrame(`enemy:${id}:hurt:${i}`),
+              ]),
+            ),
           }
         : {}),
     };
@@ -242,7 +284,7 @@ export class PixelEnemy extends Container {
     } else if (this.motion === 'windup') {
       // Hold anticipation until the combat simulation resolves the strike.
       x = easeOut(phase) * 7;
-      if (this.isBoss) {
+      if (this.isBoss && !this.hasSlashSequence) {
         // The authored step lowers the sword before the thrust. Keeping the
         // extended idle sword here made the warning read as a frozen attack.
         name = 'step';
@@ -260,16 +302,24 @@ export class PixelEnemy extends Container {
         x = 7 - easeOut((phase - 0.3) / 0.18) * this.profile.lunge;
       } else {
         x = -(this.profile.lunge - 7) * (1 - easeOut((phase - 0.79) / 0.21));
-        if (this.isBoss) {
+        if (this.isBoss && !this.hasSlashSequence) {
           name = 'step';
         }
       }
       if (this.hasSlashSequence) {
         name = phase < 0.56 ? 'attack' : phase < 0.8 ? 'follow' : 'recover';
-        x = 0;
+        // 逐格出手本身有跨步；只留一點前衝，收勢時回到原位。
+        x = this.hurtFrames
+          ? -this.profile.lunge *
+            0.5 *
+            (phase < 0.8 ? easeOut(phase / 0.3) : 1 - easeOut((phase - 0.8) / 0.2))
+          : 0;
       }
     } else if (this.motion === 'hurt') {
       name = phase < 0.9 ? 'hurt' : 'idle';
+      if (this.hurtFrames && phase < 0.9) {
+        name = `hurt:${HURT_STEPS.findIndex((end) => phase < end)}`;
+      }
       x = easeOut(Math.min(phase / 0.25, 1)) * 17 * (1 - easeOut((phase - 0.25) / 0.75));
       y = -Math.sin(Math.PI * phase) * 2;
       tint = phase < 0.16 ? 0xffb8a3 : tint;
@@ -277,12 +327,12 @@ export class PixelEnemy extends Container {
       x = 5;
     } else if (this.motion === 'down') {
       // The collapse has its own authored grounded image. The boss stays kneeling.
-      name = phase < 0.27 ? 'hurt' : 'down';
+      name = phase < 0.27 ? (this.hurtFrames ? 'hurt:0' : 'hurt') : 'down';
       x = easeOut(phase) * (this.profile.lunge * 0.34);
       y = phase < 0.27 ? -Math.sin((phase / 0.27) * Math.PI) * 3 : 2;
       tint = 0xffffff;
     }
-    for (const [key, sprite] of Object.entries(this.frames)) {
+    for (const [key, sprite] of Object.entries(this.frames) as [string, Sprite][]) {
       sprite.visible = key === name;
       if (sprite.visible) {
         sprite.position.set(x, y);

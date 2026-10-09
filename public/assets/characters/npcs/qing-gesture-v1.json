@@ -1,0 +1,92 @@
+{
+  "frames": {
+    "npc:qing:gesture:0": {
+      "frame": {
+        "x": 0,
+        "y": 0,
+        "w": 129,
+        "h": 160
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 129,
+        "h": 160
+      },
+      "sourceSize": {
+        "w": 129,
+        "h": 160
+      }
+    },
+    "npc:qing:gesture:1": {
+      "frame": {
+        "x": 129,
+        "y": 0,
+        "w": 129,
+        "h": 160
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 129,
+        "h": 160
+      },
+      "sourceSize": {
+        "w": 129,
+        "h": 160
+      }
+    },
+    "npc:qing:gesture:2": {
+      "frame": {
+        "x": 258,
+        "y": 0,
+        "w": 129,
+        "h": 160
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 129,
+        "h": 160
+      },
+      "sourceSize": {
+        "w": 129,
+        "h": 160
+      }
+    },
+    "npc:qing:gesture:3": {
+      "frame": {
+        "x": 387,
+        "y": 0,
+        "w": 129,
+        "h": 160
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 129,
+        "h": 160
+      },
+      "sourceSize": {
+        "w": 129,
+        "h": 160
+      }
+    }
+  },
+  "meta": {
+    "image": "qing-gesture-v1.webp",
+    "scale": "0.490798",
+    "size": {
+      "w": 516,
+      "h": 160
+    }
+  }
+}

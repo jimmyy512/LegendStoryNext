@@ -1,0 +1,92 @@
+{
+  "frames": {
+    "npc:fong:idle:0": {
+      "frame": {
+        "x": 0,
+        "y": 0,
+        "w": 120,
+        "h": 160
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 120,
+        "h": 160
+      },
+      "sourceSize": {
+        "w": 120,
+        "h": 160
+      }
+    },
+    "npc:fong:idle:1": {
+      "frame": {
+        "x": 120,
+        "y": 0,
+        "w": 120,
+        "h": 160
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 120,
+        "h": 160
+      },
+      "sourceSize": {
+        "w": 120,
+        "h": 160
+      }
+    },
+    "npc:fong:idle:2": {
+      "frame": {
+        "x": 240,
+        "y": 0,
+        "w": 120,
+        "h": 160
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 120,
+        "h": 160
+      },
+      "sourceSize": {
+        "w": 120,
+        "h": 160
+      }
+    },
+    "npc:fong:idle:3": {
+      "frame": {
+        "x": 360,
+        "y": 0,
+        "w": 120,
+        "h": 160
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 120,
+        "h": 160
+      },
+      "sourceSize": {
+        "w": 120,
+        "h": 160
+      }
+    }
+  },
+  "meta": {
+    "image": "fong-idle-v1.webp",
+    "scale": "0.487805",
+    "size": {
+      "w": 480,
+      "h": 160
+    }
+  }
+}

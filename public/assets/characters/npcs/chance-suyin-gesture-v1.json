@@ -1,0 +1,92 @@
+{
+  "frames": {
+    "npc:chance-suyin:gesture:0": {
+      "frame": {
+        "x": 0,
+        "y": 0,
+        "w": 87,
+        "h": 160
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 87,
+        "h": 160
+      },
+      "sourceSize": {
+        "w": 87,
+        "h": 160
+      }
+    },
+    "npc:chance-suyin:gesture:1": {
+      "frame": {
+        "x": 87,
+        "y": 0,
+        "w": 87,
+        "h": 160
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 87,
+        "h": 160
+      },
+      "sourceSize": {
+        "w": 87,
+        "h": 160
+      }
+    },
+    "npc:chance-suyin:gesture:2": {
+      "frame": {
+        "x": 174,
+        "y": 0,
+        "w": 87,
+        "h": 160
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 87,
+        "h": 160
+      },
+      "sourceSize": {
+        "w": 87,
+        "h": 160
+      }
+    },
+    "npc:chance-suyin:gesture:3": {
+      "frame": {
+        "x": 261,
+        "y": 0,
+        "w": 87,
+        "h": 160
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 87,
+        "h": 160
+      },
+      "sourceSize": {
+        "w": 87,
+        "h": 160
+      }
+    }
+  },
+  "meta": {
+    "image": "chance-suyin-gesture-v1.webp",
+    "scale": "0.312500",
+    "size": {
+      "w": 348,
+      "h": 160
+    }
+  }
+}

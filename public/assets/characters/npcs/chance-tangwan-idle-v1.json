@@ -1,0 +1,92 @@
+{
+  "frames": {
+    "npc:chance-tangwan:idle:0": {
+      "frame": {
+        "x": 0,
+        "y": 0,
+        "w": 99,
+        "h": 160
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 99,
+        "h": 160
+      },
+      "sourceSize": {
+        "w": 99,
+        "h": 160
+      }
+    },
+    "npc:chance-tangwan:idle:1": {
+      "frame": {
+        "x": 99,
+        "y": 0,
+        "w": 99,
+        "h": 160
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 99,
+        "h": 160
+      },
+      "sourceSize": {
+        "w": 99,
+        "h": 160
+      }
+    },
+    "npc:chance-tangwan:idle:2": {
+      "frame": {
+        "x": 198,
+        "y": 0,
+        "w": 99,
+        "h": 160
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 99,
+        "h": 160
+      },
+      "sourceSize": {
+        "w": 99,
+        "h": 160
+      }
+    },
+    "npc:chance-tangwan:idle:3": {
+      "frame": {
+        "x": 297,
+        "y": 0,
+        "w": 99,
+        "h": 160
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 99,
+        "h": 160
+      },
+      "sourceSize": {
+        "w": 99,
+        "h": 160
+      }
+    }
+  },
+  "meta": {
+    "image": "chance-tangwan-idle-v1.webp",
+    "scale": "0.310078",
+    "size": {
+      "w": 396,
+      "h": 160
+    }
+  }
+}

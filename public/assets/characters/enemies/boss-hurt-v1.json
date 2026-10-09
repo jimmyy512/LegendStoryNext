@@ -1,0 +1,92 @@
+{
+  "frames": {
+    "enemy:boss:hurt:0": {
+      "frame": {
+        "x": 0,
+        "y": 0,
+        "w": 560,
+        "h": 420
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 560,
+        "h": 420
+      },
+      "sourceSize": {
+        "w": 560,
+        "h": 420
+      }
+    },
+    "enemy:boss:hurt:1": {
+      "frame": {
+        "x": 560,
+        "y": 0,
+        "w": 560,
+        "h": 420
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 560,
+        "h": 420
+      },
+      "sourceSize": {
+        "w": 560,
+        "h": 420
+      }
+    },
+    "enemy:boss:hurt:2": {
+      "frame": {
+        "x": 1120,
+        "y": 0,
+        "w": 560,
+        "h": 420
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 560,
+        "h": 420
+      },
+      "sourceSize": {
+        "w": 560,
+        "h": 420
+      }
+    },
+    "enemy:boss:hurt:3": {
+      "frame": {
+        "x": 1680,
+        "y": 0,
+        "w": 560,
+        "h": 420
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 560,
+        "h": 420
+      },
+      "sourceSize": {
+        "w": 560,
+        "h": 420
+      }
+    }
+  },
+  "meta": {
+    "image": "boss-hurt-v1.webp",
+    "scale": "0.389972",
+    "size": {
+      "w": 2240,
+      "h": 420
+    }
+  }
+}

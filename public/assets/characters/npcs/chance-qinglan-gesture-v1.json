@@ -1,0 +1,92 @@
+{
+  "frames": {
+    "npc:chance-qinglan:gesture:0": {
+      "frame": {
+        "x": 0,
+        "y": 0,
+        "w": 122,
+        "h": 160
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 122,
+        "h": 160
+      },
+      "sourceSize": {
+        "w": 122,
+        "h": 160
+      }
+    },
+    "npc:chance-qinglan:gesture:1": {
+      "frame": {
+        "x": 122,
+        "y": 0,
+        "w": 122,
+        "h": 160
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 122,
+        "h": 160
+      },
+      "sourceSize": {
+        "w": 122,
+        "h": 160
+      }
+    },
+    "npc:chance-qinglan:gesture:2": {
+      "frame": {
+        "x": 244,
+        "y": 0,
+        "w": 122,
+        "h": 160
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 122,
+        "h": 160
+      },
+      "sourceSize": {
+        "w": 122,
+        "h": 160
+      }
+    },
+    "npc:chance-qinglan:gesture:3": {
+      "frame": {
+        "x": 366,
+        "y": 0,
+        "w": 122,
+        "h": 160
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 122,
+        "h": 160
+      },
+      "sourceSize": {
+        "w": 122,
+        "h": 160
+      }
+    }
+  },
+  "meta": {
+    "image": "chance-qinglan-gesture-v1.webp",
+    "scale": "0.312500",
+    "size": {
+      "w": 488,
+      "h": 160
+    }
+  }
+}

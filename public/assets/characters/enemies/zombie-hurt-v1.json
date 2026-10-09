@@ -1,0 +1,92 @@
+{
+  "frames": {
+    "enemy:zombie:hurt:0": {
+      "frame": {
+        "x": 0,
+        "y": 0,
+        "w": 471,
+        "h": 420
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 471,
+        "h": 420
+      },
+      "sourceSize": {
+        "w": 471,
+        "h": 420
+      }
+    },
+    "enemy:zombie:hurt:1": {
+      "frame": {
+        "x": 471,
+        "y": 0,
+        "w": 471,
+        "h": 420
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 471,
+        "h": 420
+      },
+      "sourceSize": {
+        "w": 471,
+        "h": 420
+      }
+    },
+    "enemy:zombie:hurt:2": {
+      "frame": {
+        "x": 942,
+        "y": 0,
+        "w": 471,
+        "h": 420
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 471,
+        "h": 420
+      },
+      "sourceSize": {
+        "w": 471,
+        "h": 420
+      }
+    },
+    "enemy:zombie:hurt:3": {
+      "frame": {
+        "x": 1413,
+        "y": 0,
+        "w": 471,
+        "h": 420
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 471,
+        "h": 420
+      },
+      "sourceSize": {
+        "w": 471,
+        "h": 420
+      }
+    }
+  },
+  "meta": {
+    "image": "zombie-hurt-v1.webp",
+    "scale": "0.317941",
+    "size": {
+      "w": 1884,
+      "h": 420
+    }
+  }
+}

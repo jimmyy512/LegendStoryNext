@@ -1,5 +1,7 @@
 import { Assets } from 'pixi.js';
 import type { MapId } from '../game/types';
+import { NPC_FRAMES } from '../data/npcFrames';
+import { ENEMY_SEQUENCES } from '../data/enemyFrames';
 
 export interface AssetBackend {
   loadBundle(name: string, progress: (value: number) => void): Promise<unknown>;
@@ -18,6 +20,14 @@ export class AssetService {
   static create(baseUrl: string): AssetService {
     Assets.addBundle('common', {
       'npc:ensemble': `${baseUrl}assets/characters/npcs/ensemble-v2.json`,
+      ...Object.fromEntries(
+        Object.entries(NPC_FRAMES).flatMap(([id, actions]) =>
+          Object.keys(actions).map((action) => [
+            `npc-frames:${id}:${action}`,
+            `${baseUrl}assets/characters/npcs/${id}-${action}-v1.json`,
+          ]),
+        ),
+      ),
       'portrait:companions': `${baseUrl}assets/characters/companions/portraits-v1.json`,
       'npc:companions': `${baseUrl}assets/characters/companions/world-v2.json`,
       'title-scene': `${baseUrl}assets/ui/title-landscape.webp`,
@@ -55,6 +65,14 @@ export class AssetService {
       ),
       'pixel-hero:skeleton': `${baseUrl}assets/characters/pixelHeroine/pixel-heroine.json`,
       'pixel-hero:atlas': `${baseUrl}assets/characters/pixelHeroine/pixel-heroine.atlas`,
+      ...Object.fromEntries(
+        Object.keys(ENEMY_SEQUENCES).flatMap((id) =>
+          ['strike', 'hurt'].map((action) => [
+            `enemy-frames:${id}:${action}`,
+            `${baseUrl}assets/characters/enemies/${id}-${action}-v1.json`,
+          ]),
+        ),
+      ),
       'enemy:disciple': `${baseUrl}assets/characters/enemies/disciple.webp`,
       'enemy:bandit': `${baseUrl}assets/characters/enemies/bandit-chibi.webp`,
       'enemy:bandit:rig': `${baseUrl}assets/characters/enemies/bandit-rig-v1.png`,

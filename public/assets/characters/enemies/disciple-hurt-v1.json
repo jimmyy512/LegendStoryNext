@@ -1,0 +1,92 @@
+{
+  "frames": {
+    "enemy:disciple:hurt:0": {
+      "frame": {
+        "x": 0,
+        "y": 0,
+        "w": 286,
+        "h": 420
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 286,
+        "h": 420
+      },
+      "sourceSize": {
+        "w": 286,
+        "h": 420
+      }
+    },
+    "enemy:disciple:hurt:1": {
+      "frame": {
+        "x": 286,
+        "y": 0,
+        "w": 286,
+        "h": 420
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 286,
+        "h": 420
+      },
+      "sourceSize": {
+        "w": 286,
+        "h": 420
+      }
+    },
+    "enemy:disciple:hurt:2": {
+      "frame": {
+        "x": 572,
+        "y": 0,
+        "w": 286,
+        "h": 420
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 286,
+        "h": 420
+      },
+      "sourceSize": {
+        "w": 286,
+        "h": 420
+      }
+    },
+    "enemy:disciple:hurt:3": {
+      "frame": {
+        "x": 858,
+        "y": 0,
+        "w": 286,
+        "h": 420
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 286,
+        "h": 420
+      },
+      "sourceSize": {
+        "w": 286,
+        "h": 420
+      }
+    }
+  },
+  "meta": {
+    "image": "disciple-hurt-v1.webp",
+    "scale": "0.357143",
+    "size": {
+      "w": 1144,
+      "h": 420
+    }
+  }
+}

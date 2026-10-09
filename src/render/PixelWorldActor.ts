@@ -1,4 +1,5 @@
 import { Assets, Container, Graphics, Sprite, Texture } from 'pixi.js';
+import { NPC_FRAMES, type NpcAction } from '../data/npcFrames';
 import { ENEMY_FRAME_BASELINES } from './EnemyFrameRegistration';
 
 const INTERVAL: Record<string, number> = {
@@ -13,14 +14,36 @@ const INTERVAL: Record<string, number> = {
   boss: 3.6,
 };
 
+const IDLE_FPS = 5;
+/** 四格手勢：起手、半途、完整手勢停留、收回。 */
+const GESTURE_TIMING = [0.1, 0.12, 0.55, 0.15];
+const STILL_GESTURE_TIME = 0.7;
+/** 轉身時水平縮放的速度（每秒），約 0.12 秒翻面。 */
+const TURN_SPEED = 16;
+
+interface Pose {
+  root: Container;
+  lower: Sprite;
+  upper: Sprite;
+  scale: number;
+  waist: number;
+}
+
 /** 地圖上的角色使用獨立姿勢影格，並按角色個性錯開動作。 */
 export class PixelWorldActor extends Container {
-  private readonly still: { root: Container; upper: Sprite; scale: number; waist: number };
-  private readonly gesture: { root: Container; upper: Sprite; scale: number; waist: number };
+  private readonly still: Pose;
+  private readonly gesture: Pose;
+  private readonly idleFrames: Texture[];
+  private readonly gestureFrames: Texture[];
+  private readonly gestureTiming: number[];
   private readonly interval: number;
   private time: number;
   private gestureTime = 0;
   private breathTime = 0;
+  /** 素材原本面向的方向：門派人物朝左，路邊人物朝右。 */
+  private readonly authoredFacing: 1 | -1;
+  private facing: 1 | -1;
+  readonly kind: 'npc' | 'enemy';
 
   constructor(
     kind: 'npc' | 'enemy',
@@ -29,6 +52,9 @@ export class PixelWorldActor extends Container {
     private readonly wounded = false,
   ) {
     super();
+    this.kind = kind;
+    this.authoredFacing = id.startsWith('chance-') ? 1 : -1;
+    this.facing = this.authoredFacing;
     const stillTexture = Assets.get<Texture>(`${kind}:${id}${wounded ? ':down' : ''}`);
     const gestureTexture = wounded
       ? stillTexture
@@ -36,11 +62,26 @@ export class PixelWorldActor extends Container {
     stillTexture.source.scaleMode = 'nearest';
     gestureTexture.source.scaleMode = 'nearest';
     const base = kind === 'npc' ? 62 / stillTexture.height : scale;
-    const pose = (texture: Texture, name: string, key: string) => {
+    const frames = (action: NpcAction) =>
+      kind === 'npc' && !wounded
+        ? Array.from({ length: NPC_FRAMES[id]?.[action] ?? 0 }, (_, i) => {
+            const frame = Assets.get<Texture>(`npc:${id}:${action}:${i}`);
+            frame.source.scaleMode = 'nearest';
+            return frame;
+          })
+        : [];
+    this.idleFrames = frames('idle');
+    this.gestureFrames = frames('gesture');
+    this.gestureTiming =
+      this.gestureFrames.length === GESTURE_TIMING.length
+        ? GESTURE_TIMING
+        : this.gestureFrames.map(() => STILL_GESTURE_TIME / this.gestureFrames.length);
+    const pose = (texture: Texture, name: string, key: string, extra: Texture[] = []) => {
       const root = new Container();
       root.label = name;
-      const w = texture.width * base,
-        h = texture.height * base;
+      // 遮罩須涵蓋同一姿勢所有影格中最寬、最高者，避免髮梢被切。
+      const w = Math.max(texture.width, ...extra.map((t) => t.width)) * base,
+        h = Math.max(texture.height, ...extra.map((t) => t.height)) * base;
       const baseline = ENEMY_FRAME_BASELINES[key] ?? 1;
       const waist = -h * baseline * 0.38;
       const lower = new Sprite(texture),
@@ -59,13 +100,19 @@ export class PixelWorldActor extends Container {
       lower.mask = lowerMask;
       upper.mask = upperMask;
       this.addChild(root);
-      return { root, upper, scale: base, waist };
+      return { root, lower, upper, scale: base, waist };
     };
-    this.still = pose(stillTexture, 'still-pose', `${kind}:${id}${wounded ? ':down' : ''}`);
+    this.still = pose(
+      stillTexture,
+      'still-pose',
+      `${kind}:${id}${wounded ? ':down' : ''}`,
+      this.idleFrames,
+    );
     this.gesture = pose(
       gestureTexture,
       'gesture-pose',
       `${kind}:${id}:${kind === 'npc' ? 'gesture' : 'attack'}`,
+      this.gestureFrames,
     );
     this.gesture.root.visible = false;
     this.interval = wounded ? Infinity : (INTERVAL[id] ?? 4);
@@ -74,20 +121,53 @@ export class PixelWorldActor extends Container {
   }
 
   playGesture(): void {
-    this.gestureTime = 0.7;
+    this.gestureTime = this.gestureFrames.length
+      ? this.gestureTiming.reduce((sum, t) => sum + t, 0)
+      : STILL_GESTURE_TIME;
+  }
+
+  /** 面向世界座標的水平方向；null 表示回到素材原本的朝向。 */
+  lookAt(dx: number | null): void {
+    if (dx === null) {
+      this.facing = this.authoredFacing;
+    } else if (Math.abs(dx) > 4) {
+      this.facing = dx > 0 ? 1 : -1;
+    }
   }
 
   update(dt: number): void {
+    const flip = this.facing === this.authoredFacing ? 1 : -1;
+    this.scale.x +=
+      Math.sign(flip - this.scale.x) * Math.min(Math.abs(flip - this.scale.x), dt * TURN_SPEED);
     this.time += dt;
     this.breathTime += dt;
     if (this.time >= this.interval) {
       this.time %= this.interval;
-      this.playGesture();
+      if (this.gestureTime <= 0) {
+        this.playGesture();
+      }
     }
     this.gestureTime = Math.max(0, this.gestureTime - dt);
     const active = this.gestureTime > 0;
     this.still.root.visible = !active;
     this.gesture.root.visible = active;
+    if (active && this.gestureFrames.length > 0) {
+      let left = this.gestureTiming.reduce((sum, t) => sum + t, 0) - this.gestureTime;
+      let index = 0;
+      while (index < this.gestureFrames.length - 1 && left >= this.gestureTiming[index]) {
+        left -= this.gestureTiming[index++];
+      }
+      this.gesture.lower.texture = this.gestureFrames[index];
+      this.gesture.upper.texture = this.gestureFrames[index];
+    }
+    if (this.idleFrames.length > 0) {
+      // 有逐格待機時，呼吸與髮帶擺動由影格本身表現，不再疊加縮放。
+      const frame =
+        this.idleFrames[Math.floor(this.breathTime * IDLE_FPS) % this.idleFrames.length];
+      this.still.lower.texture = frame;
+      this.still.upper.texture = frame;
+      return;
+    }
     // 腳、腿與腰線不移動。只有腰線上方微幅呼吸，動作計時不重設呼吸相位。
     const expansion = this.wounded ? 1 : 1 + Math.sin(this.breathTime * 1.65) * 0.004;
     for (const pose of [this.still, this.gesture]) {

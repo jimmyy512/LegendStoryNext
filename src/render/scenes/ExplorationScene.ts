@@ -13,12 +13,17 @@ import { PortalMarker } from '../PortalMarker';
 import { placeWorldLabel, type WorldLabelBox } from '../worldLabelLayout';
 import { PixiScene } from './PixiScene';
 
+/** 玩家走進這個距離內，NPC 會轉身看向玩家。 */
+const NPC_NOTICE_TILES = 2.5;
+
 export class ExplorationScene extends PixiScene {
   onInteract: (entity: MapEntity) => void = () => {};
   onStep: (point: Point) => void = () => {};
   onBlocked: () => void = () => {};
   private actors: Container;
   private readonly worldActors: PixelWorldActor[] = [];
+  private readonly actorByEntity = new Map<string, PixelWorldActor>();
+  private talkingTo: PixelWorldActor | null = null;
   private readonly nameplates = new Container();
   private readonly labelBoxes: WorldLabelBox[] = [];
   private readonly portals: { node: PortalMarker; entity: MapEntity }[] = [];
@@ -93,6 +98,9 @@ export class ExplorationScene extends PixiScene {
   }
   setDialogueActive(active: boolean): void {
     this.dialogueActive = active;
+    if (!active) {
+      this.talkingTo = null;
+    }
     this.nameplates.visible = !active;
     this.objectiveMarker.visible = !active && !!this.objectiveEntity;
   }
@@ -164,6 +172,7 @@ export class ExplorationScene extends PixiScene {
           ? new PixelWorldActor('enemy', 'bandit', 0.05, !state.flags.includes('mercy'))
           : new PixelWorldActor('npc', entity.id, 0.052);
       this.worldActors.push(actor);
+      this.actorByEntity.set(entity.id, actor);
       node.addChild(actor);
     } else {
       const g = new Graphics();
@@ -262,7 +271,6 @@ export class ExplorationScene extends PixiScene {
     nameplate.hitArea = new Rectangle(0, 0, box.width, box.height);
     nameplate.on('pointertap', (event) => {
       event.stopPropagation();
-      this.worldActors.find((actor) => actor.parent === node)?.playGesture();
       this.navigate(entity);
     });
     this.nameplates.addChild(nameplate);
@@ -270,10 +278,19 @@ export class ExplorationScene extends PixiScene {
     node.cursor = 'pointer';
     node.on('pointertap', (event) => {
       event.stopPropagation();
-      this.worldActors.find((actor) => actor.parent === node)?.playGesture();
       this.navigate(entity);
     });
     this.actors.addChild(node);
+  }
+
+  /** 抵達人物身旁：人物轉向玩家並打招呼，再交給對話流程。 */
+  private arrive(entity: MapEntity): void {
+    const actor = this.actorByEntity.get(entity.id);
+    if (actor?.kind === 'npc') {
+      this.talkingTo = actor;
+      actor.playGesture();
+    }
+    this.onInteract(entity);
   }
 
   private walkTo(target: Point, entity: MapEntity | null = null): void {
@@ -319,7 +336,7 @@ export class ExplorationScene extends PixiScene {
     if (!path.length && this.pending) {
       const pending = this.pending;
       this.pending = null;
-      this.onInteract(pending);
+      this.arrive(pending);
     }
   }
 
@@ -331,6 +348,11 @@ export class ExplorationScene extends PixiScene {
       );
     }
     for (const actor of this.worldActors) {
+      if (actor.kind === 'npc' && actor.parent) {
+        const dx = this.hero.x - actor.parent.x;
+        const near = Math.hypot(dx, this.hero.y - actor.parent.y) < TILE * NPC_NOTICE_TILES;
+        actor.lookAt(near || actor === this.talkingTo ? dx : null);
+      }
       actor.update(dt);
     }
     this.hero.setMoving(this.enabled && this.path.length > 0);
@@ -356,7 +378,7 @@ export class ExplorationScene extends PixiScene {
         const entity = this.pending;
         this.pending = null;
         if (entity) {
-          this.onInteract(entity);
+          this.arrive(entity);
         }
       }
     } else {
