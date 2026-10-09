@@ -1,4 +1,4 @@
-﻿import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { Assets, Sprite, Texture } from 'pixi.js';
 import { createBody } from '../src/game/body';
 import { PixelEnemy } from '../src/render/PixelEnemy';
@@ -7,22 +7,49 @@ import { HumanoidEnemyRig } from '../src/render/HumanoidEnemyRig';
 afterEach(() => vi.restoreAllMocks());
 
 describe('enemy anticipation follows combat timing', () => {
-  it('holds the boss sword low before thrusting and returns through the planted step', () => {
+  it('plays the generated boss thrust: windup frames, contact, follow-through, recovery', () => {
     vi.spyOn(Assets, 'get').mockImplementation((() => Texture.EMPTY) as typeof Assets.get);
     const enemy = new PixelEnemy('boss', createBody());
-    const visibleFrame = () => enemy.children.findIndex((child) => child.visible);
-    expect(visibleFrame()).toBe(0);
+    const visible = () => enemy.children.find((child) => child.visible)?.label;
+    expect(visible()).not.toMatch(/strike/);
     enemy.playAttack();
+    enemy.update(0.05);
+    expect(visible()).toBe('enemy:boss:strike:1');
     enemy.update(0.5);
-    expect(visibleFrame()).toBe(1);
+    expect(visible()).toBe('enemy:boss:strike:2');
     enemy.update(1);
-    expect(visibleFrame()).toBe(1);
+    expect(visible()).toBe('enemy:boss:strike:2');
     enemy.playStrike();
-    expect(visibleFrame()).toBe(2);
-    enemy.update(0.44);
-    expect(visibleFrame()).toBe(1);
+    expect(visible()).toBe('enemy:boss:strike:3');
+    // The strike event starts at contact, 39% into the boss action.
     enemy.update(0.3);
-    expect(visibleFrame()).toBe(0);
+    expect(visible()).toBe('enemy:boss:strike:4');
+    enemy.update(0.3);
+    expect(visible()).toBe('enemy:boss:strike:5');
+    enemy.update(0.1);
+    expect(visible()).not.toMatch(/strike/);
+    enemy.destroy({ children: true });
+  });
+
+  it('steps through the four generated hurt frames, then returns to idle', () => {
+    vi.spyOn(Assets, 'get').mockImplementation((() => Texture.EMPTY) as typeof Assets.get);
+    const enemy = new PixelEnemy('zombie', createBody());
+    const seen: string[] = [];
+    enemy.playHurt(0.4);
+    for (let frame = 0; frame < 30; frame++) {
+      enemy.update(1 / 60);
+      const label = enemy.children.find((child) => child.visible)!.label;
+      if (seen.at(-1) !== label) {
+        seen.push(label);
+      }
+    }
+    expect(seen).toEqual([
+      'enemy:zombie:hurt:0',
+      'enemy:zombie:hurt:1',
+      'enemy:zombie:hurt:2',
+      'enemy:zombie:hurt:3',
+      'Sprite',
+    ]);
     enemy.destroy({ children: true });
   });
 

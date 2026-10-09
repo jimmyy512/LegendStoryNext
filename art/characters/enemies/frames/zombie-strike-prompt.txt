@@ -1,0 +1,7 @@
+Use your image_gen tool exactly once, with ALL attached images as references, size 1536x1024. Then copy the generated PNG to ./zombie-strike-sheet.png in the current directory.
+
+Image prompt:
+A 2D game battle sprite sheet: 6 animation frames in a 3x2 grid (read left to right, top row first) of the SAME character shown in the first reference image (a hunched undead monk: cracked wooden mask with glowing teal eye, pale grey skin, long clawed hands, prayer-bead necklace, torn mossy green and white robes, grey trousers, straw sandals). Copy identity, outfit colours, proportions, pixel-art style and dark outline exactly from the references. The character faces LEFT in every frame.
+Layout follows the last reference (guide): six equal 512x512 cells; one full-body character per cell, all the same size (about 380 px tall), feet on that row's cyan line, the character and weapon fully inside its cell with margin; nothing crosses a cell border. Do NOT draw the guide lines, grid, numbers or any text.
+Background: flat solid magenta #FF00FF everywhere, no shadow, no floor, no motion lines, no effects.
+Animation, frame 1 -> 6: (1) ready stance exactly like the first reference, then a lunging claw swipe: (2) rears back, claws raised, (3) arches the back with both claws high, (4) lunging claw swipe to the left exactly like the second reference, (5) follow-through, claws low and forward, (6) staggering back to the hunched stance. Keep the back foot planted in the same spot in every frame.

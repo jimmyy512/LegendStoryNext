@@ -1,0 +1,132 @@
+{
+  "frames": {
+    "enemy:boss:strike:0": {
+      "frame": {
+        "x": 0,
+        "y": 0,
+        "w": 763,
+        "h": 420
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 763,
+        "h": 420
+      },
+      "sourceSize": {
+        "w": 763,
+        "h": 420
+      }
+    },
+    "enemy:boss:strike:1": {
+      "frame": {
+        "x": 763,
+        "y": 0,
+        "w": 763,
+        "h": 420
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 763,
+        "h": 420
+      },
+      "sourceSize": {
+        "w": 763,
+        "h": 420
+      }
+    },
+    "enemy:boss:strike:2": {
+      "frame": {
+        "x": 1526,
+        "y": 0,
+        "w": 763,
+        "h": 420
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 763,
+        "h": 420
+      },
+      "sourceSize": {
+        "w": 763,
+        "h": 420
+      }
+    },
+    "enemy:boss:strike:3": {
+      "frame": {
+        "x": 2289,
+        "y": 0,
+        "w": 763,
+        "h": 420
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 763,
+        "h": 420
+      },
+      "sourceSize": {
+        "w": 763,
+        "h": 420
+      }
+    },
+    "enemy:boss:strike:4": {
+      "frame": {
+        "x": 3052,
+        "y": 0,
+        "w": 763,
+        "h": 420
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 763,
+        "h": 420
+      },
+      "sourceSize": {
+        "w": 763,
+        "h": 420
+      }
+    },
+    "enemy:boss:strike:5": {
+      "frame": {
+        "x": 3815,
+        "y": 0,
+        "w": 763,
+        "h": 420
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 763,
+        "h": 420
+      },
+      "sourceSize": {
+        "w": 763,
+        "h": 420
+      }
+    }
+  },
+  "meta": {
+    "image": "boss-strike-v1.webp",
+    "scale": "0.363951",
+    "size": {
+      "w": 4578,
+      "h": 420
+    }
+  }
+}

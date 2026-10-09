@@ -156,17 +156,18 @@ def build(npc: str, action: str, sheet_path: str, cols: int) -> None:
                       'scale': round(scale, 4)}))
 
 
-parser = argparse.ArgumentParser()
-sub = parser.add_subparsers(dest='cmd', required=True)
-p_refs = sub.add_parser('refs')
-p_refs.add_argument('id')
-p_build = sub.add_parser('build')
-p_build.add_argument('id')
-p_build.add_argument('action', choices=['idle', 'gesture'])
-p_build.add_argument('sheet')
-p_build.add_argument('--cols', type=int, default=4)
-args = parser.parse_args()
-if args.cmd == 'refs':
-    refs(args.id)
-else:
-    build(args.id, args.action, args.sheet, args.cols)
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser()
+    sub = parser.add_subparsers(dest='cmd', required=True)
+    p_refs = sub.add_parser('refs')
+    p_refs.add_argument('id')
+    p_build = sub.add_parser('build')
+    p_build.add_argument('id')
+    p_build.add_argument('action', choices=['idle', 'gesture'])
+    p_build.add_argument('sheet')
+    p_build.add_argument('--cols', type=int, default=4)
+    args = parser.parse_args()
+    if args.cmd == 'refs':
+        refs(args.id)
+    else:
+        build(args.id, args.action, args.sheet, args.cols)
