@@ -18,6 +18,8 @@ const IDLE_FPS = 5;
 /** 四格手勢：起手、半途、完整手勢停留、收回。 */
 const GESTURE_TIMING = [0.1, 0.12, 0.55, 0.15];
 const STILL_GESTURE_TIME = 0.7;
+/** 轉身時水平縮放的速度（每秒），約 0.12 秒翻面。 */
+const TURN_SPEED = 16;
 
 interface Pose {
   root: Container;
@@ -38,6 +40,10 @@ export class PixelWorldActor extends Container {
   private time: number;
   private gestureTime = 0;
   private breathTime = 0;
+  /** 素材原本面向的方向：門派人物朝左，路邊人物朝右。 */
+  private readonly authoredFacing: 1 | -1;
+  private facing: 1 | -1;
+  readonly kind: 'npc' | 'enemy';
 
   constructor(
     kind: 'npc' | 'enemy',
@@ -46,6 +52,9 @@ export class PixelWorldActor extends Container {
     private readonly wounded = false,
   ) {
     super();
+    this.kind = kind;
+    this.authoredFacing = id.startsWith('chance-') ? 1 : -1;
+    this.facing = this.authoredFacing;
     const stillTexture = Assets.get<Texture>(`${kind}:${id}${wounded ? ':down' : ''}`);
     const gestureTexture = wounded
       ? stillTexture
@@ -117,7 +126,19 @@ export class PixelWorldActor extends Container {
       : STILL_GESTURE_TIME;
   }
 
+  /** 面向世界座標的水平方向；null 表示回到素材原本的朝向。 */
+  lookAt(dx: number | null): void {
+    if (dx === null) {
+      this.facing = this.authoredFacing;
+    } else if (Math.abs(dx) > 4) {
+      this.facing = dx > 0 ? 1 : -1;
+    }
+  }
+
   update(dt: number): void {
+    const flip = this.facing === this.authoredFacing ? 1 : -1;
+    this.scale.x +=
+      Math.sign(flip - this.scale.x) * Math.min(Math.abs(flip - this.scale.x), dt * TURN_SPEED);
     this.time += dt;
     this.breathTime += dt;
     if (this.time >= this.interval) {

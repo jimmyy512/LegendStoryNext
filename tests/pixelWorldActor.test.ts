@@ -67,6 +67,30 @@ describe('大地圖 NPC 待機', () => {
     expect(gesture.visible).toBe(false);
     actor.destroy({ children: true });
   });
+  it('玩家靠近時轉身面向玩家，離開後轉回素材朝向', () => {
+    vi.spyOn(Assets, 'get').mockImplementation((() => Texture.EMPTY) as typeof Assets.get);
+    const sect = new PixelWorldActor('npc', 'qing', 0.052);
+    const roadside = new PixelWorldActor('npc', 'chance-suyin', 0.052);
+    const settle = () => {
+      for (let frame = 0; frame < 30; frame++) {
+        sect.update(1 / 60);
+        roadside.update(1 / 60);
+      }
+    };
+    // 門派人物素材朝左、路邊人物朝右；玩家在右側時兩人都看向右邊。
+    sect.lookAt(40);
+    roadside.lookAt(40);
+    settle();
+    expect(sect.scale.x).toBe(-1);
+    expect(roadside.scale.x).toBe(1);
+    sect.lookAt(null);
+    roadside.lookAt(-40);
+    settle();
+    expect(sect.scale.x).toBe(1);
+    expect(roadside.scale.x).toBe(-1);
+    sect.destroy({ children: true });
+    roadside.destroy({ children: true });
+  });
   it('倒地傷者沒有站立呼吸的上下位移', () => {
     vi.spyOn(Assets, 'get').mockImplementation((() => Texture.EMPTY) as typeof Assets.get);
     const actor = new PixelWorldActor('enemy', 'bandit', 0.05, true);
