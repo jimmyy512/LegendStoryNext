@@ -13,6 +13,6 @@
 ## 文件規矩
 
 1. 一個事實只寫在一個地方，別處放連結。
-2. 現況變了就改寫原本那一段，不在後面補「某月某日補」的段落，也不留被推翻的舊說法。經過寫在 commit 訊息。
-3. 計畫做完，把結果寫進手冊或本檔，再封存計畫（`archive`）。封存的不再更新。
-4. 索引（`docs/PLAN.md`、`docs/DOCS.md`）由腳本產生，不手改。開工先讀 `docs/PLAN.md`、`docs/TODO.md`，規則見 `docs/CONVENTIONS.md`；改 frontmatter 後跑 `node ~/.claude/skills/docs-system/scripts/docs.mjs index --root .`，提示建議升級就 `status --apply`。
+2. 操作手冊在 `docs/guides/`，索引 `docs/DOCS.md` 由腳本產生，不手改（改完手冊跑 `node ~/.claude/skills/docs-system/scripts/docs.mjs index --root .`）。
+3. 現況變了就改寫原本那一段，不在後面補「某月某日補」的段落，也不留被推翻的舊說法。經過寫在 commit 訊息。
+4. 進度、待辦、計畫做到哪不寫在這個 repo，東方白記在自己的記憶裡。`docs/PLAN.md`、`docs/TODO.md` 不再維護，`docs/plans/` 留著當設計紀錄。
