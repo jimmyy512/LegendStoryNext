@@ -16,13 +16,13 @@ Pixi.js 滿版畫布，點擊移動與互動；戰鬥採自動普攻、預約招
 
 ## Capabilities and Constraints
 - 第一章包含松風林、全真派、後山、藏霧洞，一條主線、兩條支線、三種普通敵人與一名首領。
-- 劍法與拳掌各有兩招武學及一種內功；依 `docs/combat-design-v0.3.md` 的半即時規則實作。
+- 劍法與拳掌各有兩招武學及一種內功；依 `docs/plans/2026-09-chapter-one/combat-design-v0.3.md` 的半即時規則實作。
 - 角色視覺沿用已選定的分層像素與 Spine 骨架方向；換裝、兵器及技能素材須能持續擴充。
 - 遊戲在 `C:\git\LegendStoryNext`；一代 `LegendStory` 僅供內容及原稿參考。
 - 正式站為 `legend.jimmyy512.com`，本機開發與驗收不代表已部署。
 
 ## Evidence on Hand
-- `docs/game-design-v0.2.md`、`docs/combat-design-v0.3.md`、`docs/implementation-checklist.md`。
+- `docs/plans/2026-09-chapter-one/game-design-v0.2.md`、`docs/plans/2026-09-chapter-one/combat-design-v0.3.md`、`docs/plans/2026-09-chapter-one/plan.md`。
 - `art/characters/pixelHeroine/` 的分層像素角色、動作與換裝來源。
 - 第一章規則與存檔已有自動測試；完整視覺品質、一般玩家時長及遊玩趣味仍需實際試玩驗收。
 

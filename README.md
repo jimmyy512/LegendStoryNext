@@ -4,10 +4,10 @@
 
 ## 設計文件
 
-- [初步設計草案 v0.2](docs/game-design-v0.2.md)
-- [架構與擴充邊界](docs/architecture.md)
-- [半即時戰鬥與部位傷勢 v0.3](docs/combat-design-v0.3.md)
-- [交戰距離研究與實作](docs/combat-distance-research.md)
+- [初步設計草案 v0.2](docs/plans/2026-09-chapter-one/game-design-v0.2.md)
+- [架構與擴充邊界](docs/guides/architecture.md)
+- [半即時戰鬥與部位傷勢 v0.3](docs/plans/2026-09-chapter-one/combat-design-v0.3.md)
+- [交戰距離研究與實作](docs/plans/2026-09-chapter-one/combat-distance-research.md)
 - [第一章產品範圍](PRODUCT.md)
 
 ## 執行
@@ -48,7 +48,7 @@ npm run dev
 
 原版主角預覽： http://127.0.0.1:5173/?preview=legacy 。此頁保留舊角色素材供比較；正式探索與戰鬥現已使用分層像素女俠。
 
-持續工作項目記錄於 [第一章完成清單](docs/implementation-checklist.md)。
+持續工作項目記錄於 [第一章完成清單](docs/plans/2026-09-chapter-one/plan.md)。
 
 ## 開發檢查
 
